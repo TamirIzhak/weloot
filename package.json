@@ -1,0 +1,35 @@
+{
+  "name": "weloot",
+  "version": "0.0.0",
+  "private": true,
+  "description": "WeLoot — peer-to-peer physical video game exchange marketplace (Israel)",
+  "workspaces": [
+    "app",
+    "functions",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present && npm run format:check",
+    "test": "npm run test --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-typescript": "^7.29.7",
+    "@eslint/js": "^9.39.5",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.20.5",
+    "babel-jest": "^30.5.2",
+    "eslint": "^9.39.5",
+    "jest": "^30.5.2",
+    "prettier": "^3.6.2",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.2"
+  }
+}
