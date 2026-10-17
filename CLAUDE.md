@@ -6,7 +6,7 @@ You are the lead engineer building the WeLoot MVP: a peer-to-peer marketplace fo
 - **What order to build it in:** `docs/BACKLOG.md` (mirrored as GitHub Issues).
 - **Why things are the way they are:** `docs/adr/` (add a short ADR whenever you make a non-obvious technical decision).
 
-You work in the repository directly: you create branches, run commands, commit, push and open PRs yourself. You do **not** merge — the human reviews and merges.
+You work in the repository directly: you create branches, run commands, commit, push and open PRs yourself. **You own testing and code review**: the human does not review PRs line by line, so your self-review (§1 step 8) is the review. You do **not** merge unless the human has authorized it.
 
 ---
 
@@ -21,7 +21,9 @@ You work in the repository directly: you create branches, run commands, commit, 
 5. **Verify** (§4). Fix everything that fails.
 6. **Commit** in small logical commits (§2).
 7. **Push and open the PR** with `gh pr create` using `.github/pull_request_template.md` (§3). Link the issue with `Closes #<n>`.
-8. **Report back:** PR link, what was verified and how, what wasn't, and any follow-ups.
+8. **Self-review.** Once CI is green, review the full PR diff (`/code-review high <base>...<branch>`, or the same angles by hand: line-by-line bugs, removed behavior, callers/callees, reuse, simplification, efficiency, root cause vs. bandaid, and violations of this file). Fix every real finding, re-run §4, push. Then post a PR comment listing each finding and what happened to it (fixed / not a problem, and why / deferred, with the follow-up issue number). Repeat until a pass finds nothing worth fixing.
+9. **Verify on a clean checkout** for changes to tooling, dependencies or config: clone the branch into a temp folder, run `npm ci` and the §4 commands.
+10. **Report back:** PR link, what was verified and how, what wasn't, review findings and their outcomes, and any follow-ups.
 
 ### When to stop and ask instead of deciding
 - Anything listed as **[OPEN-x]** in PRD §14 — build behind config/an interface with a `TODO(OPEN-x)` and say so; never invent business rules, fees, legal flows or vendor behavior.
@@ -43,7 +45,7 @@ Breaking changes to data shape or functions API: add `!` and a `BREAKING CHANGE:
 PRs are **squash-merged**, so the PR title must also be a valid conventional commit.
 
 ### Versioning
-SemVer in `app/package.json` and `app.config.ts` (`version`). Stay on `0.y.z` until public launch: bump **minor** when a backlog milestone completes, **patch** for fixes. Only bump in the PR that completes a milestone, and say so in the PR. Android `versionCode` / iOS `buildNumber` are managed by EAS (`autoIncrement`).
+SemVer in `app/package.json` and `app/app.json` (`expo.version`). Stay on `0.y.z` until public launch: bump **minor** when a backlog milestone completes, **patch** for fixes. Only bump in the PR that completes a milestone, and say so in the PR. Android `versionCode` / iOS `buildNumber` are managed by EAS (`autoIncrement`).
 
 ---
 
@@ -93,7 +95,7 @@ Run from repo root:
 npm run typecheck     # tsc --noEmit across workspaces
 npm run lint          # eslint + prettier check
 npm test              # jest (app, shared) + functions/rules tests on Firebase emulators
-npm run i18n:check    # en/he key parity + no literal JSX strings
+npm run i18n:check    # en/he key parity + no literal JSX strings (added in #5; skip and say so until it exists)
 ```
 Plus, for the change at hand:
 - **Logic** (state machines, fee math, phone-number conversion, matching, status mapping): unit tests, including failure and edge cases.
@@ -138,13 +140,16 @@ Plus, for the change at hand:
 ## 6. Useful commands
 ```
 npm install                                   # root, installs all workspaces
-npx expo start --dev-client                   # run app (needs a dev build installed)
-npx expo start --web                          # quick UI/RTL check in browser (native modules mocked)
-eas build --profile development --platform android|ios
-firebase emulators:start                      # auth, firestore, functions, storage
-npm --workspace functions run deploy:dev      # deploy functions to weloot-dev
+npm run typecheck | npm run lint | npm test   # root, all workspaces (lint includes Prettier check)
+npm run format                                # Prettier write
+npm run web -w @weloot/app                    # quick UI/RTL check in browser (native modules mocked)
+npm run build -w @weloot/functions            # esbuild bundle to functions/lib (inlines @weloot/shared)
+cd app; npx expo install <pkg>                # add app deps at SDK-compatible versions
 gh issue view <n> · gh pr create · gh pr checks
 ```
+Planned (not yet available): `npx expo start --dev-client` and `eas build` (#3), `firebase emulators:start` and functions deploy scripts (#2).
+
+Lint with `npm run lint`, never `npx expo lint` — it upgrades ESLint to v10, which `eslint-config-expo` doesn't support yet.
 Keep this section accurate as scripts are added (update it in the PR that adds them).
 
 ---
