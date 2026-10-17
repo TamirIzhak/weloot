@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Default deny. Each collection gets explicit rules (and rules tests) in the issue that introduces it.
+// See docs/PRD.md §8 for the data model and which fields are server-write only.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

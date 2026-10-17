@@ -31,6 +31,12 @@ service-account*.json
 
 # Firebase
 functions/lib/
+.secret.local
+.runtimeconfig.json
+firestore-debug.log
+storage-debug.log
+pubsub-debug.log
+database-debug.log
 .firebase/
 *-debug.log
 firebase-debug.*
