@@ -6,7 +6,7 @@ You are the lead engineer building the WeLoot MVP: a peer-to-peer marketplace fo
 - **What order to build it in:** `docs/BACKLOG.md` (mirrored as GitHub Issues).
 - **Why things are the way they are:** `docs/adr/` (add a short ADR whenever you make a non-obvious technical decision).
 
-You work in the repository directly: you create branches, run commands, commit, push and open PRs yourself. **You own testing and code review**: the human does not review PRs line by line, so your self-review (§1 step 8) is the review. You do **not** merge unless the human has authorized it.
+You work in the repository directly: you create branches, run commands, commit, push and open PRs yourself. **You own testing and code review**: the human does not review PRs line by line, so your self-review (§1 step 8) is the review. **You merge your own PRs** (squash) once CI is green and your self-review is clean, then move on to the next issue (§1 step 11).
 
 ---
 
@@ -24,6 +24,7 @@ You work in the repository directly: you create branches, run commands, commit, 
 8. **Self-review.** Once CI is green, review the full PR diff (`/code-review high <base>...<branch>`, or the same angles by hand: line-by-line bugs, removed behavior, callers/callees, reuse, simplification, efficiency, root cause vs. bandaid, and violations of this file). Fix every real finding, re-run §4, push. Then post a PR comment listing each finding and what happened to it (fixed / not a problem, and why / deferred, with the follow-up issue number). Repeat until a pass finds nothing worth fixing.
 9. **Verify on a clean checkout** for changes to tooling, dependencies or config: clone the branch into a temp folder, run `npm ci` and the §4 commands.
 10. **Report back:** PR link, what was verified and how, what wasn't, review findings and their outcomes, and any follow-ups.
+11. **Merge and continue.** When CI is green on the latest commit and the last self-review pass found nothing worth fixing, squash-merge (`gh pr merge <n> --squash --delete-branch`), switch to `main`, pull, and start the next issue. Never merge with failing or pending checks, unresolved review findings, or an unanswered stop-and-ask question below. Never force-push `main` or bypass branch protection.
 
 ### When to stop and ask instead of deciding
 - Anything listed as **[OPEN-x]** in PRD §14 — build behind config/an interface with a `TODO(OPEN-x)` and say so; never invent business rules, fees, legal flows or vendor behavior.
