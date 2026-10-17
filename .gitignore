@@ -1,0 +1,49 @@
+# dependencies
+node_modules/
+
+# env — only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# Expo / Metro
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+
+# generated native folders (Continuous Native Generation)
+app/ios/
+app/android/
+.kotlin/
+
+# signing & credentials
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+
+# Firebase
+functions/lib/
+.firebase/
+*-debug.log
+firebase-debug.*
+ui-debug.log
+
+# build / test output
+*.tsbuildinfo
+coverage/
+
+# logs & OS
+npm-debug.*
+.DS_Store
+Thumbs.db
+
+# local Claude Code settings
+.claude/settings.local.json
