@@ -6,9 +6,12 @@ describe('shekelsToAgorot', () => {
     expect(shekelsToAgorot(200)).toBe(20000);
   });
 
-  it.each([-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])('rejects %p', (value) => {
-    expect(() => shekelsToAgorot(value)).toThrow(RangeError);
-  });
+  it.each([-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER])(
+    'rejects %p',
+    (value) => {
+      expect(() => shekelsToAgorot(value)).toThrow(RangeError);
+    },
+  );
 });
 
 describe('isAgorot', () => {

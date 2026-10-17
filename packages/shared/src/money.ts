@@ -3,12 +3,13 @@ export type Agorot = number;
 
 export const AGOROT_PER_SHEKEL = 100;
 
-/** Converts a whole-shekel amount entered by a user to agorot. Rejects fractions, negatives and non-finite values. */
+/** Converts a whole-shekel amount entered by a user to agorot. Rejects fractions, negatives, non-finite values and amounts too large to represent exactly. */
 export function shekelsToAgorot(shekels: number): Agorot {
-  if (!Number.isSafeInteger(shekels) || shekels < 0) {
+  const agorot = shekels * AGOROT_PER_SHEKEL;
+  if (!Number.isSafeInteger(shekels) || shekels < 0 || !Number.isSafeInteger(agorot)) {
     throw new RangeError(`Invalid shekel amount: ${shekels}`);
   }
-  return shekels * AGOROT_PER_SHEKEL;
+  return agorot;
 }
 
 export function isAgorot(value: unknown): value is Agorot {
