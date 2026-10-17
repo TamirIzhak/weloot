@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  // No Node types: this code also runs inside the React Native app.
+  "include": ["src"]
+}

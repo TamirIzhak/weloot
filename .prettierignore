@@ -1,0 +1,11 @@
+node_modules
+package-lock.json
+**/lib
+**/dist
+**/.expo
+app/expo-env.d.ts
+app/assets
+# Product docs are hand-formatted
+docs
+CLAUDE.md
+app/AGENTS.md
