@@ -1,4 +1,4 @@
-import { defineSecret } from 'firebase-functions/params';
+import { defineSecret, defineString } from 'firebase-functions/params';
 
 // Every server credential WeLoot uses, stored in Google Secret Manager (PRD §13).
 // A secret only has to exist in a project once a deployed function binds it via `secrets: [...]`.
@@ -20,8 +20,9 @@ export const TRANZILA_TERMINAL = defineSecret('TRANZILA_TERMINAL');
 export const TRANZILA_API_KEY = defineSecret('TRANZILA_API_KEY');
 export const TRANZILA_NOTIFY_SECRET = defineSecret('TRANZILA_NOTIFY_SECRET');
 
-// DONE smart lockers (#31, OPEN-7)
-export const DONE_BASE_URL = defineSecret('DONE_BASE_URL');
+// DONE smart lockers (#31, OPEN-7). The base URL is not a credential, so it is a plain parameter
+// (set per project in functions/.env.<projectId>), e.g. https://l2l-api-test.cleanbox.co.il/ for dev.
+export const DONE_BASE_URL = defineString('DONE_BASE_URL');
 export const DONE_USERNAME = defineSecret('DONE_USERNAME');
 export const DONE_PASSWORD = defineSecret('DONE_PASSWORD');
 export const DONE_WEBHOOK_SECRET = defineSecret('DONE_WEBHOOK_SECRET');

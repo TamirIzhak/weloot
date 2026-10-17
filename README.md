@@ -65,15 +65,17 @@ The app bundle is public: only non-secret `EXPO_PUBLIC_*` values go in `app/.env
 
 Server credentials live in Google Secret Manager and are declared in [`functions/src/secrets.ts`](functions/src/secrets.ts). A secret only has to be set in a project once a deployed function binds it.
 
-| Secret                                            | Used by                     | Issue |
-| ------------------------------------------------- | --------------------------- | ----- |
-| `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`        | IGDB catalog sync           | #12   |
-| `ALGOLIA_ADMIN_KEY`                               | Algolia index writes        | #13   |
-| `UPC_LOOKUP_API_KEY`                              | Barcode lookup fallback     | #14   |
-| `TRANZILA_TERMINAL`, `TRANZILA_API_KEY`           | Payments                    | #28   |
-| `TRANZILA_NOTIFY_SECRET`                          | Verifying payment callbacks | #28   |
-| `DONE_BASE_URL`, `DONE_USERNAME`, `DONE_PASSWORD` | DONE locker API             | #31   |
-| `DONE_WEBHOOK_SECRET`                             | Verifying locker webhooks   | #33   |
+| Secret                                     | Used by                     | Issue |
+| ------------------------------------------ | --------------------------- | ----- |
+| `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` | IGDB catalog sync           | #12   |
+| `ALGOLIA_ADMIN_KEY`                        | Algolia index writes        | #13   |
+| `UPC_LOOKUP_API_KEY`                       | Barcode lookup fallback     | #14   |
+| `TRANZILA_TERMINAL`, `TRANZILA_API_KEY`    | Payments                    | #28   |
+| `TRANZILA_NOTIFY_SECRET`                   | Verifying payment callbacks | #28   |
+| `DONE_USERNAME`, `DONE_PASSWORD`           | DONE locker API             | #31   |
+| `DONE_WEBHOOK_SECRET`                      | Verifying locker webhooks   | #33   |
+
+Non-secret server config (for example `DONE_BASE_URL`) is a `defineString` parameter, set per project in `functions/.env.<projectId>`.
 
 - **Set in a project:** `npx firebase functions:secrets:set TWITCH_CLIENT_ID -P dev`
 - **Emulator:** put `NAME=value` lines in `functions/.secret.local` (git-ignored)
