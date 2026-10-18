@@ -61,7 +61,7 @@ Add app dependencies with `npx expo install <pkg>` from `app/` so versions match
 
 Setup status (as of 2026-10-18): all three projects exist but have no Firestore database or Storage bucket yet. Creating those needs the **Blaze** (pay-as-you-go) plan, which Cloud Functions also requires.
 
-Deploys always name the alias explicitly, e.g. `npx firebase deploy -P dev`, so a bare command can only reach `demo-weloot`. Run `npx firebase login` once per machine.
+Always name the alias explicitly, e.g. `npx firebase deploy -P dev`. Don't run `npx firebase use <alias>`: it saves that project as this folder's active project, and every later command without `-P`, including a bare `deploy`, would then target it. Check with `npx firebase use` (it should print `demo-weloot`), and reset with `npx firebase use --clear`. Run `npx firebase login` once per machine.
 
 ## Secrets
 
