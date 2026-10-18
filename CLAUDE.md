@@ -146,9 +146,14 @@ npm run format                                # Prettier write
 npm run web -w @weloot/app                    # quick UI/RTL check in browser (native modules mocked)
 npm run build -w @weloot/functions            # esbuild bundle to functions/lib (inlines @weloot/shared)
 cd app; npx expo install <pkg>                # add app deps at SDK-compatible versions
+npm run emulators                             # build functions + start all emulators (project demo-weloot; needs Java 21)
+npm test -w @weloot/rules-tests               # rules tests; starts firestore/storage emulators itself
+npx firebase deploy -P <alias>                # only once real projects exist (README "Firebase projects")
 gh issue view <n> · gh pr create · gh pr checks
 ```
-Planned (not yet available): `npx expo start --dev-client` and `eas build` (#3), `firebase emulators:start` and functions deploy scripts (#2).
+Planned (not yet available): `npx expo start --dev-client` and `eas build` (#3).
+
+Every Firestore collection or Storage path you open up gets tests in `rules-tests/src/` for each allowed **and** denied path.
 
 Lint with `npm run lint`, never `npx expo lint` — it upgrades ESLint to v10, which `eslint-config-expo` doesn't support yet.
 Keep this section accurate as scripts are added (update it in the PR that adds them).

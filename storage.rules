@@ -1,0 +1,10 @@
+rules_version = '2';
+
+// Default deny. Listing photo rules (owner-only writes, images only, size limit) arrive in #15.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
