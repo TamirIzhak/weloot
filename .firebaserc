@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "demo-weloot"
+    "default": "demo-weloot",
+    "dev": "development-1c64a",
+    "staging": "staging-d0c10",
+    "prod": "weloot-c5fb2"
   }
 }
