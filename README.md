@@ -59,7 +59,7 @@ Add app dependencies with `npx expo install <pkg>` from `app/` so versions match
 
 **Location: `me-west1` (Tel Aviv) for everything** ([ADR 0001](docs/adr/0001-region-me-west1.md)). Firestore and Storage locations can't be changed after creation, so when creating them in a project, always choose `me-west1`. Functions get their region from `setGlobalOptions` in `functions/src/index.ts`.
 
-Setup status (as of 2026-10-18): all three projects exist but have no Firestore database or Storage bucket yet. Creating those needs the **Blaze** (pay-as-you-go) plan, which Cloud Functions also requires.
+Setup status (as of 2026-10-18): all three projects exist but have no Firestore database or Storage bucket yet. Firestore can be created on the free Spark plan. A Storage bucket and deployed Cloud Functions need the **Blaze** (pay-as-you-go) plan.
 
 Always name the alias explicitly, e.g. `npx firebase deploy -P dev`. Don't run `npx firebase use <alias>`: it saves that project as this folder's active project, and every later command without `-P`, including a bare `deploy`, would then target it. Check with `npx firebase use` (it should print `demo-weloot`), and reset with `npx firebase use --clear`. Run `npx firebase login` once per machine.
 
