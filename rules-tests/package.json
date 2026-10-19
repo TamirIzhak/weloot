@@ -6,7 +6,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "firebase emulators:exec --config ../firebase.json --only firestore,storage --project demo-weloot \"jest\""
+    "test": "firebase emulators:exec --config ../firebase.rules-tests.json --only firestore,storage --project demo-weloot \"jest\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^6.0.0",
