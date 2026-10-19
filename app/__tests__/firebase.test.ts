@@ -80,6 +80,25 @@ describe('initFirebase', () => {
     expect(firestore.connectFirestoreEmulator).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps going when a service is already connected after a JS reload (#52)', () => {
+    process.env.EXPO_PUBLIC_USE_EMULATORS = 'true';
+    const { lib, firestore, functions } = load();
+    firestore.connectFirestoreEmulator.mockImplementation(() => {
+      throw new Error(
+        '[firestore/unknown] Firestore has already been started and its settings can no longer be changed.',
+      );
+    });
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    expect(() => lib.initFirebase()).not.toThrow();
+    expect(lib.initFirebase()).toBe('192.168.1.10');
+    expect(functions.getFunctions).toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('firestore emulator connection skipped'),
+    );
+    warn.mockRestore();
+  });
+
   it('uses the real project when not opted in', () => {
     delete process.env.EXPO_PUBLIC_USE_EMULATORS;
     const { lib, firestore } = load();

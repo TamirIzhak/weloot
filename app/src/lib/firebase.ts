@@ -40,15 +40,39 @@ export function initFirebase(): string | null {
 
   const host = emulatorHost(Constants.expoConfig?.hostUri);
   if (!host) {
-    console.warn('[firebase] EXPO_PUBLIC_USE_EMULATORS is set but the dev server host is unknown; using the real project.');
+    console.warn(
+      '[firebase] EXPO_PUBLIC_USE_EMULATORS is set but the dev server host is unknown; using the real project.',
+    );
     return null;
   }
 
   const app = getApp();
-  connectAuthEmulator(getAuth(app), `http://${host}:${EMULATOR_PORTS.auth}`);
-  connectFirestoreEmulator(getFirestore(), host, EMULATOR_PORTS.firestore);
-  connectFunctionsEmulator(getFunctions(app, FIREBASE_REGION), host, EMULATOR_PORTS.functions);
-  connectStorageEmulator(getStorage(app), host, EMULATOR_PORTS.storage);
+  connectSafely('auth', () =>
+    connectAuthEmulator(getAuth(app), `http://${host}:${EMULATOR_PORTS.auth}`),
+  );
+  connectSafely('firestore', () =>
+    connectFirestoreEmulator(getFirestore(), host, EMULATOR_PORTS.firestore),
+  );
+  connectSafely('functions', () =>
+    connectFunctionsEmulator(getFunctions(app, FIREBASE_REGION), host, EMULATOR_PORTS.functions),
+  );
+  connectSafely('storage', () =>
+    connectStorageEmulator(getStorage(app), host, EMULATOR_PORTS.storage),
+  );
   emulatorHostInUse = host;
   return host;
+}
+
+/**
+ * Runs one emulator connection without ever throwing. A JS reload (shake → Reload) restarts this module but
+ * keeps the native Firebase instances, which are already connected and started, so connecting again can throw.
+ * That must not stop the app from rendering (issue #52); anything unexpected is logged instead.
+ */
+function connectSafely(service: string, connect: () => void): void {
+  try {
+    connect();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[firebase] ${service} emulator connection skipped: ${message}`);
+  }
 }
