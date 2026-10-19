@@ -5,8 +5,7 @@ import { connectFunctionsEmulator, getFunctions } from '@react-native-firebase/f
 import { connectStorageEmulator, getStorage } from '@react-native-firebase/storage';
 import Constants from 'expo-constants';
 
-/** Region all callable functions are deployed to (ADR 0001). */
-export const FUNCTIONS_REGION = 'me-west1';
+import { FIREBASE_REGION } from '@weloot/shared';
 
 /** Ports from firebase.json "emulators". */
 const EMULATOR_PORTS = { auth: 9099, firestore: 8080, functions: 5001, storage: 9199 } as const;
@@ -48,7 +47,7 @@ export function initFirebase(): string | null {
   const app = getApp();
   connectAuthEmulator(getAuth(app), `http://${host}:${EMULATOR_PORTS.auth}`);
   connectFirestoreEmulator(getFirestore(), host, EMULATOR_PORTS.firestore);
-  connectFunctionsEmulator(getFunctions(app, FUNCTIONS_REGION), host, EMULATOR_PORTS.functions);
+  connectFunctionsEmulator(getFunctions(app, FIREBASE_REGION), host, EMULATOR_PORTS.functions);
   connectStorageEmulator(getStorage(app), host, EMULATOR_PORTS.storage);
   emulatorHostInUse = host;
   return host;
