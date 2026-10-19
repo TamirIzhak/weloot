@@ -7,5 +7,11 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+
+    // App-wide settings the app reads (fees, limits, app status — PRD §8). Edited by ops in the console only.
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

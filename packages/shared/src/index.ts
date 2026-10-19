@@ -2,4 +2,5 @@
 
 export const APP_NAME = 'WeLoot';
 
+export * from './firebase';
 export * from './money';
