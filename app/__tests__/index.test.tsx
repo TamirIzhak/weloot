@@ -1,8 +1,11 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import Index from '@/app/index';
 
 const mockGetDoc = jest.fn();
+const mockPush = jest.fn();
+
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
 
 jest.mock('@react-native-firebase/firestore', () => ({
   getFirestore: jest.fn(() => ({})),
@@ -32,5 +35,12 @@ describe('Index', () => {
     mockGetDoc.mockRejectedValue(new Error('[firestore/permission-denied] denied'));
     await render(<Index />);
     expect(await screen.findByText('Firestore: [firestore/permission-denied] denied')).toBeTruthy();
+  });
+
+  it('links to the component kitchen sink in development', async () => {
+    mockGetDoc.mockResolvedValue({ exists: () => false });
+    await render(<Index />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Component kitchen sink' }));
+    expect(mockPush).toHaveBeenCalledWith('/dev/kitchen-sink');
   });
 });

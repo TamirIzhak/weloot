@@ -1,6 +1,7 @@
 import { doc, getDoc, getFirestore } from '@react-native-firebase/firestore';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+
+import { Text } from '@/components';
 
 type Status =
   { kind: 'checking' } | { kind: 'ok'; source: string } | { kind: 'error'; message: string };
@@ -39,13 +40,13 @@ export function FirebaseStatus({ emulatorHost }: { emulatorHost: string | null }
         : `Firestore: ${status.message}`;
 
   return (
-    <Text testID="firebase-status" style={[styles.text, status.kind === 'error' && styles.error]}>
+    <Text
+      testID="firebase-status"
+      variant="caption"
+      tone={status.kind === 'error' ? 'danger' : 'secondary'}
+      className="mt-4 text-center"
+    >
       {text}
     </Text>
   );
 }
-
-const styles = StyleSheet.create({
-  text: { color: '#B3B3B3', fontSize: 13, marginTop: 16 },
-  error: { color: '#EF4444' },
-});
