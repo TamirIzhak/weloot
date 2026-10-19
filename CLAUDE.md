@@ -105,6 +105,13 @@ Plus, for the change at hand:
 - **UI:** run it. Check both languages and the loading / empty / error states. Use Expo web or a simulator and capture screenshots when you can.
 - CI (GitHub Actions) is green on the PR.
 
+Testing notes (learned the hard way):
+- React Native Testing Library v14: `render` **and `fireEvent`** are async — always `await` them, or a pending press leaks into the next test.
+- Reanimated/Worklets in Jest work through `resolver: react-native-reanimated/jest/resolver.js` (app `package.json`); don't mock them by hand.
+- Restore fake timers in `afterEach`, not at the end of a test that might fail first.
+- Rules tests use their own emulator ports (`firebase.rules-tests.json`), so they run while `npm run emulators` is up.
+- Do branch work in a separate `git worktree` while the user tests on their phone; switching branches under a running Metro breaks the app until Metro restarts with `--clear`.
+
 ---
 
 ## 5. Code rules
