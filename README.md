@@ -79,7 +79,7 @@ Server credentials live in Google Secret Manager and are declared in [`functions
 | `DONE_USERNAME`, `DONE_PASSWORD`           | DONE locker API             | #31   |
 | `DONE_WEBHOOK_SECRET`                      | Verifying locker webhooks   | #33   |
 
-Non-secret server config (for example `DONE_BASE_URL`) is a `defineString` parameter, set per project in `functions/.env.<projectId>`.
+Tranzila and DONE secrets are Phase 2 (not used in the MVP). Non-secret server config (for example `DONE_BASE_URL`) is a `defineString` parameter, set per project in `functions/.env.<projectId>`.
 
 - **Set in a project:** `npx firebase functions:secrets:set TWITCH_CLIENT_ID -P dev`
 - **Emulator:** put `NAME=value` lines in `functions/.secret.local` (git-ignored)

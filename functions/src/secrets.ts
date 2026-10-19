@@ -15,12 +15,12 @@ export const ALGOLIA_ADMIN_KEY = defineSecret('ALGOLIA_ADMIN_KEY');
 // UPC/EAN barcode lookup provider (#14, OPEN-6)
 export const UPC_LOOKUP_API_KEY = defineSecret('UPC_LOOKUP_API_KEY');
 
-// Tranzila payments (#28, OPEN-2)
+// Phase 2 (not used in the MVP, PRD Appendix A): Tranzila payments (#28, OPEN-2)
 export const TRANZILA_TERMINAL = defineSecret('TRANZILA_TERMINAL');
 export const TRANZILA_API_KEY = defineSecret('TRANZILA_API_KEY');
 export const TRANZILA_NOTIFY_SECRET = defineSecret('TRANZILA_NOTIFY_SECRET');
 
-// DONE smart lockers (#31, OPEN-7). The base URL is not a credential, so it is a plain parameter
+// Phase 2: DONE smart lockers (#31, OPEN-7). The base URL is not a credential, so it is a plain parameter
 // (set per project in functions/.env.<projectId>), e.g. https://l2l-api-test.cleanbox.co.il/ for dev.
 export const DONE_BASE_URL = defineString('DONE_BASE_URL');
 export const DONE_USERNAME = defineSecret('DONE_USERNAME');

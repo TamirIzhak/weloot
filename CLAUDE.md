@@ -1,6 +1,6 @@
 # WeLoot — Engineering Agent Instructions
 
-You are the lead engineer building the WeLoot MVP: a peer-to-peer marketplace for trading and selling physical console games in Israel. Expo (React Native) + Firebase, with IGDB for the catalog, Algolia for search, Tranzila for payments and DONE smart lockers for delivery.
+You are the lead engineer building the WeLoot MVP: a peer-to-peer app for swapping (and selling) physical console games in Israel. Expo (React Native) + Firebase, with IGDB for the catalog and Algolia for search. Users agree deals in the app and swap in person; in-app payments (Tranzila) and smart lockers (DONE) are **Phase 2** (PRD Appendix A) and must not be built in the MVP.
 
 - **What to build:** `docs/PRD.md`. It is the source of truth. If this file and the PRD disagree on product behavior, the PRD wins.
 - **What order to build it in:** `docs/BACKLOG.md` (mirrored as GitHub Issues).
@@ -37,7 +37,7 @@ You work in the repository directly: you create branches, run commands, commit, 
 
 ## 2. Commits — Conventional Commits
 
-`<type>(<scope>): <imperative summary>` — types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `ci`, `perf`, `style`, `build`. Scopes match feature folders: `auth`, `profile`, `listings`, `catalog`, `search`, `matching`, `offers`, `chat`, `payments`, `lockers`, `notifications`, `i18n`, `ui`, `rules`, `functions`, `ci`, `deps`.
+`<type>(<scope>): <imperative summary>` — types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `ci`, `perf`, `style`, `build`. Scopes match feature folders and areas: `auth`, `profile`, `listings`, `catalog`, `search`, `alerts`, `matching`, `home`, `offers`, `chat`, `deals`, `inbox`, `safety`, `notifications`, `i18n`, `ui`, `app`, `shared`, `rules`, `functions`, `repo`, `ci`, `deps` (Phase 2: `payments`, `lockers`).
 
 Examples: `feat(auth): add phone OTP verification screen` · `fix(ui): keep tab bar visible when list is shorter than screen` · `test(rules): cover transaction participant access`.
 
@@ -99,7 +99,7 @@ npm test              # jest (app, shared) + functions/rules tests on Firebase e
 npm run i18n:check    # en/he key parity + no literal JSX strings (added in #5; skip and say so until it exists)
 ```
 Plus, for the change at hand:
-- **Logic** (state machines, fee math, phone-number conversion, matching, status mapping): unit tests, including failure and edge cases.
+- **Logic** (state machines, money math, phone-number conversion, matching, alert rate limits): unit tests, including failure and edge cases.
 - **Security rules:** a rules test for every allowed *and* denied path you added.
 - **Cloud Functions / webhooks:** tests with mocked providers, including duplicate and out-of-order events (idempotency).
 - **UI:** run it. Check both languages and the loading / empty / error states. Use Expo web or a simulator and capture screenshots when you can.
@@ -121,8 +121,8 @@ Plus, for the change at hand:
 
 **Secrets & trust boundaries**
 - The app bundle is public. Only `EXPO_PUBLIC_*` values go in the app's `.env`, and they must be non-secret (Firebase client config, Algolia *search-only* key, support contacts).
-- Twitch/IGDB, DONE, Tranzila, Algolia admin and UPC keys exist **only** in Cloud Functions via `defineSecret`. The app never calls those APIs directly.
-- Never trust the client for money, prices, fees, statuses or who-pays-whom. Functions recompute from Firestore data and the current `config/fees`.
+- Twitch/IGDB, Algolia admin and UPC keys (and, in Phase 2, Tranzila and DONE) exist **only** in Cloud Functions via `defineSecret`. The app never calls those APIs directly.
+- Never trust the client for statuses, amounts or who-pays-whom. Offer, deal and listing status changes go through Cloud Functions that validate against Firestore data.
 - Money is integer agorot. Use the shared `money` helpers; no floats, no `toFixed` math.
 - Webhooks/callbacks: verify authenticity, dedupe by provider ID, log to `events`, then apply via the state machine. Return 2xx quickly.
 
@@ -162,5 +162,5 @@ Keep this section accurate as scripts are added (update it in the PR that adds t
 
 ## 7. Third-party notes (details in PRD §5)
 - **IGDB:** client-credentials token cached server-side; 4 req/s limit; barcodes are *not* in IGDB — use our `barcodes` table + UPC provider fallback.
-- **DONE lockers:** test base URL `https://l2l-api-test.cleanbox.co.il/` (Swagger at `/swagger/index.html`). Status codes: 3 New, 0 in source locker, 1 picked by driver, 4 in target locker, 5 collected by receiver, 6 cancelled (auto after 7 days). Phones as `05XXXXXXXX`. Test stations 5100/5103. Status delivery (webhook vs polling) is unconfirmed — keep it behind `DoneStatusSource`.
-- **Tranzila:** hosted payment page in a WebView; only the server-to-server notify callback marks a payment paid. Hold/release strategy is behind `PaymentProvider` and is [OPEN-2]. Use the test terminal only until OPEN-2 is resolved.
+- **Engagement:** real signals only (PRD §1.2). Never fake listings, users, counts or activity.
+- **Phase 2 (do not build yet):** DONE lockers and Tranzila payments. Research and design are in PRD Appendix A.
