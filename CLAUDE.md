@@ -151,7 +151,7 @@ npm test -w @weloot/rules-tests               # rules tests; starts firestore/st
 npx firebase <cmd> -P dev|staging|prod        # real projects; ALWAYS pass -P. Never `firebase use <alias>` (it persists)
 gh issue view <n> · gh pr create · gh pr checks
 ```
-Planned (not yet available): `npx expo start --dev-client` and `eas build` (#3).
+App on a phone: README "Running the app on your phone" (EAS dev build + `npm run start -w @weloot/app` + emulators). Use `npx eas-cli@latest <cmd>` from `app/`; EAS builds upload only committed files.
 
 Every Firestore collection or Storage path you open up gets tests in `rules-tests/src/` for each allowed **and** denied path.
 
