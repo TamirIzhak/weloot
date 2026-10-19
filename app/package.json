@@ -13,6 +13,7 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
+    "@expo-google-fonts/rubik": "^0.4.2",
     "@expo/ui": "~58.0.20",
     "@react-native-firebase/analytics": "^26.4.0",
     "@react-native-firebase/app": "^26.4.0",
@@ -28,7 +29,7 @@
     "expo-constants": "~58.0.12",
     "expo-dev-client": "~58.0.14",
     "expo-device": "~58.0.5",
-    "expo-font": "~58.0.8",
+    "expo-font": "~58.0.9",
     "expo-glass-effect": "~58.0.4",
     "expo-image": "~58.0.15",
     "expo-linking": "~58.0.13",
@@ -38,6 +39,7 @@
     "expo-symbols": "~58.0.4",
     "expo-system-ui": "~58.0.6",
     "expo-web-browser": "~58.0.6",
+    "nativewind": "^4.2.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.0",
@@ -46,9 +48,11 @@
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
     "react-native-web": "~0.21.4",
-    "react-native-worklets": "0.13.0"
+    "react-native-worklets": "0.13.0",
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.29.7",
     "@testing-library/react-native": "^14.1.0",
     "@types/jest": "30.0.0",
     "@types/react": "~19.3.0",
@@ -60,6 +64,7 @@
     "typescript": "~6.0.3"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "resolver": "react-native-reanimated/jest/resolver.js"
   }
 }
