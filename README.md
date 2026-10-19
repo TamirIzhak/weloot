@@ -24,7 +24,7 @@ Peer-to-peer marketplace for trading and selling physical console games in Israe
 - **Java 21** for the Firestore/Storage emulators (e.g. `winget install Microsoft.OpenJDK.21`)
 - Git, GitHub CLI (`gh`)
 - The Firebase CLI is a dev dependency (`npx firebase …`); no global install needed
-- Later: EAS CLI and an Android emulator / iOS simulator (#3)
+- An Expo account (`npx eas-cli@latest login`) and an Android phone for development builds. iOS builds need an Apple developer account (not set up yet)
 
 ## Setup
 
@@ -47,6 +47,33 @@ cp .env.example app/.env   # fill in values; everything in this file is public
 | `npm run build -w @weloot/functions` | Bundle functions to `functions/lib`                                                                  |
 
 Add app dependencies with `npx expo install <pkg>` from `app/` so versions match the Expo SDK.
+
+## Running the app on your phone
+
+The app uses native Firebase, so it runs in a **development build** (our own app, `WeLoot Dev`), not Expo Go.
+
+1. **Install the dev build.** Do this once, and again whenever native dependencies change: from `app/`, run `npx eas-cli@latest build --profile development --platform android`, open the link EAS prints on the phone and install the APK.
+2. **Start the emulators:** `npm run emulators`. Allow Java and Node through the Windows firewall on _private_ networks when asked.
+3. **Start Metro:** copy `.env.example` to `app/.env` once (it keeps `EXPO_PUBLIC_USE_EMULATORS=true`), then run `npm run start -w @weloot/app`.
+4. **Open WeLoot Dev** on the phone (same Wi-Fi as the PC) and scan the QR code. When everything is connected, the home screen shows `Firestore: OK (emulator @ <pc-ip>)`.
+
+Build variants (`APP_VARIANT` in `app/eas.json`):
+
+| Profile       | App ID                   | Firebase project |
+| ------------- | ------------------------ | ---------------- |
+| `development` | `com.weloot.app.dev`     | `dev`            |
+| `preview`     | `com.weloot.app.staging` | `staging`        |
+| `production`  | `com.weloot.app`         | `prod`           |
+
+### Firebase config files
+
+Each variant's `google-services.json` is stored in EAS as the file variable `GOOGLE_SERVICES_JSON`, in the matching EAS environment, and never in git. Currently set: **development** (`com.weloot.app.dev`, project `development-1c64a`).
+
+To add one:
+
+1. `npx firebase apps:create ANDROID "<name>" --package-name <app id> -P <alias>`
+2. `npx firebase apps:sdkconfig ANDROID <firebase app id> -P <alias> -o <temp dir>/google-services.json`
+3. `npx eas-cli@latest env:create --name GOOGLE_SERVICES_JSON --type file --value <temp dir>/google-services.json --environment <env> --visibility sensitive`
 
 ## Firebase projects
 
