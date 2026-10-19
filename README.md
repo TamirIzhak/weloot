@@ -50,14 +50,18 @@ Add app dependencies with `npx expo install <pkg>` from `app/` so versions match
 
 ## Firebase projects
 
-| Alias     | Project ID    | Use                                                               |
-| --------- | ------------- | ----------------------------------------------------------------- |
-| `default` | `demo-weloot` | Emulators only. `demo-` projects never touch real cloud resources |
-| `dev`     | _not created_ | Development                                                       |
-| `staging` | _not created_ | EAS `preview` builds                                              |
-| `prod`    | _not created_ | Production                                                        |
+| Alias     | Project ID          | Console name | Use                                                               |
+| --------- | ------------------- | ------------ | ----------------------------------------------------------------- |
+| `default` | `demo-weloot`       | —            | Emulators only. `demo-` projects never touch real cloud resources |
+| `dev`     | `development-1c64a` | Development  | Development                                                       |
+| `staging` | `staging-d0c10`     | Staging      | EAS `preview` builds                                              |
+| `prod`    | `weloot-c5fb2`      | WeLoot       | Production                                                        |
 
-The real projects need the owner's Google account. To add one: create it in the Firebase console (region `europe-west1` for Firestore/Functions, PRD §2), run `npx firebase login`, then `npx firebase use --add` and pick the alias name above. Deploys always name the alias explicitly: `npx firebase deploy -P dev`.
+**Location: `me-west1` (Tel Aviv) for everything** ([ADR 0001](docs/adr/0001-region-me-west1.md)). Firestore and Storage locations can't be changed after creation, so when creating them in a project, always choose `me-west1`. Functions get their region from `setGlobalOptions` in `functions/src/index.ts`.
+
+Setup status (as of 2026-10-18): `dev` has its `(default)` Firestore database in `me-west1` (Standard edition, deny-all rules). `staging` and `prod` have no Firestore database yet, and no project has a Storage bucket. Firestore can be created on the free Spark plan. A Storage bucket and deployed Cloud Functions need the **Blaze** (pay-as-you-go) plan.
+
+Always name the alias explicitly, e.g. `npx firebase deploy -P dev`. Don't run `npx firebase use <alias>`: it saves that project as this folder's active project, and every later command without `-P`, including a bare `deploy`, would then target it. Check with `npx firebase use` (it should print `demo-weloot`), and reset with `npx firebase use --clear`. Run `npx firebase login` once per machine.
 
 ## Secrets
 

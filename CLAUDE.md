@@ -148,7 +148,7 @@ npm run build -w @weloot/functions            # esbuild bundle to functions/lib 
 cd app; npx expo install <pkg>                # add app deps at SDK-compatible versions
 npm run emulators                             # build functions + start all emulators (project demo-weloot; needs Java 21)
 npm test -w @weloot/rules-tests               # rules tests; starts firestore/storage emulators itself
-npx firebase deploy -P <alias>                # only once real projects exist (README "Firebase projects")
+npx firebase <cmd> -P dev|staging|prod        # real projects; ALWAYS pass -P. Never `firebase use <alias>` (it persists)
 gh issue view <n> · gh pr create · gh pr checks
 ```
 Planned (not yet available): `npx expo start --dev-client` and `eas build` (#3).

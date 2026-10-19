@@ -37,7 +37,7 @@ These are decisions, not suggestions. Changing one requires the user's approval.
 | Client state | **Zustand** for UI/session state; **TanStack Query** for request caching; Firestore `onSnapshot` listeners for realtime data (chat, transaction status) | No Redux |
 | Validation | **zod** at every boundary (forms, Cloud Function inputs, third-party responses) | |
 | i18n | `i18next` + `react-i18next` + `expo-localization` | §3.5 for RTL mechanics |
-| Backend | **Firebase**: Auth, Firestore, Storage, Cloud Functions (2nd gen, Node 20+, TypeScript), Cloud Scheduler, FCM, Analytics, Remote Config | Region: `europe-west1` (closest to IL with full feature support) — verify Firestore location before creating projects |
+| Backend | **Firebase**: Auth, Firestore, Storage, Cloud Functions (2nd gen, Node 22, TypeScript), Cloud Scheduler, FCM, Analytics, Remote Config | Region: **`me-west1` (Tel Aviv)** for Firestore, Storage and Functions in every project (ADR 0001) |
 | Firebase SDK | `@react-native-firebase/*` | |
 | Search | **Algolia** (game catalog index + listings index), synced from Firestore by Cloud Functions | Firestore alone can't do fuzzy search |
 | Camera / barcode | `expo-camera` (`CameraView` with EAN-13/UPC-A) + `expo-image-picker` + `expo-image-manipulator` | |
@@ -47,7 +47,7 @@ These are decisions, not suggestions. Changing one requires the user's approval.
 | Lockers | DONE Locker2Locker API, **server-side only** | §5.2 |
 | Testing | Jest + React Native Testing Library; Firebase Emulator Suite for rules & functions; `@firebase/rules-unit-testing` | |
 | CI | GitHub Actions: install → typecheck → lint → test (app + functions) on every PR | |
-| Envs | Three Firebase projects: `weloot-dev`, `weloot-staging`, `weloot-prod`. DONE test env and Tranzila test terminal for dev/staging | |
+| Envs | Three Firebase projects: `development-1c64a` (alias `dev`), `staging-d0c10` (`staging`), `weloot-c5fb2` (`prod`); emulators use `demo-weloot`. DONE test env and Tranzila test terminal for dev/staging | |
 
 ### 2.1 Repo layout (monorepo, npm workspaces)
 ```
