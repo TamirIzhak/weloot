@@ -2,9 +2,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import PhoneScreen from '@/app/(onboarding)/phone';
-import VerifyScreen from '@/app/(onboarding)/verify';
+import SignInSheet from '@/app/sign-in';
+import { useAuthGate, useRequireAuth } from '@/features/auth/authGate';
+import { CodeStep } from '@/features/auth/CodeStep';
 import { authErrorKey } from '@/features/auth/errors';
+import { PhoneStep } from '@/features/auth/PhoneStep';
 import {
   confirmCode,
   RESEND_COOLDOWN_SECONDS,
@@ -18,6 +20,7 @@ const mockSignIn = jest.fn();
 const mockConfirm = jest.fn();
 const mockAdditionalInfo = jest.fn();
 const mockLogEvent = jest.fn();
+let mockAuthState: { status: string; user?: unknown } = { status: 'signedOut' };
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, back: mockBack }),
@@ -26,6 +29,8 @@ jest.mock('expo-router', () => ({
     return <Text testID="redirect">{href}</Text>;
   },
 }));
+
+jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuthState }));
 
 jest.mock('@react-native-firebase/auth', () => ({
   getAuth: jest.fn(() => ({})),
@@ -49,7 +54,9 @@ const authError = (code: string) => Object.assign(new Error(code), { code });
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockAuthState = { status: 'signedOut' };
   usePhoneVerification.getState().clear();
+  useAuthGate.getState().cancel();
   mockSignIn.mockResolvedValue({ confirm: mockConfirm });
   mockConfirm.mockResolvedValue({ user: { uid: 'u1' } });
   mockAdditionalInfo.mockReturnValue({ isNewUser: false });
@@ -97,7 +104,7 @@ describe('phone verification flow', () => {
   it('does not log user_registered for a returning user', async () => {
     await sendCode('+972541234567');
     await confirmCode('123456');
-    expect(mockLogEvent).not.toHaveBeenCalled();
+    expect(mockLogEvent).not.toHaveBeenCalledWith({}, 'user_registered', expect.anything());
   });
 
   it('keeps the pending state when the code is wrong, so the user can retry', async () => {
@@ -116,11 +123,43 @@ describe('phone verification flow', () => {
   });
 });
 
-describe('PhoneScreen', () => {
+describe('useRequireAuth (guest-first gate)', () => {
+  function Trigger({ action }: { action: () => void }) {
+    const requireAuth = useRequireAuth();
+    const { Pressable, Text } = jest.requireActual('react-native') as typeof import('react-native');
+    return (
+      <Pressable accessibilityRole="button" onPress={() => requireAuth('offer', action)}>
+        <Text>Make an offer</Text>
+      </Pressable>
+    );
+  }
+
+  it('runs the action immediately for a signed-in user', async () => {
+    mockAuthState = { status: 'signedIn', user: { uid: 'u1' } };
+    const action = jest.fn();
+    await render(<Trigger action={action} />);
+    await fireEvent.press(screen.getByRole('button'));
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('opens the sign-in sheet for a guest, remembers the action and logs the reason', async () => {
+    const action = jest.fn();
+    await render(<Trigger action={action} />);
+    await fireEvent.press(screen.getByRole('button'));
+    expect(action).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith('/sign-in');
+    expect(useAuthGate.getState().reason).toBe('offer');
+    expect(mockLogEvent).toHaveBeenCalledWith({}, 'sign_in_prompted', { reason: 'offer' });
+  });
+});
+
+describe('PhoneStep', () => {
   it('keeps "Send code" disabled until the number is a valid Israeli mobile', async () => {
-    await render(withSafeArea(<PhoneScreen />));
-    const button = screen.getByTestId('send-code');
-    expect(button.props.accessibilityState).toMatchObject({ disabled: true });
+    await render(<PhoneStep title="Sign in" onSent={jest.fn()} />);
+    expect(screen.getByTestId('send-code').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
     await fireEvent.changeText(screen.getByTestId('phone-input'), '054-123-4567');
     expect(screen.getByTestId('send-code').props.accessibilityState).toMatchObject({
       disabled: false,
@@ -128,61 +167,62 @@ describe('PhoneScreen', () => {
   });
 
   it('explains an invalid number after the user leaves the field', async () => {
-    await render(withSafeArea(<PhoneScreen />));
+    await render(<PhoneStep title="Sign in" onSent={jest.fn()} />);
     await fireEvent.changeText(screen.getByTestId('phone-input'), '03-1234567');
     await fireEvent(screen.getByTestId('phone-input'), 'blur');
     expect(screen.getByText('Enter an Israeli mobile number, like 050-123-4567.')).toBeTruthy();
   });
 
-  it('sends the code in E.164 and moves to the code screen', async () => {
-    await render(withSafeArea(<PhoneScreen />));
+  it('sends the code in E.164 and moves on', async () => {
+    const onSent = jest.fn();
+    await render(<PhoneStep title="Sign in" onSent={onSent} />);
     await fireEvent.changeText(screen.getByTestId('phone-input'), '054 123 4567');
     await fireEvent.press(screen.getByTestId('send-code'));
     expect(mockSignIn).toHaveBeenCalledWith({}, '+972541234567');
-    expect(mockPush).toHaveBeenCalledWith('/verify');
+    expect(onSent).toHaveBeenCalled();
   });
 
   it('shows a friendly message when sending fails', async () => {
     mockSignIn.mockRejectedValueOnce(authError('auth/too-many-requests'));
-    await render(withSafeArea(<PhoneScreen />));
+    const onSent = jest.fn();
+    await render(<PhoneStep title="Sign in" onSent={onSent} />);
     await fireEvent.changeText(screen.getByTestId('phone-input'), '0541234567');
     await fireEvent.press(screen.getByTestId('send-code'));
     expect(screen.getByText('Too many attempts. Wait a few minutes and try again.')).toBeTruthy();
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(onSent).not.toHaveBeenCalled();
   });
 });
 
-describe('VerifyScreen', () => {
+describe('CodeStep', () => {
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('sends people back to the phone screen when no verification is pending', async () => {
-    await render(withSafeArea(<VerifyScreen />));
-    expect(screen.getByTestId('redirect').props.children).toBe('/phone');
-  });
-
   it('shows the number in local format and submits automatically at 6 digits', async () => {
     await sendCode('+972541234567');
-    await render(withSafeArea(<VerifyScreen />));
+    const onVerified = jest.fn();
+    await render(<CodeStep onVerified={onVerified} onChangeNumber={jest.fn()} />);
     expect(screen.getByText(/0541234567/)).toBeTruthy();
     await fireEvent.changeText(screen.getByTestId('code-input'), '12 34 56');
     expect(mockConfirm).toHaveBeenCalledWith('123456');
+    expect(onVerified).toHaveBeenCalledWith({ isNewUser: false });
   });
 
   it('clears the code and explains a wrong code', async () => {
     await sendCode('+972541234567');
     mockConfirm.mockRejectedValueOnce(authError('auth/invalid-verification-code'));
-    await render(withSafeArea(<VerifyScreen />));
+    const onVerified = jest.fn();
+    await render(<CodeStep onVerified={onVerified} onChangeNumber={jest.fn()} />);
     await fireEvent.changeText(screen.getByTestId('code-input'), '000000');
     expect(screen.getByText('That code isn’t right. Check the SMS and try again.')).toBeTruthy();
     expect(screen.getByTestId('code-input').props.value).toBe('');
+    expect(onVerified).not.toHaveBeenCalled();
   });
 
   it('enables "Resend code" only after the cooldown, then resends', async () => {
     jest.useFakeTimers({ now: 0 });
     await sendCode('+972541234567', () => 0);
-    await render(withSafeArea(<VerifyScreen />));
+    await render(<CodeStep onVerified={jest.fn()} onChangeNumber={jest.fn()} />);
     expect(screen.getByTestId('resend-code').props.accessibilityState).toMatchObject({
       disabled: true,
     });
@@ -193,5 +233,49 @@ describe('VerifyScreen', () => {
     expect(resend.props.accessibilityState).toMatchObject({ disabled: false });
     await fireEvent.press(resend);
     expect(mockSignIn).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('SignInSheet', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('shows the reason it was opened for', async () => {
+    useAuthGate.getState().open('add', jest.fn());
+    await render(withSafeArea(<SignInSheet />));
+    expect(screen.getByText('Sign in to list your game')).toBeTruthy();
+  });
+
+  it('closes on the close button and forgets the pending action', async () => {
+    const action = jest.fn();
+    useAuthGate.getState().open('offer', action);
+    const { unmount } = await render(withSafeArea(<SignInSheet />));
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+    expect(mockBack).toHaveBeenCalled();
+    await unmount();
+    expect(useAuthGate.getState().onSuccess).toBeNull();
+    expect(action).not.toHaveBeenCalled();
+  });
+
+  it('after verifying, closes and continues the pending action', async () => {
+    jest.useFakeTimers();
+    const action = jest.fn();
+    useAuthGate.getState().open('offer', action);
+    await render(withSafeArea(<SignInSheet />));
+    await fireEvent.changeText(screen.getByTestId('phone-input'), '0541234567');
+    await fireEvent.press(screen.getByTestId('send-code'));
+    await fireEvent.changeText(screen.getByTestId('code-input'), '123456');
+    expect(mockBack).toHaveBeenCalled();
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+    });
+    expect(action).toHaveBeenCalledTimes(1);
+  });
+
+  it('redirects home when opened while already signed in', async () => {
+    mockAuthState = { status: 'signedIn', user: { uid: 'u1' } };
+    await render(withSafeArea(<SignInSheet />));
+    expect(screen.getByTestId('redirect').props.children).toBe('/');
   });
 });
