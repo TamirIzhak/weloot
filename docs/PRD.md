@@ -181,7 +181,7 @@ Two indexes, written only by Cloud Functions: `games` (catalog) and `listings` (
 
 **The sign-in sheet**
 - Phone OTP via **Firebase Auth SMS** (Israeli mobiles only, `+972` prefilled), then the 6-digit code (auto-submit, 30 s resend). WhatsApp OTP is **not** supported by Firebase Auth; it is a post-MVP option via a custom-token flow [OPEN-4].
-- **Profile setup** runs inside the same sheet right after a first sign-in (#9): username (unique, 3–20 chars, Latin/Hebrew/digits/_), city (from a list of Israeli cities → approximate lat/lng + geohash; **never store a precise home location**), language, accept TOS & Privacy (versioned, timestamp stored). The pending action continues only once the profile is complete.
+- **Profile setup** runs inside the same sheet right after a first sign-in (#9): username (unique, 3–20 chars, Latin/Hebrew/digits/_, availability shown while typing), city (searchable list of Israeli cities in both languages → city-center lat/lng + geohash; **never store a precise home location**), and "I'm 16 or older and agree to the Terms and Privacy Policy" (versioned, timestamp stored). Language isn't asked again: the app's current language is saved, and Settings changes it. The pending action continues only once the profile is complete. A user who closes the sheet during setup stays signed in; their next protected action (or "Finish setting up" on Profile) reopens the sheet at this step.
 - The guest can close the sheet at any time; nothing is lost and they keep browsing.
 - AC: guests can browse Home, Search and game pages; every protected action opens the sheet with its reason and continues after sign-in; `sign_in_prompted` (with `reason`) on every sheet open; `user_registered` once per new user.
 
@@ -316,8 +316,9 @@ All docs have `createdAt`, `updatedAt` (server timestamps). `🔒` = server-writ
 
 | Collection | Key fields |
 |---|---|
-| `users/{uid}` | `phoneE164`, `username`, `usernameLower`, `city`, `geo {lat,lng,geohash}` (city-level), `preferredLanguage ('he'\|'en')`, `ratingAvg🔒`, `ratingCount🔒`, `completedTrades🔒`, `tosVersion`, `tosAcceptedAt`, `fcmTokens[]`, `blockedUserIds[]`, `searchRadiusKm`, `deletedAt` |
-| `usernames/{usernameLower}` | `uid` (uniqueness guard, written in a transaction) |
+| `users/{uid}` | **Public profile**, readable by everyone incl. guests: `username`, `usernameLower`, `cityId`, `geo {lat,lng,geohash}` (city-level), `ratingAvg🔒`, `ratingCount🔒`, `completedTrades🔒`, `createdAt`, `updatedAt`, `deletedAt🔒`. The phone number is **not** stored in Firestore; it stays in Firebase Auth. |
+| `users/{uid}/private/settings` | **Owner only:** `preferredLanguage ('he'\|'en')`, `tosVersion`, `tosAcceptedAt`, `ageConfirmed`, `fcmTokens[]`, `blockedUserIds[]`, `searchRadiusKm` (default 25) |
+| `usernames/{usernameLower}` | `uid` (uniqueness guard). Written in the same atomic batch as the profile and settings; Security Rules check the three together |
 | `games/{igdbId}` 🔒 | `title`, `slug`, `platformIds[]`, `coverImageId`, `releaseDate`, `genres[]`, `altNames[]`, `similarGameIds[]` |
 | `barcodes/{ean}` 🔒 | `igdbGameId`, `platformId`, `confirmations`, `trusted` |
 | `listings/{id}` | `userId`, `igdbGameId`, `platformId`, denormalized `gameTitle`, `coverImageId`, `condition`, `hasCase`, `notes`, `isForTrade`, `isForSale`, `askingPriceAgorot`, `photoPaths[]`, `hasPhotos🔒`, `status🔒` (after create), `geo` (copied from owner), `closedWith🔒?` (`{kind: 'deal', userId, conversationId}` or `{kind: 'outside'}`), `closedAt🔒?` |

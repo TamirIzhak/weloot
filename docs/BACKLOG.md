@@ -46,7 +46,7 @@ Status: ✅ merged · 🔄 in progress
 - AC: guests can browse; protected actions open the sheet and continue after sign-in; sign-in works with test phone numbers and the emulator; errors are localized; `sign_in_prompted` per open, `user_registered` once.
 
 **#9 feat(profile): profile setup and username uniqueness** · M · deps #8, #7
-- `ProfileSetup` as the last step of the sign-in sheet on a first sign-in: username (transactional `usernames` guard), city picker (static Israeli city list with coordinates/geohash), language, TOS/Privacy acceptance. The pending action continues only after the profile is complete.
+- `ProfileSetup` as the last step of the sign-in sheet on a first sign-in: username (atomic `usernames` guard), city picker (static Israeli city list with coordinates/geohash), 16+ and TOS/Privacy acceptance (current language saved). The pending action continues only after the profile is complete.
 - Rules for `users` and `usernames` + tests.
 - AC: protected actions don't continue until the profile is complete; duplicate usernames rejected; guests unaffected.
 
