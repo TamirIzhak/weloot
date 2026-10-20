@@ -43,23 +43,16 @@ const navigationTheme: Theme = {
 };
 
 /**
- * Route guard (PRD W1): signed-out users only reach onboarding; signed-in users never see it.
- * Profile completion joins the guard in #9.
+ * Guest-first navigation (PRD W1): everyone lands on the tabs. Protected actions open the `sign-in` modal
+ * through `useRequireAuth`; nothing is locked at the app level.
  */
 function RootNavigator() {
   const auth = useAuth();
   if (auth.status === 'loading') return <Splash />;
-  const signedIn = auth.status === 'signedIn';
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
-      <Stack.Protected guard={signedIn}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="(deal)" />
-        <Stack.Screen name="dev/kitchen-sink" />
-      </Stack.Protected>
-      <Stack.Protected guard={!signedIn}>
-        <Stack.Screen name="(onboarding)" />
-      </Stack.Protected>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

@@ -7,6 +7,7 @@ import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components';
+import { useRequireAuth, type SignInReason } from '@/features/auth/authGate';
 import { colors } from '@/theme/tokens';
 
 import { TAB_BAR_HEIGHT, useTabBarVisibility } from './TabBarVisibility';
@@ -29,6 +30,12 @@ export const TABS = [
 
 const ANIMATION_MS = 200;
 
+/** Tabs that need an account (PRD W1). Guests get the sign-in sheet first, then land on the tab. */
+const SIGN_IN_TABS: Partial<Record<(typeof TABS)[number]['name'], SignInReason>> = {
+  add: 'add',
+  inbox: 'inbox',
+};
+
 /**
  * Bottom tab bar (PRD §3.4): 5 destinations with an elevated center "+", absolutely positioned so it can slide
  * away while a feed scrolls down (useHideOnScroll) and come straight back on any scroll up.
@@ -44,10 +51,14 @@ export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
     show();
   }, [state.index, show]);
 
+  const requireAuth = useRequireAuth();
+
   // Same contract as the default tab bar: listeners may prevent the switch; pressing the active tab is a no-op.
-  const pressTab = (routeKey: string, focused: boolean) => {
+  const pressTab = (routeKey: string, focused: boolean, reason: SignInReason | undefined) => {
     const event = emitter.emit({ type: 'tabPress', target: routeKey, canPreventDefault: true });
-    if (!focused && !event.defaultPrevented) navigateToTab(routeKey);
+    if (focused || event.defaultPrevented) return;
+    if (reason) requireAuth(reason, () => navigateToTab(routeKey));
+    else navigateToTab(routeKey);
   };
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -68,7 +79,7 @@ export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
         const focused = state.index === index;
         const label = t(tab.labelKey);
 
-        const onPress = () => pressTab(route.key, focused);
+        const onPress = () => pressTab(route.key, focused, SIGN_IN_TABS[tab.name]);
 
         if (tab.name === 'add') {
           return (

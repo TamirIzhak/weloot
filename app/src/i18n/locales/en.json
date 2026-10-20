@@ -144,6 +144,23 @@
       "quotaExceeded": "We can’t send codes right now. Try again later.",
       "sessionLost": "Your sign-in session ended. Enter your number again.",
       "generic": "Something went wrong. Try again."
+    },
+    "close": "Close",
+    "reasons": {
+      "offer": "Sign in to send your offer",
+      "question": "Sign in to ask the owner",
+      "wantlist": "Sign in to save your want list",
+      "alert": "Sign in to get alerts",
+      "add": "Sign in to list your game",
+      "inbox": "Sign in to see your offers and chats",
+      "profile": "Join WeLoot"
+    }
+  },
+  "profile": {
+    "join": {
+      "title": "Join WeLoot",
+      "body": "Swap the games you’ve finished for ones you want. Sign in with your phone number. It takes 20 seconds.",
+      "cta": "Sign in"
     }
   }
 }
