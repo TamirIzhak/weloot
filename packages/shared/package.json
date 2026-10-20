@@ -9,5 +9,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "jest"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
   }
 }
