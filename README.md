@@ -76,6 +76,22 @@ To add one:
 2. `npx firebase apps:sdkconfig ANDROID <firebase app id> -P <alias> -o <temp dir>/google-services.json`
 3. `npx eas-cli@latest env:create --name GOOGLE_SERVICES_JSON --type file --value <temp dir>/google-services.json --environment <env> --visibility sensitive`
 
+### Testing phone sign-in
+
+The app is guest-first (PRD W1): sign-in opens as a sheet from protected actions (+, Inbox, "Join WeLoot" on Profile).
+
+- **Against the emulators** (`EXPO_PUBLIC_USE_EMULATORS=true`, the default in dev): no SMS is sent. Any Israeli mobile works; read the code from the Auth emulator:
+  `curl http://127.0.0.1:9099/emulator/v1/projects/demo-weloot/verificationCodes`
+  (also shown in the Emulator UI at http://127.0.0.1:4000/auth).
+- **Against the real dev project** (`EXPO_PUBLIC_USE_EMULATORS=false`): Phone sign-in is enabled in `development-1c64a`, with test numbers that never send an SMS:
+
+  | Number           | Code   |
+  | ---------------- | ------ |
+  | +972 50-000-0001 | 123456 |
+  | +972 50-000-0002 | 654321 |
+
+  Real numbers get a real SMS. The EAS dev keystore's SHA-1/SHA-256 are registered on the Firebase Android app (Android requires them for phone sign-in).
+
 ## Firebase projects
 
 | Alias     | Project ID          | Console name | Use                                                               |
