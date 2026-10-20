@@ -96,7 +96,7 @@ Run from repo root:
 npm run typecheck     # tsc --noEmit across workspaces
 npm run lint          # eslint + prettier check
 npm test              # jest (app, shared) + functions/rules tests on Firebase emulators
-npm run i18n:check    # en/he key parity + no literal JSX strings (added in #5; skip and say so until it exists)
+npm run i18n:check    # en/he key parity + matching {{placeholders}} (hardcoded JSX text is caught by npm run lint)
 ```
 Plus, for the change at hand:
 - **Logic** (state machines, money math, phone-number conversion, matching, alert rate limits): unit tests, including failure and edge cases.
