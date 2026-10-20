@@ -2,7 +2,7 @@
 
 Ordered list of issues, mirrored as GitHub Issues with the same numbers. Work top to bottom unless dependencies (`deps`) allow otherwise. Sizes: S (< ½ day), M (1–2 days), L (3+ days; split if possible; needs plan approval).
 
-Milestones bump the app's minor version when complete (see `CLAUDE.md` §2). **v3 (issue #46): lean MVP.** Payments and lockers moved to Phase 2 (bottom of this file). Issue numbers are kept; new MVP issues were added as #47–#50.
+Milestones bump the app's minor version when complete (see `CLAUDE.md` §2). **v3 (issue #46): lean MVP.** Payments and lockers moved to Phase 2 (bottom of this file). Issue numbers are kept; new MVP issues were added as #47–#50, plus #57 (adaptive listing grid).
 
 Status: ✅ merged · 🔄 in progress
 
@@ -86,8 +86,12 @@ Status: ✅ merged · 🔄 in progress
 
 ## M3 — Discovery & engagement (`v0.4.0`)
 
-**#18 feat(search): listings index and search tab** · L · deps #16
-- Algolia `listings` index (only `active`, `hasPhotos` boost), filters (platform, trade/sale, condition, price, distance), list view only; recent searches and popular games on an empty query; excludes own and blocked users.
+**#57 feat(ui): adaptive listing grid with pinch and a layout toggle (1–3 per row)** · M · deps #4, #6, #16
+- Shared `ListingGrid` (virtualized) for Search results and Home feeds; density 1, 2 or 3 per row, **default 2**; pinch to change (one step per gesture, animated, keeps scroll position) plus a visible 1/2/3 layout toggle; choice remembered per user; tile content adapts by density (PRD §3.3).
+- AC: pinch and toggle both switch densities smoothly; density persists across restarts; every density is screen-reader accessible; smooth at 3 columns with 100+ items on a mid-range Android; correct in RTL.
+
+**#18 feat(search): listings index and search tab** · L · deps #16, #57
+- Algolia `listings` index (only `active`, `hasPhotos` boost), filters (platform, trade/sale, condition, price, distance), results in the adaptive grid (#57); recent searches and popular games on an empty query; excludes own and blocked users.
 
 **#19 feat(listings): game detail screen** · M · deps #18
 - Cover/photo gallery, owner card with trust signals (rating, trade count, account age), report listing. Offer/question buttons arrive with #24.
@@ -99,8 +103,8 @@ Status: ✅ merged · 🔄 in progress
 - Functions on listing/wantlist writes maintain `matches` (perfect + one-way, score, distance) per PRD W3.
 - AC: tests for add/remove/pause/reserve cases; recomputation is incremental, not full-scan.
 
-**#22 feat(home): home feed carousels** · M · deps #21, #18
-- Perfect Matches, Has games you want, New near you, Wanted near you (real counts); skeletons; empty states with CTAs to list games or build the want list.
+**#22 feat(home): home feed carousels** · M · deps #21, #18, #57
+- Perfect Matches, Has games you want, New near you, Wanted near you (real counts); "See all" opens the full list in the adaptive grid (#57); skeletons; empty states with CTAs to list games or build the want list.
 
 **#48 feat(search): smart empty states and suggestions** · M · deps #18, #20
 - Zero-result flow (PRD W4): notify me, add to want list, other platforms, similar listed games, relaxed-filter counts. `search_no_results` event.

@@ -102,7 +102,22 @@ Text contrast must meet WCAG AA (4.5:1) against `bg`/`surface`.
 **Rubik** (Google Fonts, supports Hebrew + Latin) via `expo-font`. Large bold headers (28/22/18), body 16, caption 13. One font family for both languages so layouts don't jump on language switch.
 
 ### 3.3 Layout
-Card-based feeds; game cards are large, rounded, cover-art-first. A card shows the owner's first photo when the listing has photos (with the **"Real photos"** badge), otherwise the IGDB cover (`t_cover_big` / `t_720p`). Also: platform chip, condition, "Trade" and/or price badge, distance (city level). Every list has a loading skeleton, a helpful empty state (§6 W4) and an error state with retry.
+Card-based feeds; game cards are rounded and cover-art-first. A card shows the owner's first photo when the listing has photos (with the **"Real photos"** badge), otherwise the IGDB cover (`t_cover_big` / `t_720p`). Also: platform chip, condition, "Trade" and/or price badge, distance (city level). Every list has a loading skeleton, a helpful empty state (§6 W4) and an error state with retry.
+
+**Adaptive listing grid (issue #57).** Listing feeds (search results, "New near you", "Has games you want" full lists) use one shared `ListingGrid` with a density of **1, 2 or 3 tiles per row, default 2** (Marketplace style: more games per screen).
+- **Pinch** out for bigger tiles (fewer columns), pinch in for more tiles: one step per gesture, animated, keeping the scroll position.
+- A **visible layout toggle** (1/2/3 icon button) sits at the top of each feed, because pinch alone is hard to discover and not usable by everyone.
+- The choice is **remembered per user**: on the device first, synced to the profile once profiles exist.
+- **Tile content adapts to density:**
+
+| Density | Tile shows |
+|---|---|
+| 1 per row | Full card: cover/photo, title, platform chip, condition, distance, badges, price/"Trade" |
+| 2 per row | Cover, title (max 2 lines), platform chip, price or "Trade", "Real photos" badge |
+| 3 per row | Cover with a platform color strip and price/"Trade" badge; title read by screen readers |
+
+- Columns fill start → end (mirrors in RTL); works with the hide-on-scroll tab bar (§3.4).
+- Horizontal Home carousels keep fixed-size cards; the grid applies to vertical feeds.
 
 ### 3.4 Bottom tab bar (hide-on-scroll)
 Custom tab bar, 5 destinations, center `+` elevated. Scrolling **down** past a 10px threshold slides it out (translateY, ~200ms); **any** upward scroll brings it back immediately. Always visible when: content is shorter than the screen, scroll is at top, keyboard is closed after input, or a screen opts out. Implemented with a shared Reanimated scroll value exposed by a `useHideOnScroll()` hook that feed screens attach to their `FlatList`/`ScrollView`. Respect safe-area insets.
@@ -171,12 +186,12 @@ Two indexes, written only by Cloud Functions: `games` (catalog) and `listings` (
 *As a collector, I see people who have what I want and want what I have.*
 - Users add games to their Want List from search results, a game page, or an empty search (W4) (game + optional platform).
 - **Perfect Match** = user B has an *active* listing for a game on A's want list **and** A has an *active* listing for a game on B's want list (same platform). **One-way match** = B has something A wants. Computed by Cloud Functions on listing/wantlist writes, stored in `matches/{userId}/items/{otherUserId}` with listing IDs and a score (more mutual games + shorter distance + photos = higher).
-- Home: carousels **Perfect Matches**, **Has games you want**, **New near you**, plus **"Wanted near you"** (real counts of nearby users who want games the user owns, e.g. "4 people near you want Zelda TOTK").
+- Home: carousels **Perfect Matches**, **Has games you want**, **New near you**, plus **"Wanted near you"** (real counts of nearby users who want games the user owns, e.g. "4 people near you want Zelda TOTK"). "See all" on a carousel opens the full list in the adaptive listing grid (§3.3).
 - Exclude everywhere: own listings, blocked users, listings not `active`.
 
 ### W4 — Search & never a dead end
 *As a gamer, I search for a game and always get something useful.*
-- Search tab: Algolia `listings`; filters: platform, trade/sale, condition, price range, distance (city-level geo). List view only.
+- Search tab: Algolia `listings`; filters: platform, trade/sale, condition, price range, distance (city-level geo). Results in the adaptive listing grid (§3.3: 1–3 per row, default 2, pinch or layout toggle).
 - Instant results with skeletons while loading; recent searches and popular games when the query is empty.
 - **When nothing matches**, show in order (all real data):
   1. "No one has it yet" plus **"Notify me when it's listed"** (creates a saved search / alert, W8) and **"Add to my want list"**.
