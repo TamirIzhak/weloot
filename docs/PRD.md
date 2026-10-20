@@ -215,14 +215,32 @@ Two indexes, written only by Cloud Functions: `games` (catalog) and `listings` (
 - **Accepting** creates the conversation's **deal** (W6). All listings in it become `reserved` (hidden from search); other pending offers that include those listings are auto-declined with a system message.
 - AC: `conversation_started` (with `opener: offer|question`), `offer_sent`, `offer_countered`, `offer_accepted` events; rules prevent anyone but the two participants from reading or writing the conversation.
 
-### W6 — Deal, meetup & "Trade completed"
-*As a trader, I meet, swap, and confirm, so the app knows the trade really happened.*
-- After acceptance the chat header shows the **deal summary** (games, cash, status) and actions: **"Trade completed"**, **"Cancel deal"**.
+### W6 — Deal, meetup & closing the swap
+*As an owner, I close my listing the moment I've swapped it. As a trader, a confirmed trade builds my reputation.*
+
+Closing a swap has two separate jobs with different rules (owner decision, 2026-10-20):
+
+**1. Listing accuracy: the owner decides alone, immediately.**
+- On any own listing (active, paused or reserved) the owner taps **"Swapped"** (or **"Sold"** for a sale) and answers **"Who with?"**:
+  - the counterpart of an accepted deal on that listing (suggested first);
+  - people they recently chatted with about that listing (last 30 days);
+  - **"Someone outside WeLoot"**.
+- The listing becomes `traded` / `sold` at once and leaves search and matches. Nothing waits on the other person, so listings never get stuck as reserved.
+- "Outside WeLoot" closes the listing without a deal (`closedWith: outside`); it's tracked for analytics (`listing_closed_outside`).
+
+**2. Trust (trade count and ratings): both people must confirm.**
+- Choosing a WeLoot user records the owner's confirmation on their deal (it's created if there was no accepted offer yet, e.g. they agreed in chat), and the other person gets a one-tap prompt (push + chat banner): *"Did you swap {game} with {owner}?"* → **Yes / No**.
+- **Yes** → deal `completed`: the trade counts for both (`completedTrades` +1) and both are asked to rate each other (W9). Ratings exist **only** for completed deals.
+- **No answer within 7 days** (reminders on day 1 and 3) → deal `unconfirmed`: no trade count, no ratings. Listings are unaffected (already closed by their owners).
+- **"No, it didn't happen"** → deal `disputed`, a report is opened for support (W9). Support resolves it to `completed` or `cancelled`.
+- Either side may confirm first: in a game-for-game swap each owner closes their own listing, and the second owner's "Swapped" doubles as the other confirmation.
+
+**Around the meetup**
+- After an offer is accepted the chat header shows the **deal summary** (games, cash, status) and actions **"Swapped"** and **"Cancel deal"**.
 - **Safety tips card** (shown once per deal, both languages): meet in a public place, check the disc/cartridge before swapping, prefer Bit over carrying cash, never pay in advance to someone you haven't met, report anything suspicious.
-- **Handshake:** each side taps "Trade completed". When the first confirms, the other gets a push and a banner. When both confirm → deal `completed`, listings `traded`/`sold`, trade counts incremented, rating prompt for both.
-- If only one side confirms within **7 days**, the other gets reminders (day 1, day 3); at day 7 the deal becomes `unconfirmed` (no ratings, listings stay reserved until the owner relists). Either side may instead tap **"It didn't happen"** → `disputed` (opens a report, W9).
-- **Cancel deal** (before completion, either side, reason required) → listings back to `active`; repeated cancellations are visible to support.
-- AC: completion only counts with both confirmations; `deal_completed`, `deal_cancelled` events.
+- **Swap reminder:** 2 days after acceptance, if nobody has closed it, both get *"Did the swap happen?"* with Swapped / Not yet / Cancel.
+- **Cancel deal** (before anyone confirmed, either side, reason required) → reserved listings back to `active`; repeated cancellations are visible to support.
+- AC: a listing closes on its owner's action alone; trade counts and ratings require both confirmations; `listing_closed`, `listing_closed_outside`, `deal_confirmed`, `deal_completed`, `deal_cancelled`, `deal_disputed` events.
 
 ### W7 — Share to WhatsApp / Facebook
 *As a gamer, I share my listing or want list to my gaming groups.*
@@ -247,7 +265,16 @@ Two indexes, written only by Cloud Functions: `games` (catalog) and `listings` (
 
 ## 7. State Machines (implement in `packages/shared`, enforce in Functions)
 
-**Listing:** `draft → active ⇄ paused`; `active → reserved` (deal agreed); `reserved → active` (deal cancelled, or owner relists after `unconfirmed`); `reserved → traded | sold` (deal completed); any non-reserved → `removed`.
+**Listing** (owner-controlled closing, W6):
+```
+draft ──publish──▶ active ⇄ paused                    (pause / resume, owner)
+active ──reserve──▶ reserved                           (an offer including it is accepted, system)
+reserved ──release──▶ active                           (that deal is cancelled, system)
+active | paused | reserved ──closeTraded──▶ traded     (owner taps "Swapped")
+active | paused | reserved ──closeSold────▶ sold       (owner taps "Sold")
+draft | active | paused ──remove──▶ removed            (owner)
+```
+`traded`, `sold` and `removed` are final; to offer the game again the owner lists it anew.
 
 **Offer** (one pending per conversation):
 ```
@@ -259,13 +286,16 @@ pending ──72h───────▶ expired
 pending ──listing reserved elsewhere / removed──▶ declined (system)
 ```
 
-**Deal** (at most one active per conversation; `fulfillmentMethod: 'in_person'`):
+**Deal** (at most one active per conversation; `fulfillmentMethod: 'in_person'`). Its status only affects trust (trade counts, ratings); listings are closed by their owners (W6).
 ```
-agreed ──one side confirms──▶ awaiting_confirmation ──other confirms──▶ completed
-agreed | awaiting_confirmation ──cancel (reason)──▶ cancelled
-awaiting_confirmation ──7 days──▶ unconfirmed
-agreed | awaiting_confirmation ──"it didn't happen"──▶ disputed ──ops──▶ completed | cancelled
+agreed ──first confirm──▶ awaiting_confirmation ──second confirm──▶ completed
+   (a deal created by an owner's "Swapped" without an accepted offer starts in awaiting_confirmation)
+agreed ──cancel (reason)──▶ cancelled
+awaiting_confirmation ──7 days without the second confirm──▶ unconfirmed
+awaiting_confirmation ──"it didn't happen" (the side asked to confirm)──▶ disputed
+disputed ──ops resolves──▶ completed | cancelled
 ```
+Each participant confirms at most once. Only `completed` deals increment `completedTrades` and allow ratings.
 
 ---
 
@@ -279,11 +309,11 @@ All docs have `createdAt`, `updatedAt` (server timestamps). `🔒` = server-writ
 | `usernames/{usernameLower}` | `uid` (uniqueness guard, written in a transaction) |
 | `games/{igdbId}` 🔒 | `title`, `slug`, `platformIds[]`, `coverImageId`, `releaseDate`, `genres[]`, `altNames[]`, `similarGameIds[]` |
 | `barcodes/{ean}` 🔒 | `igdbGameId`, `platformId`, `confirmations`, `trusted` |
-| `listings/{id}` | `userId`, `igdbGameId`, `platformId`, denormalized `gameTitle`, `coverImageId`, `condition`, `hasCase`, `notes`, `isForTrade`, `isForSale`, `askingPriceAgorot`, `photoPaths[]`, `hasPhotos🔒`, `status🔒` (after create), `geo` (copied from owner) |
+| `listings/{id}` | `userId`, `igdbGameId`, `platformId`, denormalized `gameTitle`, `coverImageId`, `condition`, `hasCase`, `notes`, `isForTrade`, `isForSale`, `askingPriceAgorot`, `photoPaths[]`, `hasPhotos🔒`, `status🔒` (after create), `geo` (copied from owner), `closedWith🔒?` (`{kind: 'deal', userId, conversationId}` or `{kind: 'outside'}`), `closedAt🔒?` |
 | `wantlist/{uid}/items/{igdbGameId_platformId}` | `igdbGameId`, `platformId`, `gameTitle` |
 | `alerts/{uid}/items/{id}` | `igdbGameId`, `platformId?`, `query?`, `radiusKm`, `source ('search'\|'wantlist')`, `lastNotifiedAt🔒` |
 | `matches/{uid}/items/{otherUid}` 🔒 | `theirListingIds[]`, `myListingIds[]`, `perfect`, `score`, `distanceKm` |
-| `conversations/{id}` | `listingId`, `ownerId`, `otherId`, `participants[2]`, `openedWith ('offer'\|'question')`, `lastMessageAt🔒`, `lastMessagePreview🔒`, `unread {uid: n}🔒`, `currentOfferId🔒`, `deal🔒 {status, offerId, itemsOwner[], itemsOther[], cashAgorot, cashPayerId, confirmedBy[], fulfillmentMethod: 'in_person', agreedAt, completedAt?, cancelReason?}` |
+| `conversations/{id}` | `listingId`, `ownerId`, `otherId`, `participants[2]`, `openedWith ('offer'\|'question')`, `lastMessageAt🔒`, `lastMessagePreview🔒`, `unread {uid: n}🔒`, `currentOfferId🔒`, `deal🔒 {status, offerId? (absent when an owner's "Swapped" created the deal), itemsOwner[], itemsOther[], cashAgorot, cashPayerId, confirmedBy[], awaitingSince?, fulfillmentMethod: 'in_person', agreedAt, completedAt?, cancelReason?}` |
 | `conversations/{id}/messages/{id}` | `senderId` (`'system'` for system messages), `type ('text'\|'offer'\|'system'\|'safety_tips')`, `text?`, `offerId?`, `createdAt` |
 | `conversations/{id}/offers/{id}` | `fromUid`, `toUid`, `itemsFrom[]`, `itemsTo[]` (listing IDs), `cashAgorot`, `cashPayerId?`, `note?`, `status🔒`, `supersedesOfferId?`, `expiresAt🔒` (clients create via callable function only) |
 | `ratings/{dealConversationId_raterId}` | `raterId`, `rateeId`, `stars`, `comment` |
@@ -318,7 +348,7 @@ Push + in-app badge for: new conversation (offer or question), new message (coll
 ---
 
 ## 11. Analytics, Admin, Support
-- **Analytics** (`@react-native-firebase/analytics`), events: `user_registered`, `game_listed`, `photo_added`, `wantlist_added`, `search_performed`, `search_no_results`, `alert_created`, `alert_notified`, `alert_opened`, `conversation_started`, `offer_sent`, `offer_countered`, `offer_accepted`, `deal_completed`, `deal_cancelled`, `deal_disputed`, `listing_shared`, `report_submitted`. No PII in event params (IDs only).
+- **Analytics** (`@react-native-firebase/analytics`), events: `user_registered`, `game_listed`, `photo_added`, `wantlist_added`, `search_performed`, `search_no_results`, `alert_created`, `alert_notified`, `alert_opened`, `conversation_started`, `offer_sent`, `offer_countered`, `offer_accepted`, `deal_completed`, `deal_cancelled`, `deal_disputed`, `listing_shared`, `listing_closed`, `listing_closed_outside`, `deal_confirmed`, `report_submitted`. No PII in event params (IDs only).
 - **Crash reporting:** Firebase Crashlytics.
 - **Admin:** Firebase console / Rowy only. No admin screens. Ops tasks (review reports, resolve disputed deals, edit `config/*`, ban users) are done there.
 - **Support:** WhatsApp/email deep link only.

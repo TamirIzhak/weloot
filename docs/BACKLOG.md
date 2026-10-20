@@ -82,7 +82,7 @@ Status: ✅ merged · 🔄 in progress
 - AC: a listing can be published without photos; uploaded images have no GPS metadata.
 
 **#17 feat(listings): my listings management** · S · deps #16
-- Profile → My Listings: pause/resume/remove/relist; reserved listings locked.
+- Profile → My Listings: pause/resume/remove; **"Swapped" / "Sold"** with the "Who with?" picker (accepted-deal counterpart first, recent chats on that listing, "Someone outside WeLoot"), which closes the listing immediately (PRD W6). Closed listings are final; listing again creates a new listing.
 
 ## M3 — Discovery & engagement (`v0.4.0`)
 
@@ -127,9 +127,11 @@ Status: ✅ merged · 🔄 in progress
 **#25 feat(chat): conversation screen** · M · deps #23
 - Realtime messages, offer cards with Accept/Counter/Decline/Withdraw, system messages, deal header, report message, block user.
 
-**#47 feat(deals): trade-completed handshake, cancel and safety tips** · M · deps #25
-- Deal header actions: Trade completed / Cancel deal / It didn't happen; two-sided confirmation; reminders (day 1, 3) and 7-day `unconfirmed`; listings → `traded`/`sold`; trade counts; safety tips card on agreement.
-- AC: completion only with both confirmations (function + rules tests); `deal_completed`, `deal_cancelled`, `deal_disputed`.
+**#47 feat(deals): swap confirmation, cancel and safety tips** · M · deps #25, #17
+- An owner's "Swapped" (from #17 or the deal header) records their confirmation, creating the deal if there was no accepted offer. The counterpart gets a one-tap "Did you swap X with Y?" (Yes / No) as a push and chat banner.
+- Yes → `completed` (trade counts +1, rating prompt); 7 days without an answer → `unconfirmed` (reminders on day 1 and 3); No → `disputed` + report.
+- Deal header: Swapped / Cancel deal (reason). A 2-day "Did the swap happen?" reminder after acceptance. Safety tips card on agreement.
+- AC: listings close on the owner's action alone; trade counts and ratings only for `completed` (function + rules tests); `listing_closed`, `listing_closed_outside`, `deal_confirmed`, `deal_completed`, `deal_cancelled`, `deal_disputed`.
 
 **#26 feat(inbox): inbox tab** · M · deps #25
 - Grouped conversations (Needs action / Active deals / Chats / Completed), unread badges.
