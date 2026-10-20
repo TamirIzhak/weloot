@@ -16,7 +16,9 @@
     "message": "Try again. If it keeps happening, contact support from Settings."
   },
   "home": {
-    "kitchenSink": "Component kitchen sink"
+    "kitchenSink": "Component kitchen sink",
+    "welcomeTitle": "Welcome to WeLoot",
+    "welcomeBody": "Swap the games you’ve finished for the ones you want. Your matches will show up here."
   },
   "kitchenSink": {
     "title": "Kitchen sink",
@@ -98,5 +100,22 @@
       "price": "Asking price: {{price}}",
       "mixed": "{{count}} people near you want {{game}}"
     }
+  },
+  "tabs": {
+    "home": "Home",
+    "search": "Search",
+    "add": "Add a game",
+    "inbox": "Inbox",
+    "profile": "Profile"
+  },
+  "placeholders": {
+    "search": "Search games near you. Coming soon.",
+    "add": "Scan or search a game to list it in seconds. Coming soon.",
+    "inbox": "Your offers and chats will appear here. Coming soon.",
+    "profile": "Your games, want list and settings. Coming soon.",
+    "onboardingTitle": "Welcome",
+    "onboarding": "Sign in with your phone number. Coming soon.",
+    "gameTitle": "Game",
+    "game": "Game details. Coming soon."
   }
 }
