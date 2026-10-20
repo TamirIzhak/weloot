@@ -49,24 +49,48 @@ export const geoSchema = z.object({
 export const USERNAME_PATTERN = /^[A-Za-z0-9_א-ת]{3,20}$/;
 export const usernameSchema = z.string().regex(USERNAME_PATTERN);
 
-export const userSchema = z.object({
-  phoneE164: z.string().regex(/^\+9725\d{8}$/),
+/** Users pick a city from the shared list (cities.ts); stored by id, displayed in the reader's language. */
+export const cityIdSchema = z.string().regex(/^[a-z0-9-]{2,40}$/);
+
+/**
+ * `users/{uid}`: the PUBLIC profile, readable by everyone incl. guests (PRD W1, listings show their owner).
+ * Holds nothing private: no phone number (it stays in Firebase Auth), no tokens, no settings. 🔒 fields start at 0
+ * and only Functions change them.
+ */
+export const userProfileSchema = z.object({
   username: usernameSchema,
   usernameLower: z.string(),
-  city: z.string().min(1).max(60),
+  cityId: cityIdSchema,
   geo: geoSchema,
-  preferredLanguage: z.enum(LANGUAGES),
   ratingAvg: z.number().min(0).max(5),
   ratingCount: z.number().int().min(0),
   completedTrades: z.number().int().min(0),
-  tosVersion: z.string().min(1),
-  tosAcceptedAt: timestampSchema,
-  fcmTokens: z.array(z.string()).max(10),
-  blockedUserIds: z.array(uid).max(500),
-  searchRadiusKm: z.number().int().min(1).max(200),
   deletedAt: timestampSchema.optional(),
   ...timestamps,
 });
+export type UserProfile = z.infer<typeof userProfileSchema>;
+
+/** `users/{uid}/private/settings`: readable and writable only by the owner (and Functions). */
+export const userSettingsSchema = z.object({
+  preferredLanguage: z.enum(LANGUAGES),
+  tosVersion: z.string().min(1),
+  tosAcceptedAt: timestampSchema,
+  /** The user confirmed they're 16 or older (OPEN-9 default). */
+  ageConfirmed: z.literal(true),
+  fcmTokens: z.array(z.string()).max(10),
+  blockedUserIds: z.array(uid).max(500),
+  searchRadiusKm: z.number().int().min(1).max(200),
+  ...timestamps,
+});
+export type UserSettings = z.infer<typeof userSettingsSchema>;
+
+/** What the profile-setup step submits (validated in the app; Security Rules enforce the same rules). */
+export const profileSetupInputSchema = z.object({
+  username: usernameSchema,
+  cityId: cityIdSchema,
+  acceptedTerms: z.literal(true),
+});
+export type ProfileSetupInput = z.infer<typeof profileSetupInputSchema>;
 
 export const usernameDocSchema = z.object({ uid });
 
