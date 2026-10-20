@@ -11,10 +11,12 @@ export type PlaceholderScreenProps = {
   body: string;
   icon?: ReactNode;
   testID?: string;
+  /** Extra actions shown under the message. */
+  children?: ReactNode;
 };
 
 /** Temporary screen for a tab whose feature isn't built yet (the issue that builds it replaces this). */
-export function PlaceholderScreen({ title, body, icon, testID }: PlaceholderScreenProps) {
+export function PlaceholderScreen({ title, body, icon, testID, children }: PlaceholderScreenProps) {
   const bottom = useTabBarInset();
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']} testID={testID}>
@@ -23,6 +25,7 @@ export function PlaceholderScreen({ title, body, icon, testID }: PlaceholderScre
       </View>
       <View className="flex-1 justify-center" style={{ paddingBottom: bottom }}>
         <EmptyState title={title} body={body} icon={icon} />
+        {children ? <View className="items-center px-6">{children}</View> : null}
       </View>
     </SafeAreaView>
   );

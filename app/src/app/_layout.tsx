@@ -16,6 +16,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { ToastProvider } from '@/components';
+import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
+import { Splash } from '@/features/auth/Splash';
 import { initFirebase } from '@/lib/firebase';
 import { colors } from '@/theme/tokens';
 
@@ -40,7 +42,28 @@ const navigationTheme: Theme = {
   },
 };
 
-// Placeholder root layout. Navigation shell (tabs, onboarding, deal stacks) lands in #06.
+/**
+ * Route guard (PRD W1): signed-out users only reach onboarding; signed-in users never see it.
+ * Profile completion joins the guard in #9.
+ */
+function RootNavigator() {
+  const auth = useAuth();
+  if (auth.status === 'loading') return <Splash />;
+  const signedIn = auth.status === 'signedIn';
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+      <Stack.Protected guard={signedIn}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(deal)" />
+        <Stack.Screen name="dev/kitchen-sink" />
+      </Stack.Protected>
+      <Stack.Protected guard={!signedIn}>
+        <Stack.Screen name="(onboarding)" />
+      </Stack.Protected>
+    </Stack>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Rubik_400Regular,
@@ -61,9 +84,9 @@ export default function RootLayout() {
     <ThemeProvider value={navigationTheme}>
       <ToastProvider>
         <StatusBar style="light" />
-        <Stack
-          screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}
-        />
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
   );
