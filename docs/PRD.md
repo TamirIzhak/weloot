@@ -168,11 +168,22 @@ Two indexes, written only by Cloud Functions: `games` (catalog) and `listings` (
 
 ## 6. MVP Workflows & Acceptance Criteria
 
-### W1 — Trust & Onboarding
-*As a gamer, I verify my phone so I know I trade with real people.*
-- Phone OTP via **Firebase Auth SMS** (Israeli numbers only, `+972` prefilled). WhatsApp OTP is **not** supported by Firebase Auth; it is a post-MVP option via a custom-token flow [OPEN-4].
-- Profile setup: username (unique, 3–20 chars, latin/hebrew/digits/_), city (from a list of Israeli cities → stored with approximate lat/lng + geohash; **never store precise home location**), language, accept TOS & Privacy (versioned, timestamp stored).
-- AC: a user without completed profile can't reach the tabs; analytics `user_registered` fires once.
+### W1 — Guest browsing, sign-in on action & trust
+*As a visitor, I browse freely. When I want to do something, I verify my phone in seconds and carry on.*
+
+**Guest first (owner decision, 2026-10-21).** The app opens straight to the tabs; nobody has to sign in to look around.
+- **Open to guests:** Home, Search, game pages (cover, photos, owner's username, city and trust signals), and sharing.
+- **Needs sign-in:** make an offer, ask a question, add to the want list, "notify me" alerts, add a listing (+), Inbox, and the owner's own profile data.
+- **Sign in at the moment of intent, never a locked page.** A protected action opens a **sign-in sheet** (modal) with a reason tied to the action, e.g. *"Sign in to send your offer"*. After verification, the sheet closes and **the original action continues** (the offer composer opens, the game is added to the want list, the Add flow starts…).
+- **Tab bar is identical for everyone.**
+  - **+ (Add)** and **Inbox** open the sign-in sheet for guests, then continue to the tab.
+  - **Profile** is useful for guests too: a **"Join WeLoot"** card plus language, support and terms; signed-in users get their full profile.
+
+**The sign-in sheet**
+- Phone OTP via **Firebase Auth SMS** (Israeli mobiles only, `+972` prefilled), then the 6-digit code (auto-submit, 30 s resend). WhatsApp OTP is **not** supported by Firebase Auth; it is a post-MVP option via a custom-token flow [OPEN-4].
+- **Profile setup** runs inside the same sheet right after a first sign-in (#9): username (unique, 3–20 chars, Latin/Hebrew/digits/_), city (from a list of Israeli cities → approximate lat/lng + geohash; **never store a precise home location**), language, accept TOS & Privacy (versioned, timestamp stored). The pending action continues only once the profile is complete.
+- The guest can close the sheet at any time; nothing is lost and they keep browsing.
+- AC: guests can browse Home, Search and game pages; every protected action opens the sheet with its reason and continues after sign-in; `sign_in_prompted` (with `reason`) on every sheet open; `user_registered` once per new user.
 
 ### W2 — Add Game (listing) — fast by default
 *As a gamer, I list a game in seconds, and can add real photos to get more offers.*
@@ -321,20 +332,20 @@ All docs have `createdAt`, `updatedAt` (server timestamps). `🔒` = server-writ
 | `config/{doc}` | admin-edited public settings (`config/app`: min app version, launch regions; `config/limits`: offer expiry, alert limits) |
 | `system/*` 🔒 | provider tokens; denied to all clients |
 
-Composite indexes live in `firestore.indexes.json`. Security rules are tested for every collection: users read public profile fields of others and write only their own permitted fields; conversations, messages and offers are readable only by the two participants; blocked users can't open conversations with each other; all 🔒 fields and collections are client-write denied.
+Composite indexes live in `firestore.indexes.json`. Security rules are tested for every collection: **guests (unauthenticated) may read `games` and `active` listings** (W1, browsing); users read public profile fields of others and write only their own permitted fields; conversations, messages and offers are readable only by the two participants; blocked users can't open conversations with each other; all 🔒 fields and collections are client-write denied.
 
 ---
 
 ## 9. Screen Inventory
 
-**A. Onboarding (stack):** `Splash` (logo animation, auth check) → `PhoneAuth` (phone → OTP, resend timer 30s) → `ProfileSetup` (username, city, language, TOS).
+**A. Start & sign-in:** `Splash` (logo animation while auth state loads) → straight to the tabs. **Sign-in sheet** (modal, opened by protected actions, W1): `Phone` (+972, validation) → `Verify` (6-digit code, resend timer 30s) → `ProfileSetup` on first sign-in (username, city, language, TOS) → closes and continues the action.
 
 **B. Tabs (custom hide-on-scroll bar):**
 1. `Home`: Perfect Matches, Has games you want, New near you, Wanted near you, New for you (alerts).
 2. `Search`: query + filters, list view, smart empty states (W4).
-3. `Add` (center `+`): `Identify (Scan | Search)` → `Details` → `Photos (optional)` → success (share prompt).
-4. `Inbox`: conversations grouped as Needs action (offers to answer, confirmations) / Active deals / Chats / Completed; unread badges.
-5. `Profile`: My Listings, Want List, Alerts, ratings and trade count, Settings.
+3. `Add` (center `+`, sign-in required; guests get the sign-in sheet): `Identify (Scan | Search)` → `Details` → `Photos (optional)` → success (share prompt).
+4. `Inbox` (sign-in required; guests get the sign-in sheet): conversations grouped as Needs action (offers to answer, confirmations) / Active deals / Chats / Completed; unread badges.
+5. `Profile`: My Listings, Want List, Alerts, ratings and trade count, Settings. Guests see a "Join WeLoot" card plus language, support and terms.
 
 **C. Deal stack:** `GameDetail` (cover/photos, owner card with trust signals, Make an offer / Ask a question / Open chat, Share, Report), `OfferComposer` (with Quick Add modal), `Conversation` (chat + offer cards + deal header), `RateUser`, `Report`.
 
@@ -348,7 +359,7 @@ Push + in-app badge for: new conversation (offer or question), new message (coll
 ---
 
 ## 11. Analytics, Admin, Support
-- **Analytics** (`@react-native-firebase/analytics`), events: `user_registered`, `game_listed`, `photo_added`, `wantlist_added`, `search_performed`, `search_no_results`, `alert_created`, `alert_notified`, `alert_opened`, `conversation_started`, `offer_sent`, `offer_countered`, `offer_accepted`, `deal_completed`, `deal_cancelled`, `deal_disputed`, `listing_shared`, `listing_closed`, `listing_closed_outside`, `deal_confirmed`, `report_submitted`. No PII in event params (IDs only).
+- **Analytics** (`@react-native-firebase/analytics`), events: `sign_in_prompted` (reason), `user_registered`, `game_listed`, `photo_added`, `wantlist_added`, `search_performed`, `search_no_results`, `alert_created`, `alert_notified`, `alert_opened`, `conversation_started`, `offer_sent`, `offer_countered`, `offer_accepted`, `deal_completed`, `deal_cancelled`, `deal_disputed`, `listing_shared`, `listing_closed`, `listing_closed_outside`, `deal_confirmed`, `report_submitted`. No PII in event params (IDs only).
 - **Crash reporting:** Firebase Crashlytics.
 - **Admin:** Firebase console / Rowy only. No admin screens. Ops tasks (review reports, resolve disputed deals, edit `config/*`, ban users) are done there.
 - **Support:** WhatsApp/email deep link only.

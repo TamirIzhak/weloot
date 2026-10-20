@@ -16,6 +16,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { ToastProvider } from '@/components';
+import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
+import { Splash } from '@/features/auth/Splash';
 import { initFirebase } from '@/lib/firebase';
 import { colors } from '@/theme/tokens';
 
@@ -40,7 +42,21 @@ const navigationTheme: Theme = {
   },
 };
 
-// Placeholder root layout. Navigation shell (tabs, onboarding, deal stacks) lands in #06.
+/**
+ * Guest-first navigation (PRD W1): everyone lands on the tabs. Protected actions open the `sign-in` modal
+ * through `useRequireAuth`; nothing is locked at the app level.
+ */
+function RootNavigator() {
+  const auth = useAuth();
+  if (auth.status === 'loading') return <Splash />;
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
+    </Stack>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Rubik_400Regular,
@@ -61,9 +77,9 @@ export default function RootLayout() {
     <ThemeProvider value={navigationTheme}>
       <ToastProvider>
         <StatusBar style="light" />
-        <Stack
-          screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}
-        />
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
   );

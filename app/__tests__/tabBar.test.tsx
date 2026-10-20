@@ -2,8 +2,25 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { BottomTabBarProps } from 'expo-router/tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { useAuthGate } from '@/features/auth/authGate';
 import { TabBar } from '@/navigation/TabBar';
 import { TabBarVisibilityProvider } from '@/navigation/TabBarVisibility';
+
+const mockPush = jest.fn();
+let mockAuthState: { status: string } = { status: 'signedIn' };
+
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuthState }));
+jest.mock('@react-native-firebase/analytics', () => ({
+  getAnalytics: jest.fn(() => ({})),
+  logEvent: jest.fn(),
+}));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockAuthState = { status: 'signedIn' };
+  useAuthGate.getState().cancel();
+});
 
 const SAFE_AREA = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -74,10 +91,38 @@ describe('TabBar', () => {
     const focused = await renderTabBar(1);
     await fireEvent.press(screen.getByRole('tab', { name: 'Search' }));
     expect(focused.navigateToTab).not.toHaveBeenCalled();
-    focused.unmount();
+    await focused.unmount();
 
     const prevented = await renderTabBar(0, true);
     await fireEvent.press(screen.getByRole('tab', { name: 'Profile' }));
     expect(prevented.navigateToTab).not.toHaveBeenCalled();
+  });
+
+  describe('as a guest (PRD W1)', () => {
+    beforeEach(() => {
+      mockAuthState = { status: 'signedOut' };
+    });
+
+    it('lets guests open Home, Search and Profile directly', async () => {
+      const { navigateToTab } = await renderTabBar(0);
+      await fireEvent.press(screen.getByRole('tab', { name: 'Search' }));
+      await fireEvent.press(screen.getByRole('tab', { name: 'Profile' }));
+      expect(navigateToTab).toHaveBeenCalledWith('search-key');
+      expect(navigateToTab).toHaveBeenCalledWith('profile-key');
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['Add a game', 'add'],
+      ['Inbox', 'inbox'],
+    ])('opens the sign-in sheet for %s, then continues to the tab', async (name, reason) => {
+      const { navigateToTab } = await renderTabBar(0);
+      await fireEvent.press(screen.getByRole('tab', { name }));
+      expect(navigateToTab).not.toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith('/sign-in');
+      expect(useAuthGate.getState().reason).toBe(reason);
+      useAuthGate.getState().take()?.();
+      expect(navigateToTab).toHaveBeenCalledWith(`${reason}-key`);
+    });
   });
 });

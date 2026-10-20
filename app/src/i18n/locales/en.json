@@ -113,9 +113,54 @@
     "add": "Scan or search a game to list it in seconds. Coming soon.",
     "inbox": "Your offers and chats will appear here. Coming soon.",
     "profile": "Your games, want list and settings. Coming soon.",
-    "onboardingTitle": "Welcome",
-    "onboarding": "Sign in with your phone number. Coming soon.",
     "gameTitle": "Game",
     "game": "Game details. Coming soon."
+  },
+  "auth": {
+    "signOut": "Sign out",
+    "phone": {
+      "title": "Welcome to WeLoot",
+      "subtitle": "Enter your phone number to sign in. We’ll text you a code.",
+      "label": "Mobile number",
+      "placeholder": "050-123-4567",
+      "sendCode": "Send code",
+      "smsNotice": "Israeli mobile numbers only. Standard SMS rates may apply."
+    },
+    "verify": {
+      "title": "Enter the code",
+      "subtitle": "We sent a 6-digit code to {{phone}}.",
+      "label": "Verification code",
+      "confirm": "Confirm",
+      "changeNumber": "Change number",
+      "resend": "Resend code",
+      "resendIn": "Resend in {{seconds}}s"
+    },
+    "errors": {
+      "invalidPhone": "Enter an Israeli mobile number, like 050-123-4567.",
+      "invalidCode": "That code isn’t right. Check the SMS and try again.",
+      "codeExpired": "That code expired. Tap “Resend code” for a new one.",
+      "tooManyRequests": "Too many attempts. Wait a few minutes and try again.",
+      "network": "No connection. Check your internet and try again.",
+      "quotaExceeded": "We can’t send codes right now. Try again later.",
+      "sessionLost": "Your sign-in session ended. Enter your number again.",
+      "generic": "Something went wrong. Try again."
+    },
+    "close": "Close",
+    "reasons": {
+      "offer": "Sign in to send your offer",
+      "question": "Sign in to ask the owner",
+      "wantlist": "Sign in to save your want list",
+      "alert": "Sign in to get alerts",
+      "add": "Sign in to list your game",
+      "inbox": "Sign in to see your offers and chats",
+      "profile": "Join WeLoot"
+    }
+  },
+  "profile": {
+    "join": {
+      "title": "Join WeLoot",
+      "body": "Swap the games you’ve finished for ones you want. Sign in with your phone number. It takes 20 seconds.",
+      "cta": "Sign in"
+    }
   }
 }
