@@ -8,7 +8,8 @@
   "language": {
     "english": "English",
     "hebrew": "עברית",
-    "applying": "מחליפים שפה…"
+    "applying": "מחליפים שפה…",
+    "failed": "לא הצלחנו להחליף שפה. כדאי לסגור ולפתוח את האפליקציה מחדש."
   },
   "errorBoundary": {
     "title": "משהו השתבש",

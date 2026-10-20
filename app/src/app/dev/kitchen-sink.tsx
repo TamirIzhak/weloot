@@ -53,7 +53,10 @@ export default function KitchenSink() {
   const switchTo = (next: Language) => {
     if (next === language) return;
     toast.show(t('language.applying'));
-    void setLanguage(next);
+    setLanguage(next).catch((error: unknown) => {
+      console.warn('[i18n] language switch failed', error);
+      toast.show(t('language.failed'), 'error');
+    });
   };
 
   return (
