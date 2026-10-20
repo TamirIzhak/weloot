@@ -18,7 +18,8 @@
     "test": "npm run test --workspaces --if-present",
     "emulators": "npm run build -w @weloot/functions && firebase emulators:start",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "i18n:check": "npm run i18n:check -w @weloot/app"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",

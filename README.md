@@ -40,6 +40,7 @@ cp .env.example app/.env   # fill in values; everything in this file is public
 | `npm run typecheck`                  | `tsc --noEmit` in every workspace                                                                    |
 | `npm run lint`                       | ESLint in every workspace + Prettier check                                                           |
 | `npm test`                           | Jest in every workspace (rules tests start their own emulators on separate ports)                    |
+| `npm run i18n:check`                 | English/Hebrew text files have the same keys and placeholders                                        |
 | `npm run format`                     | Prettier write                                                                                       |
 | `npm run emulators`                  | Build functions, then start auth/firestore/functions/storage emulators (UI on http://127.0.0.1:4000) |
 | `npm run start -w @weloot/app`       | Expo dev server                                                                                      |

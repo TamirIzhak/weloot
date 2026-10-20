@@ -70,6 +70,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     '@react-native-firebase/analytics',
     '@react-native-firebase/crashlytics',
     '@react-native-firebase/messaging',
+    // RTL: Hebrew layouts mirror via I18nManager (PRD §3.5, ADR 0002).
+    ['expo-localization', { supportsRTL: true }],
+    'expo-updates',
   ],
   experiments: {
     typedRoutes: true,
@@ -79,4 +82,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     appVariant: variant,
     eas: { projectId: '93b88dcd-9316-4815-bb20-44137f94f91d' },
   },
+  // expo-updates needs these to be enabled; it's used to restart the app after a language change (release builds).
+  updates: { url: 'https://u.expo.dev/93b88dcd-9316-4815-bb20-44137f94f91d' },
+  runtimeVersion: { policy: 'appVersion' },
 });
