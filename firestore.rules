@@ -13,5 +13,93 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // ── Profiles (PRD W1, §8) ──────────────────────────────────────────────────────────────────────────
+    // A first sign-in writes one atomic batch: usernames/{lower} + users/{uid} + users/{uid}/private/settings.
+    // Each rule checks the others with existsAfter/getAfter, so a username can't be claimed without a profile
+    // (or twice), and a profile can't exist without its username claim. Edits come with #10, deletion with #11.
+
+    function signedInAs(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function usersPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function usernamePath(lower) {
+      return /databases/$(database)/documents/usernames/$(lower);
+    }
+
+    function hasExactly(data, keys) {
+      return data.keys().hasOnly(keys) && data.keys().hasAll(keys);
+    }
+
+    // Same as USERNAME_PATTERN in packages/shared/src/schemas.ts.
+    function isUsername(s) {
+      return s is string && s.matches('^[A-Za-z0-9_א-ת]{3,20}$');
+    }
+
+    // City-level location in Israel (same bounds as geoSchema).
+    function isGeo(g) {
+      return g is map && hasExactly(g, ['lat', 'lng', 'geohash'])
+        && g.lat is number && g.lat >= 29 && g.lat <= 34
+        && g.lng is number && g.lng >= 34 && g.lng <= 36
+        && g.geohash is string && g.geohash.matches('^[0-9b-hjkmnp-z]{4,12}$');
+    }
+
+    // Public profile: readable by everyone, guests included (listings show their owner).
+    match /users/{uid} {
+      allow read: if true;
+      allow create: if signedInAs(uid)
+        && hasExactly(request.resource.data, ['username', 'usernameLower', 'cityId', 'geo', 'ratingAvg',
+             'ratingCount', 'completedTrades', 'createdAt', 'updatedAt'])
+        && isUsername(request.resource.data.username)
+        && request.resource.data.usernameLower == request.resource.data.username.lower()
+        && request.resource.data.cityId is string && request.resource.data.cityId.matches('^[a-z0-9-]{2,40}$')
+        && isGeo(request.resource.data.geo)
+        // Trust signals start at zero; only Cloud Functions change them.
+        && request.resource.data.ratingAvg == 0
+        && request.resource.data.ratingCount == 0
+        && request.resource.data.completedTrades == 0
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && getAfter(usernamePath(request.resource.data.usernameLower)).data.uid == uid;
+      allow update, delete: if false;
+
+      // Private settings: the owner only. No phone number here either: it stays in Firebase Auth.
+      match /private/settings {
+        allow read: if signedInAs(uid);
+        allow create: if signedInAs(uid)
+          && hasExactly(request.resource.data, ['preferredLanguage', 'tosVersion', 'tosAcceptedAt',
+               'ageConfirmed', 'fcmTokens', 'blockedUserIds', 'searchRadiusKm', 'createdAt', 'updatedAt'])
+          && request.resource.data.preferredLanguage in ['en', 'he']
+          && request.resource.data.tosVersion is string
+          && request.resource.data.tosVersion.size() > 0 && request.resource.data.tosVersion.size() <= 40
+          && request.resource.data.tosAcceptedAt == request.time
+          && request.resource.data.ageConfirmed == true
+          && request.resource.data.fcmTokens == []
+          && request.resource.data.blockedUserIds == []
+          && request.resource.data.searchRadiusKm is int
+          && request.resource.data.searchRadiusKm >= 1 && request.resource.data.searchRadiusKm <= 200
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time
+          // Created in the setup batch (or after it), never before the profile.
+          && existsAfter(usersPath(uid));
+        allow update, delete: if false;
+      }
+    }
+
+    // Username uniqueness guard: anyone can check whether a name is taken (single gets, no listing). Claimed
+    // once, in the batch that creates the claimant's profile; never released by clients.
+    match /usernames/{lower} {
+      allow get: if true;
+      allow create: if request.auth != null
+        && hasExactly(request.resource.data, ['uid'])
+        && request.resource.data.uid == request.auth.uid
+        && !exists(usersPath(request.auth.uid))
+        && getAfter(usersPath(request.auth.uid)).data.usernameLower == lower;
+      allow update, delete: if false;
+    }
   }
 }
