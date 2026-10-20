@@ -42,16 +42,16 @@ Status: ✅ merged · 🔄 in progress
 ## M1 — Auth & Profile (`v0.2.0`)
 
 **#8 feat(auth): phone OTP sign-in** · M · deps #3, #6
-- `Splash` (auth check, logo animation), `PhoneAuth` (+972 prefill, validation, resend timer, error mapping). Add the EAS keystore SHA-1/SHA-256 to the Firebase Android app.
-- AC: sign-in works with Firebase test phone numbers; errors are localized; `user_registered` fires once.
+- Guest-first (PRD W1): the app opens to the tabs for everyone. `Splash` while auth loads. A **sign-in sheet** (modal: phone with +972 prefill and validation, then the 6-digit code with auto-submit, resend timer and error mapping) opens from protected actions with a reason and **continues the action** after sign-in (`useRequireAuth`). The + and Inbox tabs use it for guests; Profile shows a "Join WeLoot" card to guests. EAS keystore SHA-1/SHA-256 registered with the Firebase Android app.
+- AC: guests can browse; protected actions open the sheet and continue after sign-in; sign-in works with test phone numbers and the emulator; errors are localized; `sign_in_prompted` per open, `user_registered` once.
 
 **#9 feat(profile): profile setup and username uniqueness** · M · deps #8, #7
-- `ProfileSetup`: username (transactional `usernames` guard), city picker (static Israeli city list with coordinates/geohash), language, TOS/Privacy acceptance.
+- `ProfileSetup` as the last step of the sign-in sheet on a first sign-in: username (transactional `usernames` guard), city picker (static Israeli city list with coordinates/geohash), language, TOS/Privacy acceptance. The pending action continues only after the profile is complete.
 - Rules for `users` and `usernames` + tests.
-- AC: can't reach tabs without completed profile; duplicate usernames rejected.
+- AC: protected actions don't continue until the profile is complete; duplicate usernames rejected; guests unaffected.
 
 **#10 feat(profile): profile tab and settings menu** · M · deps #9
-- Profile tab (My Listings, Want List, Alerts placeholders; rating and trade count), Settings sections (PRD §9-D) with language/city/radius editing, Support deep links, Legal links, version.
+- Profile tab (My Listings, Want List, Alerts placeholders; rating and trade count; guests: "Join WeLoot" card + language, support, legal), Settings sections (PRD §9-D) with language/city/radius editing, Support deep links, Legal links, version.
 - AC: support WhatsApp opens with user ID prefilled; language change reloads into the right direction.
 
 **#11 feat(profile): delete account** · S · deps #10
