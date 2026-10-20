@@ -1,2 +1,14 @@
 // Initialize i18n (English, since I18nManager.isRTL is false in Jest) so components render real text.
 import '@/i18n';
+
+// Icon fonts can't load in Jest; render the icon name instead so tests can still find icons.
+jest.mock('@expo/vector-icons/Ionicons', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createElement } = require('react') as typeof import('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Text } = require('react-native') as typeof import('react-native');
+  return {
+    __esModule: true,
+    default: ({ name }: { name: string }) => createElement(Text, { testID: `icon-${name}` }, name),
+  };
+});
