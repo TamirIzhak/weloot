@@ -167,8 +167,8 @@
       "subtitle": "This is how other gamers will see you.",
       "usernameLabel": "Username",
       "usernamePlaceholder": "e.g. zelda_fan",
-      "usernameHint": "3–20 letters (English or Hebrew), digits or _.",
-      "usernameInvalid": "Use 3–20 letters (English or Hebrew), digits or _. No spaces.",
+      "usernameHint": "3–20 English letters, digits or _.",
+      "usernameInvalid": "Use 3–20 English letters, digits or _. No spaces.",
       "usernameChecking": "Checking…",
       "usernameAvailable": "✓ Available",
       "usernameTaken": "That username is taken. Try another one.",
@@ -179,7 +179,12 @@
       "acceptTerms": "I’m 16 or older and I agree to the Terms of Service and the Privacy Policy.",
       "submit": "Continue",
       "saveFailed": "Couldn’t save your profile. Check your connection and try again.",
-      "loadFailed": "Couldn’t load your profile."
+      "loadFailed": "Couldn’t load your profile.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "emailHint": "Only we see it, never other users.",
+      "emailInvalid": "Enter a valid email, like you@example.com.",
+      "marketingOptIn": "Send me WeLoot news and offers by email (optional)."
     },
     "finish": {
       "title": "Finish setting up",

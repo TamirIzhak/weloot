@@ -39,7 +39,7 @@ function profile(username: string, overrides: Record<string, unknown> = {}) {
   return {
     username,
     usernameLower: username.toLowerCase(),
-    cityId: 'tel-aviv',
+    cityId: '5000',
     geo,
     ratingAvg: 0,
     ratingCount: 0,
@@ -50,12 +50,15 @@ function profile(username: string, overrides: Record<string, unknown> = {}) {
   };
 }
 
+/** Settings as the app writes them; an override of `undefined` leaves that field out. */
 function settings(overrides: Record<string, unknown> = {}) {
-  return {
+  const data: Record<string, unknown> = {
     preferredLanguage: 'he',
     tosVersion: '2026-10-draft',
     tosAcceptedAt: serverTimestamp(),
     ageConfirmed: true,
+    email: 'alice@example.com',
+    marketingOptIn: false,
     fcmTokens: [],
     blockedUserIds: [],
     searchRadiusKm: 25,
@@ -63,6 +66,7 @@ function settings(overrides: Record<string, unknown> = {}) {
     updatedAt: serverTimestamp(),
     ...overrides,
   };
+  return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));
 }
 
 type SetupOptions = {
@@ -97,8 +101,12 @@ describe('profile setup batch', () => {
     await assertSucceeds(setupBatch(as('alice'), 'alice', 'Alice_1'));
   });
 
-  it('accepts Hebrew usernames', async () => {
-    await assertSucceeds(setupBatch(as('alice'), 'alice', 'גיימר_1'));
+  it('records an explicit opt-in to promotions with the server time', async () => {
+    await assertSucceeds(
+      setupBatch(as('alice'), 'alice', 'Alice_1', {
+        settings: { marketingOptIn: true, marketingOptInAt: serverTimestamp() },
+      }),
+    );
   });
 
   it('denies guests', async () => {
@@ -131,6 +139,7 @@ describe('profile setup batch', () => {
     ['too long', 'a'.repeat(21)],
     ['a space', 'two words'],
     ['a symbol', 'alice!'],
+    ['Hebrew letters', 'גיימר_1'],
   ])('denies a username with %s', async (_, username) => {
     await assertFails(setupBatch(as('alice'), 'alice', username));
   });
@@ -142,6 +151,7 @@ describe('profile setup batch', () => {
     ['non-zero trades', { completedTrades: 10 }],
     ['a client createdAt', { createdAt: Timestamp.fromMillis(0) }],
     ['a bad city id', { cityId: 'Tel Aviv' }],
+    ['a city id with a leading zero', { cityId: '0500' }],
     ['a location outside Israel', { geo: { ...geo, lat: 51.5 } }],
     ['an extra geo field', { geo: { ...geo, street: 'Dizengoff 1' } }],
     ['no geo', { geo: null }],
@@ -160,6 +170,18 @@ describe('profile setup batch', () => {
     ['a radius out of range', { searchRadiusKm: 500 }],
     ['a fractional radius', { searchRadiusKm: 2.5 }],
     ['an extra field', { isAdmin: true }],
+    ['no email', { email: undefined }],
+    ['an invalid email', { email: 'alice-at-example.com' }],
+    ['an email with spaces', { email: 'alice @example.com' }],
+    ['an upper-case email', { email: 'Alice@Example.com' }],
+    ['a very long email', { email: `${'a'.repeat(250)}@x.io` }],
+    ['a non-boolean opt-in', { marketingOptIn: 'yes' }],
+    ['an opt-in without its time', { marketingOptIn: true }],
+    [
+      'an opt-in with a client time',
+      { marketingOptIn: true, marketingOptInAt: Timestamp.fromMillis(0) },
+    ],
+    ['an opt-in time without opting in', { marketingOptInAt: serverTimestamp() }],
   ])('denies settings with %s', async (_, overrides) => {
     await assertFails(setupBatch(as('alice'), 'alice', 'Alice_1', { settings: overrides }));
   });

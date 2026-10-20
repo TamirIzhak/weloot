@@ -11,6 +11,7 @@ import {
   cityGeo,
   DEFAULT_SEARCH_RADIUS_KM,
   findCity,
+  normalizeEmail,
   userProfileSchema,
   type LanguageCode,
   type ProfileSetupInput,
@@ -69,7 +70,8 @@ export class ProfileSetupError extends Error {
 
 /**
  * Claims the username and creates the public profile and private settings in one atomic batch (Security Rules
- * check the three together). The phone number is never written: it stays in Firebase Auth.
+ * check the three together). The phone number is never written: it stays in Firebase Auth. The email and the
+ * promotions opt-in are private settings.
  */
 export async function createProfile(
   uid: string,
@@ -100,6 +102,9 @@ export async function createProfile(
     tosVersion: TOS_VERSION,
     tosAcceptedAt: now,
     ageConfirmed: true,
+    email: normalizeEmail(input.email),
+    marketingOptIn: input.marketingOptIn,
+    ...(input.marketingOptIn ? { marketingOptInAt: now } : {}),
     fcmTokens: [],
     blockedUserIds: [],
     searchRadiusKm: DEFAULT_SEARCH_RADIUS_KM,

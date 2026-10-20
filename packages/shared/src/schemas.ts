@@ -45,12 +45,27 @@ export const geoSchema = z.object({
   geohash: z.string().min(4).max(12),
 });
 
-/** 3–20 Latin or Hebrew letters, digits or `_` (PRD W1). */
-export const USERNAME_PATTERN = /^[A-Za-z0-9_א-ת]{3,20}$/;
+/** 3–20 English letters, digits or `_` (PRD W1). */
+export const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
 export const usernameSchema = z.string().regex(USERNAME_PATTERN);
 
-/** Users pick a city from the shared list (cities.ts); stored by id, displayed in the reader's language. */
-export const cityIdSchema = z.string().regex(/^[a-z0-9-]{2,40}$/);
+/** Users pick a city from the shared list (cities.ts): its CBS locality code, displayed in the reader's language. */
+export const cityIdSchema = z.string().regex(/^[1-9][0-9]{0,5}$/);
+
+/** Contact email (PRD W1): stored lower-case in private settings, never shown to other users. */
+export const emailSchema = z.email().max(254);
+
+/**
+ * A first or last name: letters in any language, with spaces, hyphens, apostrophes or dots inside ("Ben-David",
+ * "O'Neil"). Private: shown only to people the user is in a conversation with (PRD W1).
+ */
+export const PERSON_NAME_PATTERN = /^p{L}[p{L}p{M} '’.-]{0,39}$/u;
+export const personNameSchema = z.string().regex(PERSON_NAME_PATTERN);
+
+/** Emails are stored trimmed and lower-case. */
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
 
 /**
  * `users/{uid}`: the PUBLIC profile, readable by everyone incl. guests (PRD W1, listings show their owner).
@@ -77,6 +92,13 @@ export const userSettingsSchema = z.object({
   tosAcceptedAt: timestampSchema,
   /** The user confirmed they're 16 or older (OPEN-9 default). */
   ageConfirmed: z.literal(true),
+  firstName: personNameSchema,
+  lastName: personNameSchema,
+  email: emailSchema,
+  /** Explicit opt-in to promotional messages (a separate, unticked checkbox). */
+  marketingOptIn: z.boolean(),
+  /** When the user opted in; absent while they haven't. */
+  marketingOptInAt: timestampSchema.optional(),
   fcmTokens: z.array(z.string()).max(10),
   blockedUserIds: z.array(uid).max(500),
   searchRadiusKm: z.number().int().min(1).max(200),
@@ -88,6 +110,10 @@ export type UserSettings = z.infer<typeof userSettingsSchema>;
 export const profileSetupInputSchema = z.object({
   username: usernameSchema,
   cityId: cityIdSchema,
+  firstName: personNameSchema,
+  lastName: personNameSchema,
+  email: emailSchema,
+  marketingOptIn: z.boolean(),
   acceptedTerms: z.literal(true),
 });
 export type ProfileSetupInput = z.infer<typeof profileSetupInputSchema>;

@@ -38,30 +38,64 @@ async function typeUsername(value: string) {
 
 async function fillValidForm() {
   await typeUsername('Gamer_1');
-  await fireEvent.changeText(screen.getByTestId('city-input'), 'hai');
-  await fireEvent.press(screen.getByTestId('city-haifa'));
+  await fireEvent.changeText(screen.getByTestId('city-input'), 'haifa');
+  await fireEvent.press(screen.getByTestId('city-4000'));
+  await fireEvent.changeText(screen.getByTestId('email-input'), 'dana@example.com');
   await fireEvent.press(screen.getByTestId('accept-terms'));
 }
 
 describe('ProfileStep', () => {
-  it('enables Continue only with an available username, a city and the 16+/Terms box', async () => {
+  it('enables Continue only with an available username, a city, an email and the 16+/Terms box', async () => {
     await render(<ProfileStep uid="u1" />);
     expect(isDisabled()).toBe(true);
     await typeUsername('Gamer_1');
     expect(usernameMessage()).toBe('✓ Available');
     expect(isDisabled()).toBe(true);
-    await fireEvent.changeText(screen.getByTestId('city-input'), 'hai');
-    await fireEvent.press(screen.getByTestId('city-haifa'));
+    await fireEvent.changeText(screen.getByTestId('city-input'), 'haifa');
+    await fireEvent.press(screen.getByTestId('city-4000'));
     expect(screen.getByTestId('city-input').props.value).toBe('Haifa');
+    expect(isDisabled()).toBe(true);
+    await fireEvent.changeText(screen.getByTestId('email-input'), 'dana@example.com');
     expect(isDisabled()).toBe(true);
     await fireEvent.press(screen.getByTestId('accept-terms'));
     expect(isDisabled()).toBe(false);
+    // Promotions are optional and unticked.
+    expect(screen.getByTestId('marketing-opt-in').props.accessibilityState).toMatchObject({
+      checked: false,
+    });
+  });
+
+  it('rejects Hebrew usernames', async () => {
+    await render(<ProfileStep uid="u1" />);
+    await typeUsername('גיימר_1');
+    expect(usernameMessage()).toBe('Use 3–20 English letters, digits or _. No spaces.');
+    expect(mockIsAvailable).not.toHaveBeenCalled();
+  });
+
+  it('explains an invalid email once the user leaves the field', async () => {
+    await render(<ProfileStep uid="u1" />);
+    await fireEvent.changeText(screen.getByTestId('email-input'), 'dana@');
+    expect(screen.getByTestId('email-input-message').props.children).toBe(
+      'Only we see it, never other users.',
+    );
+    await fireEvent(screen.getByTestId('email-input'), 'blur');
+    expect(screen.getByTestId('email-input-message').props.children).toBe(
+      'Enter a valid email, like you@example.com.',
+    );
+  });
+
+  it('shows city suggestions with the name in both languages', async () => {
+    await render(<ProfileStep uid="u1" />);
+    await fireEvent.changeText(screen.getByTestId('city-input'), 'metula');
+    expect(screen.getByTestId('city-43')).toBeTruthy();
+    expect(screen.getByText('מטולה')).toBeTruthy();
+    expect(screen.getAllByTestId('icon-location-outline')).toHaveLength(1);
   });
 
   it('explains an invalid username without asking the server', async () => {
     await render(<ProfileStep uid="u1" />);
     await typeUsername('ab');
-    expect(usernameMessage()).toBe('Use 3–20 letters (English or Hebrew), digits or _. No spaces.');
+    expect(usernameMessage()).toBe('Use 3–20 English letters, digits or _. No spaces.');
     expect(mockIsAvailable).not.toHaveBeenCalled();
   });
 
@@ -89,7 +123,7 @@ describe('ProfileStep', () => {
   it('finds cities in Hebrew spelling too, and says when nothing matches', async () => {
     await render(<ProfileStep uid="u1" />);
     await fireEvent.changeText(screen.getByTestId('city-input'), 'חיפה');
-    expect(screen.getByTestId('city-haifa')).toBeTruthy();
+    expect(screen.getByTestId('city-4000')).toBeTruthy();
     await fireEvent.changeText(screen.getByTestId('city-input'), 'Atlantis');
     expect(screen.queryByTestId('city-results')).toBeNull();
     expect(screen.getByText('No city found. Try another spelling.')).toBeTruthy();
@@ -101,7 +135,7 @@ describe('ProfileStep', () => {
     await fireEvent.press(saveButton());
     expect(mockCreateProfile).toHaveBeenCalledWith(
       'u1',
-      { username: 'Gamer_1', cityId: 'haifa' },
+      { username: 'Gamer_1', cityId: '4000', email: 'dana@example.com', marketingOptIn: false },
       'en',
     );
   });

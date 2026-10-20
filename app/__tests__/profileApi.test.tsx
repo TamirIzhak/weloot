@@ -44,10 +44,16 @@ jest.mock('@react-native-firebase/auth', () => ({
 }));
 
 const timestamp = { toMillis: () => 0 };
+const INPUT = {
+  username: 'Gamer_1',
+  cityId: '4000',
+  email: ' Dana@Example.com ',
+  marketingOptIn: false,
+};
 const PROFILE = {
   username: 'Gamer_1',
   usernameLower: 'gamer_1',
-  cityId: 'haifa',
+  cityId: '4000',
   geo: { lat: 32.794, lng: 34.99, geohash: 'svbsd' },
   ratingAvg: 0,
   ratingCount: 0,
@@ -121,8 +127,8 @@ describe('isUsernameAvailable', () => {
 
 describe('createProfile', () => {
   it('writes the username claim, public profile and private settings in one batch', async () => {
-    await createProfile('u1', { username: 'Gamer_1', cityId: 'haifa' }, 'he');
-    const haifa = findCity('haifa');
+    await createProfile('u1', INPUT, 'he');
+    const haifa = findCity('4000');
     if (!haifa) throw new Error('haifa missing');
     expect(mockBatchSet.mock.calls).toEqual([
       ['usernames/gamer_1', { uid: 'u1' }],
@@ -131,7 +137,7 @@ describe('createProfile', () => {
         {
           username: 'Gamer_1',
           usernameLower: 'gamer_1',
-          cityId: 'haifa',
+          cityId: '4000',
           geo: cityGeo(haifa),
           ratingAvg: 0,
           ratingCount: 0,
@@ -147,6 +153,8 @@ describe('createProfile', () => {
           tosVersion: TOS_VERSION,
           tosAcceptedAt: 'SERVER_TIME',
           ageConfirmed: true,
+          email: 'dana@example.com',
+          marketingOptIn: false,
           fcmTokens: [],
           blockedUserIds: [],
           searchRadiusKm: DEFAULT_SEARCH_RADIUS_KM,
@@ -158,26 +166,30 @@ describe('createProfile', () => {
     expect(mockCommit).toHaveBeenCalledTimes(1);
   });
 
+  it('records an opt-in to promotions with the server time', async () => {
+    await createProfile('u1', { ...INPUT, marketingOptIn: true }, 'en');
+    expect(mockBatchSet.mock.calls[2]?.[1]).toMatchObject({
+      marketingOptIn: true,
+      marketingOptInAt: 'SERVER_TIME',
+    });
+  });
+
   it('never writes the phone number', async () => {
-    await createProfile('u1', { username: 'Gamer_1', cityId: 'haifa' }, 'en');
+    await createProfile('u1', INPUT, 'en');
     expect(JSON.stringify(mockBatchSet.mock.calls)).not.toMatch(/phone|\+972/i);
   });
 
   it('rejects an unknown city before writing anything', async () => {
-    await expect(
-      createProfile('u1', { username: 'Gamer_1', cityId: 'atlantis' }, 'en'),
-    ).rejects.toMatchObject({ reason: 'unknownCity' });
+    await expect(createProfile('u1', { ...INPUT, cityId: '999999' }, 'en')).rejects.toMatchObject({
+      reason: 'unknownCity',
+    });
     expect(mockCommit).not.toHaveBeenCalled();
   });
 
   it('reports a name claimed by someone else in the meantime as taken', async () => {
     mockCommit.mockRejectedValueOnce(new Error('[firestore/permission-denied]'));
     mockGetDocFromServer.mockResolvedValueOnce({ exists: () => true });
-    const error: unknown = await createProfile(
-      'u1',
-      { username: 'Gamer_1', cityId: 'haifa' },
-      'en',
-    ).catch((e: unknown) => e);
+    const error: unknown = await createProfile('u1', INPUT, 'en').catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ProfileSetupError);
     expect(error).toMatchObject({ reason: 'usernameTaken' });
   });
@@ -185,13 +197,9 @@ describe('createProfile', () => {
   it('reports other failures (even when the re-check fails too) as failed', async () => {
     mockCommit.mockRejectedValue(new Error('[firestore/unavailable]'));
     mockGetDocFromServer.mockResolvedValueOnce({ exists: () => false });
-    await expect(
-      createProfile('u1', { username: 'Gamer_1', cityId: 'haifa' }, 'en'),
-    ).rejects.toMatchObject({ reason: 'failed' });
+    await expect(createProfile('u1', INPUT, 'en')).rejects.toMatchObject({ reason: 'failed' });
     mockGetDocFromServer.mockRejectedValueOnce(new Error('offline'));
-    await expect(
-      createProfile('u1', { username: 'Gamer_1', cityId: 'haifa' }, 'en'),
-    ).rejects.toMatchObject({ reason: 'failed' });
+    await expect(createProfile('u1', INPUT, 'en')).rejects.toMatchObject({ reason: 'failed' });
   });
 });
 

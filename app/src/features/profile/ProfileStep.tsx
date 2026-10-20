@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
-import { searchCities, type City } from '@weloot/shared';
+import { emailSchema, normalizeEmail, searchCities, type City } from '@weloot/shared';
 
-import { Button, Input, Text } from '@/components';
+import { Button, cn, Input, Text } from '@/components';
 import { currentLanguage } from '@/i18n';
 import { colors } from '@/theme/tokens';
 
@@ -25,7 +25,8 @@ const USERNAME_MESSAGE_KEY: Record<UsernameCheck, string | null> = {
 };
 
 /**
- * Sign-in step 3, on a first sign-in (PRD W1): username, city and the 16+/Terms confirmation. Saves the profile;
+ * Sign-in step 3, on a first sign-in (PRD W1): username, city, email, an optional opt-in to promotions and the
+ * 16+/Terms confirmation. Saves the profile;
  * the sheet then continues the pending action (it watches the profile, so this step has no `onDone`).
  * The language isn't asked here: the app's current language is saved, and Settings can change it.
  */
@@ -35,6 +36,9 @@ export function ProfileStep({ uid }: { uid: string }) {
   const [username, setUsername] = useState('');
   const [cityQuery, setCityQuery] = useState('');
   const [city, setCity] = useState<City | null>(null);
+  const [email, setEmail] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -46,15 +50,21 @@ export function ProfileStep({ uid }: { uid: string }) {
   const usernameIsError = check === 'invalid' || check === 'taken';
 
   const cityResults = city ? [] : searchCities(cityQuery, language).slice(0, MAX_CITY_RESULTS);
+  const emailValid = emailSchema.safeParse(normalizeEmail(email)).success;
+  const showEmailError = emailTouched && email.trim() !== '' && !emailValid;
   const canSubmit =
-    (check === 'available' || check === 'unknown') && city !== null && accepted && !saving;
+    (check === 'available' || check === 'unknown') &&
+    city !== null &&
+    emailValid &&
+    accepted &&
+    !saving;
 
   const submit = async () => {
     if (!canSubmit || !city) return;
     setSaving(true);
     setError(undefined);
     try {
-      await createProfile(uid, { username, cityId: city.id }, language);
+      await createProfile(uid, { username, cityId: city.id, email, marketingOptIn }, language);
     } catch (e) {
       if (e instanceof ProfileSetupError && e.reason === 'usernameTaken')
         setTakenOnSubmit(username);
@@ -113,40 +123,71 @@ export function ProfileStep({ uid }: { uid: string }) {
           testID="city-input"
         />
         {cityQuery !== '' && cityResults.length > 0 ? (
-          <View className="overflow-hidden rounded-button bg-surface-raised" testID="city-results">
-            {cityResults.map((result) => (
+          // A suggestion list, not a field: outlined card, pin icons, and the name in the other language too.
+          <View
+            accessibilityRole="list"
+            className="overflow-hidden rounded-card border border-border bg-surface"
+            testID="city-results"
+          >
+            {cityResults.map((result, index) => (
               <Pressable
                 key={result.id}
                 accessibilityRole="button"
+                accessibilityLabel={result[language]}
                 onPress={() => {
                   setCity(result);
                   setCityQuery('');
                 }}
-                className="border-b border-border px-4 py-3 active:bg-surface"
+                className={cn(
+                  'flex-row items-center gap-3 px-4 py-2.5 active:bg-surface-raised',
+                  index > 0 && 'border-t border-border',
+                )}
                 testID={`city-${result.id}`}
               >
-                <Text>{result[language]}</Text>
+                <Ionicons name="location-outline" size={18} color={colors['text-muted']} />
+                <View className="flex-1">
+                  <Text>{result[language]}</Text>
+                  <Text variant="caption" tone="muted">
+                    {result[language === 'he' ? 'en' : 'he']}
+                  </Text>
+                </View>
               </Pressable>
             ))}
           </View>
         ) : null}
       </View>
 
-      <Pressable
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: accepted }}
-        onPress={() => setAccepted((value) => !value)}
-        className="flex-row items-center gap-3"
-        hitSlop={8}
-        testID="accept-terms"
-      >
-        <Ionicons
-          name={accepted ? 'checkbox' : 'square-outline'}
-          size={24}
-          color={accepted ? colors.primary : colors['text-secondary']}
+      <Input
+        label={t('profile.setup.emailLabel')}
+        placeholder={t('profile.setup.emailPlaceholder')}
+        value={email}
+        onChangeText={setEmail}
+        onBlur={() => setEmailTouched(true)}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoComplete="email"
+        textContentType="emailAddress"
+        maxLength={254}
+        error={showEmailError ? t('profile.setup.emailInvalid') : undefined}
+        helper={t('profile.setup.emailHint')}
+        testID="email-input"
+      />
+
+      <View className="gap-4">
+        <Checkbox
+          checked={marketingOptIn}
+          onToggle={() => setMarketingOptIn((value) => !value)}
+          label={t('profile.setup.marketingOptIn')}
+          testID="marketing-opt-in"
         />
-        <Text className="flex-1">{t('profile.setup.acceptTerms')}</Text>
-      </Pressable>
+        <Checkbox
+          checked={accepted}
+          onToggle={() => setAccepted((value) => !value)}
+          label={t('profile.setup.acceptTerms')}
+          testID="accept-terms"
+        />
+      </View>
 
       {error ? (
         <Text tone="danger" accessibilityLiveRegion="polite" testID="profile-error">
@@ -164,5 +205,35 @@ export function ProfileStep({ uid }: { uid: string }) {
         testID="save-profile"
       />
     </View>
+  );
+}
+
+function Checkbox({
+  checked,
+  onToggle,
+  label,
+  testID,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+  label: string;
+  testID: string;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      onPress={onToggle}
+      className="flex-row items-center gap-3"
+      hitSlop={8}
+      testID={testID}
+    >
+      <Ionicons
+        name={checked ? 'checkbox' : 'square-outline'}
+        size={24}
+        color={checked ? colors.primary : colors['text-secondary']}
+      />
+      <Text className="flex-1">{label}</Text>
+    </Pressable>
   );
 }

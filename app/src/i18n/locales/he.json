@@ -167,8 +167,8 @@
       "subtitle": "כך גיימרים אחרים יראו אותך.",
       "usernameLabel": "שם משתמש",
       "usernamePlaceholder": "למשל zelda_fan",
-      "usernameHint": "3–20 אותיות (עברית או אנגלית), ספרות או _.",
-      "usernameInvalid": "אפשר 3–20 אותיות (עברית או אנגלית), ספרות או _, בלי רווחים.",
+      "usernameHint": "3–20 אותיות באנגלית, ספרות או _.",
+      "usernameInvalid": "אפשר 3–20 אותיות באנגלית, ספרות או _, בלי רווחים.",
       "usernameChecking": "בודקים…",
       "usernameAvailable": "✓ פנוי",
       "usernameTaken": "שם המשתמש הזה תפוס. נסו שם אחר.",
@@ -179,7 +179,12 @@
       "acceptTerms": "אני בן/בת 16 ומעלה ומסכים/ה לתנאי השימוש ולמדיניות הפרטיות.",
       "submit": "המשך",
       "saveFailed": "לא הצלחנו לשמור את הפרופיל. בדקו את החיבור ונסו שוב.",
-      "loadFailed": "לא הצלחנו לטעון את הפרופיל."
+      "loadFailed": "לא הצלחנו לטעון את הפרופיל.",
+      "emailLabel": "אימייל",
+      "emailPlaceholder": "you@example.com",
+      "emailHint": "רק אנחנו רואים אותו, אף פעם לא משתמשים אחרים.",
+      "emailInvalid": "צריך כתובת אימייל תקינה, למשל you@example.com.",
+      "marketingOptIn": "שלחו לי עדכונים ומבצעים של WeLoot במייל (לא חובה)."
     },
     "finish": {
       "title": "עוד רגע מסיימים",
