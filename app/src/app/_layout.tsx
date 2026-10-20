@@ -1,4 +1,6 @@
 import '../../global.css';
+// i18n must initialize before any screen renders text.
+import '@/i18n';
 
 import {
   Rubik_400Regular,

@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { APP_NAME } from '@weloot/shared';
@@ -9,6 +10,7 @@ import { initFirebase } from '@/lib/firebase';
 
 // Placeholder home screen. Replaced by the tab navigator in #06.
 export default function Index() {
+  const { t } = useTranslation();
   const router = useRouter();
   return (
     <View className="flex-1 items-center justify-center bg-bg px-6">
@@ -20,7 +22,7 @@ export default function Index() {
           <FirebaseStatus emulatorHost={initFirebase()} />
           <Button
             variant="ghost"
-            label="Component kitchen sink"
+            label={t('home.kitchenSink')}
             onPress={() => router.push('/dev/kitchen-sink')}
             className="mt-6"
           />
