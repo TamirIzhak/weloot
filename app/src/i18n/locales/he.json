@@ -1,0 +1,101 @@
+{
+  "common": {
+    "back": "חזרה",
+    "tryAgain": "לנסות שוב",
+    "loading": "טוען…",
+    "km": "{{value}} ק״מ"
+  },
+  "language": {
+    "english": "English",
+    "hebrew": "עברית",
+    "applying": "מחליפים שפה…"
+  },
+  "errorBoundary": {
+    "title": "משהו השתבש",
+    "message": "כדאי לנסות שוב. אם זה חוזר על עצמו, אפשר לפנות לתמיכה דרך ההגדרות."
+  },
+  "home": {
+    "kitchenSink": "גלריית רכיבים"
+  },
+  "kitchenSink": {
+    "title": "גלריית רכיבים",
+    "sections": {
+      "language": "שפה",
+      "text": "טקסט",
+      "buttons": "כפתורים",
+      "chips": "תגיות",
+      "card": "כרטיס",
+      "input": "שדה קלט",
+      "skeleton": "שלד טעינה",
+      "states": "מצבים ריקים ושגיאות",
+      "toasts": "הודעות קופצות",
+      "formatting": "עיצוב מספרים"
+    },
+    "languageHint": "ההחלפה מפעילה את האפליקציה מחדש כדי שכל המסך יתהפך.",
+    "text": {
+      "title": "כותרת 28 · Rubik",
+      "heading": "כותרת משנה 22",
+      "subheading": "כותרת קטנה 18",
+      "body": "גוף 16. מחליפים את המשחקים שסיימתם במשחקים שאתם רוצים.",
+      "label": "תווית 14 · משנית",
+      "caption": "כיתוב 13 · מעומעם",
+      "accent": "הדגשה",
+      "success": "הצלחה",
+      "danger": "סכנה"
+    },
+    "buttons": {
+      "makeOffer": "להציע הצעה",
+      "askQuestion": "לשאול שאלה",
+      "ghost": "כפתור שקוף",
+      "cancelDeal": "לבטל עסקה",
+      "large": "גדול, ברוחב מלא",
+      "tapToLoad": "הקישו לטעינה",
+      "disabled": "לא זמין",
+      "pressed": "נלחץ: {{label}}"
+    },
+    "chips": {
+      "all": "הכול",
+      "forTrade": "להחלפה",
+      "forSale": "למכירה",
+      "realPhotos": "תמונות אמיתיות",
+      "perfectMatch": "התאמה מושלמת",
+      "traded": "הוחלף",
+      "reserved": "שמור",
+      "trade": "החלפה"
+    },
+    "card": {
+      "condition": "כמו חדש · רמת גן · {{distance}}",
+      "pressed": "הכרטיס נלחץ"
+    },
+    "input": {
+      "username": "שם משתמש",
+      "usernamePlaceholder": "gamer_il",
+      "usernameHelper": "3–20 אותיות, ספרות או _",
+      "usernameErrorLabel": "שם משתמש (שגיאה)",
+      "usernameError": "השם קצר מדי. צריך לפחות 3 תווים."
+    },
+    "states": {
+      "emptyTitle": "אף אחד עוד לא העלה אותו",
+      "emptyBody": "נעדכן אתכם ברגע שמישהו באזור שלכם יעלה אותו.",
+      "notifyMe": "לקבל התראה",
+      "addToWantList": "להוסיף לרשימת המבוקשים",
+      "alertCreated": "ההתראה נוצרה",
+      "added": "נוסף לרשימת המבוקשים",
+      "errorTitle": "לא הצלחנו לטעון משחקים",
+      "errorMessage": "כדאי לבדוק את החיבור ולנסות שוב.",
+      "retrying": "מנסים שוב…"
+    },
+    "toasts": {
+      "info": "מידע",
+      "success": "הצלחה",
+      "error": "שגיאה",
+      "offerSent": "ההצעה נשלחה",
+      "tradeCompleted": "ההחלפה הושלמה",
+      "sendFailed": "השליחה נכשלה. כדאי לנסות שוב."
+    },
+    "formatting": {
+      "price": "מחיר מבוקש: {{price}}",
+      "mixed": "{{count}} אנשים באזור שלכם מחפשים את {{game}}"
+    }
+  }
+}

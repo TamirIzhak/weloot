@@ -1,0 +1,101 @@
+{
+  "common": {
+    "back": "Back",
+    "tryAgain": "Try again",
+    "loading": "Loading…",
+    "km": "{{value}} km"
+  },
+  "language": {
+    "english": "English",
+    "hebrew": "עברית",
+    "applying": "Applying language…"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "message": "Try again. If it keeps happening, contact support from Settings."
+  },
+  "home": {
+    "kitchenSink": "Component kitchen sink"
+  },
+  "kitchenSink": {
+    "title": "Kitchen sink",
+    "sections": {
+      "language": "Language",
+      "text": "Text",
+      "buttons": "Buttons",
+      "chips": "Chips and badges",
+      "card": "Card",
+      "input": "Input",
+      "skeleton": "Skeleton",
+      "states": "Empty and error states",
+      "toasts": "Toasts",
+      "formatting": "Formatting"
+    },
+    "languageHint": "Switching restarts the app so the whole layout can flip.",
+    "text": {
+      "title": "Title 28 · Rubik",
+      "heading": "Heading 22",
+      "subheading": "Subheading 18",
+      "body": "Body 16. Swap the games you've finished for ones you want.",
+      "label": "Label 14 · secondary",
+      "caption": "Caption 13 · muted",
+      "accent": "Accent",
+      "success": "Success",
+      "danger": "Danger"
+    },
+    "buttons": {
+      "makeOffer": "Make an offer",
+      "askQuestion": "Ask a question",
+      "ghost": "Ghost button",
+      "cancelDeal": "Cancel deal",
+      "large": "Large, full width",
+      "tapToLoad": "Tap to load",
+      "disabled": "Disabled",
+      "pressed": "“{{label}}” pressed"
+    },
+    "chips": {
+      "all": "All",
+      "forTrade": "For trade",
+      "forSale": "For sale",
+      "realPhotos": "Real photos",
+      "perfectMatch": "Perfect match",
+      "traded": "Traded",
+      "reserved": "Reserved",
+      "trade": "Trade"
+    },
+    "card": {
+      "condition": "Like new · Ramat Gan · {{distance}}",
+      "pressed": "Card pressed"
+    },
+    "input": {
+      "username": "Username",
+      "usernamePlaceholder": "gamer_il",
+      "usernameHelper": "3–20 letters, numbers or _",
+      "usernameErrorLabel": "Username (error)",
+      "usernameError": "That name's too short. Use at least 3 characters."
+    },
+    "states": {
+      "emptyTitle": "No one has it yet",
+      "emptyBody": "We'll let you know the moment someone near you lists it.",
+      "notifyMe": "Notify me",
+      "addToWantList": "Add to want list",
+      "alertCreated": "Alert created",
+      "added": "Added to your want list",
+      "errorTitle": "Couldn't load games",
+      "errorMessage": "Check your connection and try again.",
+      "retrying": "Retrying…"
+    },
+    "toasts": {
+      "info": "Info",
+      "success": "Success",
+      "error": "Error",
+      "offerSent": "Offer sent",
+      "tradeCompleted": "Trade completed",
+      "sendFailed": "Couldn't send. Try again."
+    },
+    "formatting": {
+      "price": "Asking price: {{price}}",
+      "mixed": "{{count}} people near you want {{game}}"
+    }
+  }
+}
