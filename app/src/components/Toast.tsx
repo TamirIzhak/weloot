@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -46,6 +47,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const api = useMemo(() => ({ show }), [show]);
+
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
@@ -54,7 +57,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ToastContext.Provider value={{ show }}>
+    <ToastContext.Provider value={api}>
       {children}
       <View
         pointerEvents="none"

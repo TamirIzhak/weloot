@@ -29,13 +29,13 @@ export type TextProps = RNTextProps & {
   className?: string;
 };
 
-/** App text: Rubik in every language, with the PRD §3.2 type scale. Alignment follows the layout direction. */
+/** App text: Rubik in every language, with the PRD §3.2 type scale. Default alignment (`auto`) follows the layout direction, so no `text-start` (NativeWind drops it). */
 export function Text({ variant = 'body', tone = 'primary', className, ...props }: TextProps) {
   const role = variant === 'title' || variant === 'heading' ? 'header' : undefined;
   return (
     <RNText
       accessibilityRole={role}
-      className={cn(VARIANT[variant], TONE[tone], 'text-start', className)}
+      className={cn(VARIANT[variant], TONE[tone], className)}
       {...props}
     />
   );

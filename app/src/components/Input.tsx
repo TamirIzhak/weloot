@@ -47,7 +47,7 @@ export function Input({
           onBlur?.(e);
         }}
         className={cn(
-          'h-12 rounded-button bg-surface-raised px-4 font-sans text-[16px] text-text-primary text-start border',
+          'h-12 rounded-button bg-surface-raised px-4 font-sans text-[16px] text-text-primary border',
           error ? 'border-danger' : focused ? 'border-primary' : 'border-transparent',
         )}
         {...props}

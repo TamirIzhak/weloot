@@ -122,7 +122,7 @@ Testing notes (learned the hard way):
 
 **i18n & RTL**
 - No user-facing string literals in components — `t('feature.key')` only, with keys added to **both** `en.json` and `he.json` in the same commit. Hebrew should be natural Hebrew, not a word-for-word translation. If unsure, add it and flag it in the PR for review.
-- Logical layout only: `ms-/me-/ps-/pe-/start-/end-` (NativeWind) or `marginStart`/`paddingEnd`. Never `left`/`right`/`ml-`/`mr-` for layout.
+- Logical layout only: `ms-/me-/ps-/pe-/start-/end-` (NativeWind) or `marginStart`/`paddingEnd`. Never `left`/`right`/`ml-`/`mr-` for layout. For text alignment leave the default (`auto` follows the layout direction); `text-start`/`text-end` are silently dropped by NativeWind.
 - Flip directional icons in RTL. Wrap numbers/prices/phones in Hebrew text with bidi isolation helpers.
 - Language change → `I18nManager.forceRTL` + `Updates.reloadAsync()` (see PRD §3.5); don't try to mirror without reload.
 
