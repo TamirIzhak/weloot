@@ -279,3 +279,16 @@ describe('SignInSheet', () => {
     expect(screen.getByTestId('redirect').props.children).toBe('/');
   });
 });
+
+describe('PhoneStep input length', () => {
+  it('accepts a pasted international number', async () => {
+    const onSent = jest.fn();
+    await render(<PhoneStep title="Sign in" onSent={onSent} />);
+    expect(screen.getByTestId('phone-input').props.maxLength).toBeGreaterThanOrEqual(
+      '+972 54-123-4567'.length,
+    );
+    await fireEvent.changeText(screen.getByTestId('phone-input'), '+972 54-123-4567');
+    await fireEvent.press(screen.getByTestId('send-code'));
+    expect(mockSignIn).toHaveBeenCalledWith({}, '+972541234567');
+  });
+});

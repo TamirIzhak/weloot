@@ -61,7 +61,8 @@ export function PhoneStep({ title, onSent }: { title: string; onSent: () => void
           textContentType="telephoneNumber"
           autoComplete="tel"
           autoFocus
-          maxLength={13}
+          // Long enough for "+972 54-123-4567" (pasted international form), which the validator accepts.
+          maxLength={16}
           error={showInvalid ? t('auth.errors.invalidPhone') : error}
           testID="phone-input"
         />
