@@ -42,7 +42,7 @@ service cloud.firestore {
 
     // Same as PERSON_NAME_PATTERN in packages/shared/src/schemas.ts.
     function isPersonName(s) {
-      return s is string && s.matches('^\\p{L}[\\p{L}\\p{M} \'’.-]{0,39}$');
+      return s is string && s.matches("^\\p{L}[\\p{L}\\p{M} '’.-]{0,39}$");
     }
 
     // City-level location in Israel (same bounds as geoSchema).

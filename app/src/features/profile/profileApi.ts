@@ -70,8 +70,8 @@ export class ProfileSetupError extends Error {
 
 /**
  * Claims the username and creates the public profile and private settings in one atomic batch (Security Rules
- * check the three together). The phone number is never written: it stays in Firebase Auth. The email and the
- * promotions opt-in are private settings.
+ * check the three together). The phone number is never written: it stays in Firebase Auth. The full name, email
+ * and promotions opt-in are private settings (chats will get the names from a Cloud Function).
  */
 export async function createProfile(
   uid: string,
@@ -102,6 +102,8 @@ export async function createProfile(
     tosVersion: TOS_VERSION,
     tosAcceptedAt: now,
     ageConfirmed: true,
+    firstName: input.firstName.trim(),
+    lastName: input.lastName.trim(),
     email: normalizeEmail(input.email),
     marketingOptIn: input.marketingOptIn,
     ...(input.marketingOptIn ? { marketingOptInAt: now } : {}),

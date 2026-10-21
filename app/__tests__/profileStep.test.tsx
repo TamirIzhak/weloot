@@ -36,8 +36,14 @@ async function typeUsername(value: string) {
   });
 }
 
+async function fillNames() {
+  await fireEvent.changeText(screen.getByTestId('first-name-input'), 'Dana');
+  await fireEvent.changeText(screen.getByTestId('last-name-input'), 'Ben-David');
+}
+
 async function fillValidForm() {
   await typeUsername('Gamer_1');
+  await fillNames();
   await fireEvent.changeText(screen.getByTestId('city-input'), 'haifa');
   await fireEvent.press(screen.getByTestId('city-4000'));
   await fireEvent.changeText(screen.getByTestId('email-input'), 'dana@example.com');
@@ -50,6 +56,8 @@ describe('ProfileStep', () => {
     expect(isDisabled()).toBe(true);
     await typeUsername('Gamer_1');
     expect(usernameMessage()).toBe('✓ Available');
+    expect(isDisabled()).toBe(true);
+    await fillNames();
     expect(isDisabled()).toBe(true);
     await fireEvent.changeText(screen.getByTestId('city-input'), 'haifa');
     await fireEvent.press(screen.getByTestId('city-4000'));
@@ -70,6 +78,14 @@ describe('ProfileStep', () => {
     await typeUsername('גיימר_1');
     expect(usernameMessage()).toBe('Use 3–20 English letters, digits or _. No spaces.');
     expect(mockIsAvailable).not.toHaveBeenCalled();
+  });
+
+  it('explains an invalid name once the user leaves the field', async () => {
+    await render(<ProfileStep uid="u1" />);
+    await fireEvent.changeText(screen.getByTestId('last-name-input'), 'Cohen2');
+    expect(screen.queryByTestId('last-name-input-message')).toBeNull();
+    await fireEvent(screen.getByTestId('last-name-input'), 'blur');
+    expect(screen.getByTestId('last-name-input-message').props.children).toBe('Letters only.');
   });
 
   it('explains an invalid email once the user leaves the field', async () => {
@@ -135,7 +151,14 @@ describe('ProfileStep', () => {
     await fireEvent.press(saveButton());
     expect(mockCreateProfile).toHaveBeenCalledWith(
       'u1',
-      { username: 'Gamer_1', cityId: '4000', email: 'dana@example.com', marketingOptIn: false },
+      {
+        username: 'Gamer_1',
+        firstName: 'Dana',
+        lastName: 'Ben-David',
+        cityId: '4000',
+        email: 'dana@example.com',
+        marketingOptIn: false,
+      },
       'en',
     );
   });

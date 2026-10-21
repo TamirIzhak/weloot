@@ -1,3 +1,4 @@
+/* global URL, fetch, console */
 // Regenerates src/cities.data.ts from Israeli government open data (data.gov.il):
 //   - Localities with Hebrew/English names and ITM coordinates (Central Bureau of Statistics locality codes).
 //   - Residents per locality (Population and Immigration Authority), used only to rank search results.

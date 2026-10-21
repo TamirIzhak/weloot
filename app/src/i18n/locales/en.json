@@ -184,7 +184,11 @@
       "emailPlaceholder": "you@example.com",
       "emailHint": "Only we see it, never other users.",
       "emailInvalid": "Enter a valid email, like you@example.com.",
-      "marketingOptIn": "Send me WeLoot news and offers by email (optional)."
+      "marketingOptIn": "Send me WeLoot news and offers by email (optional).",
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "nameHint": "Only people you chat with see your name.",
+      "nameInvalid": "Letters only."
     },
     "finish": {
       "title": "Finish setting up",

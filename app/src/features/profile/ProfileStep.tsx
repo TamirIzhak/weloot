@@ -3,7 +3,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
-import { emailSchema, normalizeEmail, searchCities, type City } from '@weloot/shared';
+import {
+  emailSchema,
+  normalizeEmail,
+  personNameSchema,
+  searchCities,
+  type City,
+} from '@weloot/shared';
 
 import { Button, cn, Input, Text } from '@/components';
 import { currentLanguage } from '@/i18n';
@@ -25,17 +31,21 @@ const USERNAME_MESSAGE_KEY: Record<UsernameCheck, string | null> = {
 };
 
 /**
- * Sign-in step 3, on a first sign-in (PRD W1): username, city, email, an optional opt-in to promotions and the
- * 16+/Terms confirmation. Saves the profile;
+ * Sign-in step 3, on a first sign-in (PRD W1): username, full name, city, email, an optional opt-in to promotions
+ * and the 16+/Terms confirmation. Saves the profile;
  * the sheet then continues the pending action (it watches the profile, so this step has no `onDone`).
  * The language isn't asked here: the app's current language is saved, and Settings can change it.
  */
 export function ProfileStep({ uid }: { uid: string }) {
   const { t } = useTranslation();
   const language = currentLanguage();
+  const otherLanguage = language === 'he' ? 'en' : 'he';
   const [username, setUsername] = useState('');
   const [cityQuery, setCityQuery] = useState('');
   const [city, setCity] = useState<City | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [namesTouched, setNamesTouched] = useState({ first: false, last: false });
   const [email, setEmail] = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
@@ -50,10 +60,14 @@ export function ProfileStep({ uid }: { uid: string }) {
   const usernameIsError = check === 'invalid' || check === 'taken';
 
   const cityResults = city ? [] : searchCities(cityQuery, language).slice(0, MAX_CITY_RESULTS);
+  const firstNameValid = personNameSchema.safeParse(firstName.trim()).success;
+  const lastNameValid = personNameSchema.safeParse(lastName.trim()).success;
   const emailValid = emailSchema.safeParse(normalizeEmail(email)).success;
   const showEmailError = emailTouched && email.trim() !== '' && !emailValid;
   const canSubmit =
     (check === 'available' || check === 'unknown') &&
+    firstNameValid &&
+    lastNameValid &&
     city !== null &&
     emailValid &&
     accepted &&
@@ -64,7 +78,11 @@ export function ProfileStep({ uid }: { uid: string }) {
     setSaving(true);
     setError(undefined);
     try {
-      await createProfile(uid, { username, cityId: city.id, email, marketingOptIn }, language);
+      await createProfile(
+        uid,
+        { username, firstName, lastName, cityId: city.id, email, marketingOptIn },
+        language,
+      );
     } catch (e) {
       if (e instanceof ProfileSetupError && e.reason === 'usernameTaken')
         setTakenOnSubmit(username);
@@ -97,6 +115,46 @@ export function ProfileStep({ uid }: { uid: string }) {
         helper={!usernameIsError && usernameMessage ? t(usernameMessage) : undefined}
         testID="username-input"
       />
+
+      <View className="gap-1.5">
+        <View className="flex-row gap-3">
+          <Input
+            className="flex-1"
+            label={t('profile.setup.firstNameLabel')}
+            value={firstName}
+            onChangeText={setFirstName}
+            onBlur={() => setNamesTouched((s) => ({ ...s, first: true }))}
+            autoComplete="given-name"
+            textContentType="givenName"
+            maxLength={40}
+            error={
+              namesTouched.first && firstName.trim() !== '' && !firstNameValid
+                ? t('profile.setup.nameInvalid')
+                : undefined
+            }
+            testID="first-name-input"
+          />
+          <Input
+            className="flex-1"
+            label={t('profile.setup.lastNameLabel')}
+            value={lastName}
+            onChangeText={setLastName}
+            onBlur={() => setNamesTouched((s) => ({ ...s, last: true }))}
+            autoComplete="family-name"
+            textContentType="familyName"
+            maxLength={40}
+            error={
+              namesTouched.last && lastName.trim() !== '' && !lastNameValid
+                ? t('profile.setup.nameInvalid')
+                : undefined
+            }
+            testID="last-name-input"
+          />
+        </View>
+        <Text variant="caption" tone="muted">
+          {t('profile.setup.nameHint')}
+        </Text>
+      </View>
 
       <View className="gap-2">
         <Input
@@ -148,7 +206,7 @@ export function ProfileStep({ uid }: { uid: string }) {
                 <View className="flex-1">
                   <Text>{result[language]}</Text>
                   <Text variant="caption" tone="muted">
-                    {result[language === 'he' ? 'en' : 'he']}
+                    {result[otherLanguage]}
                   </Text>
                 </View>
               </Pressable>

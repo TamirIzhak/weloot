@@ -57,6 +57,8 @@ function settings(overrides: Record<string, unknown> = {}) {
     tosVersion: '2026-10-draft',
     tosAcceptedAt: serverTimestamp(),
     ageConfirmed: true,
+    firstName: 'Alice',
+    lastName: 'Ben-David',
     email: 'alice@example.com',
     marketingOptIn: false,
     fcmTokens: [],
@@ -99,6 +101,14 @@ const guest = () => env.unauthenticatedContext().firestore() as unknown as Fires
 describe('profile setup batch', () => {
   it('lets a signed-in user claim a username and create their profile and settings', async () => {
     await assertSucceeds(setupBatch(as('alice'), 'alice', 'Alice_1'));
+  });
+
+  it('accepts names in Hebrew and with apostrophes', async () => {
+    await assertSucceeds(
+      setupBatch(as('alice'), 'alice', 'Alice_1', {
+        settings: { firstName: 'דנה', lastName: "O'Neil" },
+      }),
+    );
   });
 
   it('records an explicit opt-in to promotions with the server time', async () => {
@@ -170,6 +180,12 @@ describe('profile setup batch', () => {
     ['a radius out of range', { searchRadiusKm: 500 }],
     ['a fractional radius', { searchRadiusKm: 2.5 }],
     ['an extra field', { isAdmin: true }],
+    ['no first name', { firstName: undefined }],
+    ['no last name', { lastName: undefined }],
+    ['an empty name', { firstName: '' }],
+    ['a name with digits', { lastName: 'Cohen2' }],
+    ['a name starting with a space', { firstName: ' Alice' }],
+    ['a very long name', { lastName: 'a'.repeat(41) }],
     ['no email', { email: undefined }],
     ['an invalid email', { email: 'alice-at-example.com' }],
     ['an email with spaces', { email: 'alice @example.com' }],

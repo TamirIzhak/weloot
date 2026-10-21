@@ -46,6 +46,8 @@ jest.mock('@react-native-firebase/auth', () => ({
 const timestamp = { toMillis: () => 0 };
 const INPUT = {
   username: 'Gamer_1',
+  firstName: ' Dana ',
+  lastName: 'Ben-David',
   cityId: '4000',
   email: ' Dana@Example.com ',
   marketingOptIn: false,
@@ -153,6 +155,8 @@ describe('createProfile', () => {
           tosVersion: TOS_VERSION,
           tosAcceptedAt: 'SERVER_TIME',
           ageConfirmed: true,
+          firstName: 'Dana',
+          lastName: 'Ben-David',
           email: 'dana@example.com',
           marketingOptIn: false,
           fcmTokens: [],

@@ -59,7 +59,7 @@ export const emailSchema = z.email().max(254);
  * A first or last name: letters in any language, with spaces, hyphens, apostrophes or dots inside ("Ben-David",
  * "O'Neil"). Private: shown only to people the user is in a conversation with (PRD W1).
  */
-export const PERSON_NAME_PATTERN = /^p{L}[p{L}p{M} '’.-]{0,39}$/u;
+export const PERSON_NAME_PATTERN = /^\p{L}[\p{L}\p{M} '’.-]{0,39}$/u;
 export const personNameSchema = z.string().regex(PERSON_NAME_PATTERN);
 
 /** Emails are stored trimmed and lower-case. */

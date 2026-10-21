@@ -184,7 +184,11 @@
       "emailPlaceholder": "you@example.com",
       "emailHint": "רק אנחנו רואים אותו, אף פעם לא משתמשים אחרים.",
       "emailInvalid": "צריך כתובת אימייל תקינה, למשל you@example.com.",
-      "marketingOptIn": "שלחו לי עדכונים ומבצעים של WeLoot במייל (לא חובה)."
+      "marketingOptIn": "שלחו לי עדכונים ומבצעים של WeLoot במייל (לא חובה).",
+      "firstNameLabel": "שם פרטי",
+      "lastNameLabel": "שם משפחה",
+      "nameHint": "רק מי שמתכתב איתך רואה את השם שלך.",
+      "nameInvalid": "אותיות בלבד."
     },
     "finish": {
       "title": "עוד רגע מסיימים",
