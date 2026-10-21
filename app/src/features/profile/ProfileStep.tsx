@@ -59,7 +59,11 @@ export function ProfileStep({ uid }: { uid: string }) {
   const usernameMessage = USERNAME_MESSAGE_KEY[check];
   const usernameIsError = check === 'invalid' || check === 'taken';
 
-  const cityResults = city ? [] : searchCities(cityQuery, language).slice(0, MAX_CITY_RESULTS);
+  // Only while searching: an empty query would sort every locality on each render.
+  const cityResults =
+    city || cityQuery.trim() === ''
+      ? []
+      : searchCities(cityQuery, language).slice(0, MAX_CITY_RESULTS);
   const firstNameValid = personNameSchema.safeParse(firstName.trim()).success;
   const lastNameValid = personNameSchema.safeParse(lastName.trim()).success;
   const emailValid = emailSchema.safeParse(normalizeEmail(email)).success;
@@ -174,13 +178,13 @@ export function ProfileStep({ uid }: { uid: string }) {
           }}
           autoCorrect={false}
           helper={
-            !city && cityQuery !== '' && cityResults.length === 0
+            !city && cityQuery.trim() !== '' && cityResults.length === 0
               ? t('profile.setup.cityNoResults')
               : t('profile.setup.cityHint')
           }
           testID="city-input"
         />
-        {cityQuery !== '' && cityResults.length > 0 ? (
+        {cityResults.length > 0 ? (
           // A suggestion list, not a field: outlined card, pin icons, and the name in the other language too.
           <View
             accessibilityRole="list"
