@@ -7,8 +7,9 @@ import { useRequireAuth } from '@/features/auth/authGate';
 import { PlaceholderScreen } from '@/navigation/PlaceholderScreen';
 
 /**
- * Profile tab. Guests get a "Join WeLoot" invitation (PRD W1); signed-in users get a placeholder until #10, with
- * sign out here for now so sign-in can be tested repeatedly.
+ * Profile tab. Guests get a "Join WeLoot" invitation (PRD W1), and signed-in users who left profile setup unfinished
+ * get a card to finish it. Everyone else gets a placeholder until #10, with sign out here for now so sign-in can be
+ * tested repeatedly.
  */
 export default function ProfileTab() {
   const { t } = useTranslation();
@@ -32,20 +33,41 @@ export default function ProfileTab() {
     );
   }
 
+  const signOutButton = (
+    <Button
+      variant="secondary"
+      label={t('auth.signOut')}
+      onPress={() => {
+        signOut(getAuth()).catch(() => toast.show(t('auth.errors.generic'), 'error'));
+      }}
+      testID="sign-out"
+    />
+  );
+
+  if (auth.profile.status === 'missing' || auth.profile.status === 'error') {
+    return (
+      <PlaceholderScreen
+        testID="profile-unfinished"
+        title={t('profile.finish.title')}
+        body={t('profile.finish.body')}
+      >
+        <Button
+          label={t('profile.finish.cta')}
+          onPress={() => requireAuth('profile', () => undefined)}
+          testID="finish-profile"
+        />
+        {signOutButton}
+      </PlaceholderScreen>
+    );
+  }
+
   return (
     <PlaceholderScreen
       testID="profile-screen"
-      title={t('tabs.profile')}
+      title={auth.profile.status === 'ready' ? auth.profile.profile.username : t('tabs.profile')}
       body={t('placeholders.profile')}
     >
-      <Button
-        variant="secondary"
-        label={t('auth.signOut')}
-        onPress={() => {
-          signOut(getAuth()).catch(() => toast.show(t('auth.errors.generic'), 'error'));
-        }}
-        testID="sign-out"
-      />
+      {signOutButton}
     </PlaceholderScreen>
   );
 }

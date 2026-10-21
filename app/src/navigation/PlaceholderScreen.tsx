@@ -25,7 +25,7 @@ export function PlaceholderScreen({ title, body, icon, testID, children }: Place
       </View>
       <View className="flex-1 justify-center" style={{ paddingBottom: bottom }}>
         <EmptyState title={title} body={body} icon={icon} />
-        {children ? <View className="items-center px-6">{children}</View> : null}
+        {children ? <View className="items-center gap-3 px-6">{children}</View> : null}
       </View>
     </SafeAreaView>
   );

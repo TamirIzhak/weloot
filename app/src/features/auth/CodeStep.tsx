@@ -29,14 +29,15 @@ function useResendCountdown(sentAt: number | undefined): number {
 }
 
 /**
- * Sign-in step 2: the 6-digit SMS code. Submits automatically once all digits are in, then calls `onVerified`.
+ * Sign-in step 2: the 6-digit SMS code. Submits automatically once all digits are in. Signing in updates the auth
+ * state (which moves the sheet on); `onVerified`, if given, is also called.
  * `onChangeNumber` goes back to the phone step.
  */
 export function CodeStep({
   onVerified,
   onChangeNumber,
 }: {
-  onVerified: (result: { isNewUser: boolean }) => void;
+  onVerified?: (result: { isNewUser: boolean }) => void;
   onChangeNumber: () => void;
 }) {
   const { t } = useTranslation();
@@ -54,7 +55,8 @@ export function CodeStep({
     setVerifying(true);
     setError(undefined);
     try {
-      onVerified(await confirmCode(value));
+      const result = await confirmCode(value);
+      onVerified?.(result);
     } catch (e) {
       setError(t(authErrorKey(e)));
       setCode('');

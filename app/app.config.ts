@@ -73,6 +73,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // RTL: Hebrew layouts mirror via I18nManager (PRD §3.5, ADR 0002).
     ['expo-localization', { supportsRTL: true }],
     'expo-updates',
+    // No yellow autofill overlay on Android text fields.
+    './plugins/withNoAutofillHighlight',
   ],
   experiments: {
     typedRoutes: true,
