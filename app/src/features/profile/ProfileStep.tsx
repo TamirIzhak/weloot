@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
@@ -19,7 +19,7 @@ import { createProfile, ProfileSetupError } from './profileApi';
 import { useUsernameCheck, type UsernameCheck } from './useUsernameCheck';
 
 /** How many matching cities to show under the search field. */
-const MAX_CITY_RESULTS = 6;
+const MAX_CITY_RESULTS = 5;
 
 const USERNAME_MESSAGE_KEY: Record<UsernameCheck, string | null> = {
   empty: 'profile.setup.usernameHint',
@@ -36,7 +36,14 @@ const USERNAME_MESSAGE_KEY: Record<UsernameCheck, string | null> = {
  * the sheet then continues the pending action (it watches the profile, so this step has no `onDone`).
  * The language isn't asked here: the app's current language is saved, and Settings can change it.
  */
-export function ProfileStep({ uid }: { uid: string }) {
+export function ProfileStep({
+  uid,
+  onCityFocus,
+}: {
+  uid: string;
+  /** Called with the city field's y offset (in this step) when the user searches, so the sheet can scroll it up. */
+  onCityFocus?: (y: number) => void;
+}) {
   const { t } = useTranslation();
   const language = currentLanguage();
   const otherLanguage = language === 'he' ? 'en' : 'he';
@@ -53,6 +60,7 @@ export function ProfileStep({ uid }: { uid: string }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [takenOnSubmit, setTakenOnSubmit] = useState<string | null>(null);
+  const cityY = useRef(0);
 
   const liveCheck = useUsernameCheck(username);
   const check: UsernameCheck = takenOnSubmit === username ? 'taken' : liveCheck;
@@ -160,7 +168,7 @@ export function ProfileStep({ uid }: { uid: string }) {
         </Text>
       </View>
 
-      <View className="gap-2">
+      <View className="gap-2" onLayout={(e) => (cityY.current = e.nativeEvent.layout.y)}>
         <Input
           label={t('profile.setup.cityLabel')}
           placeholder={t('profile.setup.cityPlaceholder')}
@@ -168,6 +176,7 @@ export function ProfileStep({ uid }: { uid: string }) {
           onChangeText={(value) => {
             setCity(null);
             setCityQuery(value);
+            onCityFocus?.(cityY.current);
           }}
           onFocus={() => {
             // Tapping a chosen city starts a new search.
@@ -175,6 +184,8 @@ export function ProfileStep({ uid }: { uid: string }) {
               setCity(null);
               setCityQuery('');
             }
+            // Bring the field to the top so the suggestions fit above the keyboard.
+            onCityFocus?.(cityY.current);
           }}
           autoCorrect={false}
           helper={
@@ -241,12 +252,14 @@ export function ProfileStep({ uid }: { uid: string }) {
           checked={marketingOptIn}
           onToggle={() => setMarketingOptIn((value) => !value)}
           label={t('profile.setup.marketingOptIn')}
+          description={t('profile.setup.marketingOptInHint')}
           testID="marketing-opt-in"
         />
         <Checkbox
           checked={accepted}
           onToggle={() => setAccepted((value) => !value)}
           label={t('profile.setup.acceptTerms')}
+          description={t('profile.setup.acceptTermsHint')}
           testID="accept-terms"
         />
       </View>
@@ -270,15 +283,18 @@ export function ProfileStep({ uid }: { uid: string }) {
   );
 }
 
+/** A short label on one line, with the details underneath, both next to the box. */
 function Checkbox({
   checked,
   onToggle,
   label,
+  description,
   testID,
 }: {
   checked: boolean;
   onToggle: () => void;
   label: string;
+  description: string;
   testID: string;
 }) {
   return (
@@ -286,7 +302,8 @@ function Checkbox({
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
       onPress={onToggle}
-      className="flex-row items-center gap-3"
+      accessibilityHint={description}
+      className="flex-row items-start gap-3"
       hitSlop={8}
       testID={testID}
     >
@@ -295,7 +312,12 @@ function Checkbox({
         size={24}
         color={checked ? colors.primary : colors['text-secondary']}
       />
-      <Text className="flex-1">{label}</Text>
+      <View className="flex-1 gap-0.5">
+        <Text>{label}</Text>
+        <Text variant="caption" tone="muted">
+          {description}
+        </Text>
+      </View>
     </Pressable>
   );
 }

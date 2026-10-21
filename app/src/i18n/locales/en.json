@@ -176,7 +176,7 @@
       "cityPlaceholder": "Search for your city",
       "cityHint": "Others see your city only, never your address.",
       "cityNoResults": "No city found. Try another spelling.",
-      "acceptTerms": "I’m 16 or older and I agree to the Terms of Service and the Privacy Policy.",
+      "acceptTerms": "I agree to the terms",
       "submit": "Continue",
       "saveFailed": "Couldn’t save your profile. Check your connection and try again.",
       "loadFailed": "Couldn’t load your profile.",
@@ -184,11 +184,13 @@
       "emailPlaceholder": "you@example.com",
       "emailHint": "Only we see it, never other users.",
       "emailInvalid": "Enter a valid email, like you@example.com.",
-      "marketingOptIn": "Send me WeLoot news and offers by email (optional).",
+      "marketingOptIn": "Email me news and offers",
       "firstNameLabel": "First name",
       "lastNameLabel": "Last name",
       "nameHint": "Only people you chat with see your name.",
-      "nameInvalid": "Letters only."
+      "nameInvalid": "Letters only.",
+      "marketingOptInHint": "Optional. You can stop them anytime.",
+      "acceptTermsHint": "I’m 16 or older and I accept the Terms of Service and the Privacy Policy."
     },
     "finish": {
       "title": "Finish setting up",
