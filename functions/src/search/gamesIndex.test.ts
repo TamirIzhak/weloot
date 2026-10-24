@@ -70,6 +70,24 @@ describe('syncGameRecord', () => {
   });
 });
 
+describe('syncGameRecord with the previous doc', () => {
+  it('skips a rewrite that leaves the search record unchanged', async () => {
+    const algolia = fakeAlgolia();
+    await expect(
+      syncGameRecord(algolia, '119133', { ...GAME, igdbUpdatedAt: 1800000000 }, GAME),
+    ).resolves.toBe('unchanged');
+    expect(algolia.saveObject).not.toHaveBeenCalled();
+  });
+
+  it('saves when something searchable changed', async () => {
+    const algolia = fakeAlgolia();
+    await expect(
+      syncGameRecord(algolia, '119133', { ...GAME, title: 'ELDEN RING' }, GAME),
+    ).resolves.toBe('saved');
+    expect(algolia.saveObject).toHaveBeenCalled();
+  });
+});
+
 describe('configureGamesIndex', () => {
   it('makes titles and alternative names searchable and platforms filterable', async () => {
     const algolia = fakeAlgolia();

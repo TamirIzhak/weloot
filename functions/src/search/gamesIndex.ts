@@ -34,24 +34,32 @@ export async function configureGamesIndex(client: AlgoliaAdmin): Promise<void> {
   });
 }
 
+/** The search record a `games` doc produces, or null when it isn't a valid game. */
+function recordOf(gameId: string, data: unknown) {
+  const parsed = data === undefined ? null : gameSchema.safeParse(data);
+  return parsed?.success ? toGameRecord(gameId, parsed.data) : null;
+}
+
 /**
  * Mirrors one `games` doc change: saves the record, or deletes it when the doc is gone. A doc that doesn't match
- * the schema is removed from the index rather than indexed half-broken.
+ * the schema is removed from the index rather than indexed half-broken. A rewrite that doesn't change the record
+ * (e.g. a full catalog sync) costs no Algolia operation.
  */
 export async function syncGameRecord(
   client: AlgoliaAdmin,
   gameId: string,
   after: unknown,
-): Promise<'saved' | 'deleted'> {
-  const parsed = after === undefined ? null : gameSchema.safeParse(after);
-  if (!parsed?.success) {
-    if (parsed) logger.warn('gamesIndex: invalid game doc, removing it from the index', { gameId });
+  before?: unknown,
+): Promise<'saved' | 'deleted' | 'unchanged'> {
+  const record = recordOf(gameId, after);
+  if (!record) {
+    if (after !== undefined) {
+      logger.warn('gamesIndex: invalid game doc, removing it from the index', { gameId });
+    }
     await client.deleteObject({ indexName: SEARCH_INDEXES.games, objectID: gameId });
     return 'deleted';
   }
-  await client.saveObject({
-    indexName: SEARCH_INDEXES.games,
-    body: toGameRecord(gameId, parsed.data),
-  });
+  if (JSON.stringify(record) === JSON.stringify(recordOf(gameId, before))) return 'unchanged';
+  await client.saveObject({ indexName: SEARCH_INDEXES.games, body: record });
   return 'saved';
 }

@@ -104,6 +104,11 @@ export const indexGame = onDocumentWritten(
       logger.warn('indexGame: Algolia is not set up (docs/OWNER-TODO.md)');
       return;
     }
-    await syncGameRecord(algolia, event.params.gameId, event.data?.after.data());
+    await syncGameRecord(
+      algolia,
+      event.params.gameId,
+      event.data?.after.data(),
+      event.data?.before.data(),
+    );
   },
 );
