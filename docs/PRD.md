@@ -51,6 +51,8 @@ These are decisions, not suggestions. Changing one requires the user's approval.
 | i18n | `i18next` + `react-i18next` + `expo-localization` | §3.5 for RTL mechanics |
 | Backend | **Firebase**: Auth, Firestore, Storage, Cloud Functions (2nd gen, Node 22, TypeScript), Cloud Scheduler, FCM, Analytics, Crashlytics, Remote Config | Region: **`me-west1` (Tel Aviv)** for Firestore, Storage and Functions in every project (ADR 0001) |
 | Firebase SDK | `@react-native-firebase/*` | |
+| Sign-in | Firebase Auth: Google (`@react-native-google-signin/google-signin`), Facebook and Discord (browser OAuth via `expo-auth-session`; Discord through a custom token from a Cloud Function), phone (SMS) | W1 |
+| Location | `expo-location` (permission, GPS, on-device geocoding) | W1 browsing location, W2 saved addresses |
 | Search | **Algolia** (game catalog index + listings index), synced from Firestore by Cloud Functions | Firestore alone can't do fuzzy search |
 | Camera / barcode | `expo-camera` (`CameraView` with EAN-13/UPC-A) + `expo-image-picker` + `expo-image-manipulator` | |
 | Push | FCM via `@react-native-firebase/messaging` | |
@@ -102,7 +104,7 @@ Text contrast must meet WCAG AA (4.5:1) against `bg`/`surface`.
 **Rubik** (Google Fonts, supports Hebrew + Latin) via `expo-font`. Large bold headers (28/22/18), body 16, caption 13. One font family for both languages so layouts don't jump on language switch.
 
 ### 3.3 Layout
-Card-based feeds; game cards are rounded and cover-art-first. A card shows the owner's first photo when the listing has photos (with the **"Real photos"** badge), otherwise the IGDB cover (`t_cover_big` / `t_720p`). Also: platform chip, condition, "Trade" and/or price badge, distance (city level). Every list has a loading skeleton, a helpful empty state (§6 W4) and an error state with retry.
+Card-based feeds; game cards are rounded and cover-art-first. A card shows the owner's first photo when the listing has photos (with the **"Real photos"** badge), otherwise the IGDB cover (`t_cover_big` / `t_720p`). Also: platform chip, condition, "Trade" and/or price badge, area and distance (area level, ~1 km). Every list has a loading skeleton, a helpful empty state (§6 W4) and an error state with retry.
 
 **Adaptive listing grid (issue #57).** Listing feeds (search results, "New near you", "Has games you want" full lists) use one shared `ListingGrid` with a density of **1, 2 or 3 tiles per row, default 2** (Marketplace style: more games per screen).
 - **Pinch** out for bigger tiles (fewer columns), pinch in for more tiles: one step per gesture, animated, keeping the scroll position.
@@ -162,36 +164,50 @@ A shared `<ErrorState>` / toast component in the dark theme. Every async call sh
   4. Always allow falling back to manual search. Free-text titles are **not** allowed.
 
 ### 5.2 Algolia
-Two indexes, written only by Cloud Functions: `games` (catalog) and `listings` (only `active` listings, with `_geoloc` at city level, platform, condition, trade/sale, price, `hasPhotos`). Ranking boosts `hasPhotos` and recency. The app queries with a search-only key.
+Two indexes, written only by Cloud Functions: `games` (catalog) and `listings` (only `active` listings, with `_geoloc` at area level (~1 km), platform, condition, trade/sale, price, `hasPhotos`). Ranking boosts `hasPhotos` and recency. The app queries with a search-only key.
 
 ---
 
 ## 6. MVP Workflows & Acceptance Criteria
 
 ### W1 — Guest browsing, sign-in on action & trust
-*As a visitor, I browse freely. When I want to do something, I verify my phone in seconds and carry on.*
+*As a visitor, I see everything. I sign in with one tap when I want to save something, and verify my phone once before I trade.*
 
-**Guest first (owner decision, 2026-10-21).** The app opens straight to the tabs; nobody has to sign in to look around.
-- **Open to guests:** Home, Search, game pages (cover, photos, owner's username, city and trust signals), and sharing.
-- **Needs sign-in:** make an offer, ask a question, add to the want list, "notify me" alerts, add a listing (+), Inbox, and the owner's own profile data.
-- **Sign in at the moment of intent, never a locked page.** A protected action opens a **sign-in sheet** (modal) with a reason tied to the action, e.g. *"Sign in to send your offer"*. After verification, the sheet closes and **the original action continues** (the offer composer opens, the game is added to the want list, the Add flow starts…).
+**Guest first (owner decisions, 2026-10-21 and 2026-10-24).** The app opens straight to the tabs; nobody has to sign in to look around.
+- **Open to guests, with nothing hidden:** Home, Search, and game pages with everything a listing holds (cover and photos, condition, case, notes, trade/price, area and distance, the owner's username and trust signals), plus sharing. Signing in never reveals more listing information; it only unlocks actions.
+- **Needs an account (any sign-in method):** add to the want list, "notify me" alerts, Inbox, and the user's own profile data.
+- **Needs a verified phone, once per account:** make an offer, ask a question or send a message, and add a listing (+). Users who signed in with their phone are already verified. Users who signed in with Google, Facebook or Discord verify their phone the first time they do one of these, inside the same sheet, and are never asked again.
+- **Sign in at the moment of intent, never a locked page.** A protected action opens a **sign-in sheet** (modal) with a reason tied to the action, e.g. *"Sign in to send your offer"*. When the sheet is done, it closes and **the original action continues** (the offer composer opens, the game is added to the want list, the Add flow starts…).
 - **Tab bar is identical for everyone.**
-  - **+ (Add)** and **Inbox** open the sign-in sheet for guests, then continue to the tab.
+  - **+ (Add)** opens the sheet for guests and for users without a verified phone, then continues to the Add flow. **Inbox** opens the sheet for guests.
   - **Profile** is useful for guests too: a **"Join WeLoot"** card plus language, support and terms; signed-in users get their full profile.
 
 **The sign-in sheet**
-- Phone OTP via **Firebase Auth SMS** (Israeli mobiles only, `+972` prefilled), then the 6-digit code (auto-submit, 30 s resend). WhatsApp OTP is **not** supported by Firebase Auth; it is a post-MVP option via a custom-token flow [OPEN-4].
-- **Profile setup** runs inside the same sheet right after a first sign-in (#9): username (unique, 3–20 English letters/digits/_, availability shown while typing), first and last name (required, private: shown only to people the user has a conversation with), city (every locality in the CBS list from data.gov.il, searchable in both languages, larger places first → city-center lat/lng + geohash; **never store a precise home location**), email (required, private), an **unticked** "Send me news and offers" opt-in (separate consent for promotional messages, stored with its time), and "I'm 16 or older and agree to the Terms and Privacy Policy" (versioned, timestamp stored). Language isn't asked again: the app's current language is saved, and Settings changes it. The pending action continues only once the profile is complete. A user who closes the sheet during setup stays signed in; their next protected action (or "Finish setting up" on Profile) reopens the sheet at this step.
+- **Methods:** "Continue with Google", "Continue with Facebook", "Continue with Discord" and "Continue with phone".
+  - Google and Facebook are Firebase Auth providers (Google via the native Google Sign-In SDK; Facebook via browser OAuth).
+  - Discord isn't a Firebase provider: the app runs Discord OAuth (PKCE) in the browser, and a Cloud Function exchanges the code, reads the Discord profile and returns a Firebase custom token (uid `discord:<id>`).
+  - Name and email are taken from the provider when it shares them.
+- **Phone:** Firebase Auth SMS (Israeli mobiles only, `+972` prefilled), then the 6-digit code (auto-submit, 30 s resend). WhatsApp OTP is **not** supported by Firebase Auth; it is a post-MVP option via a custom-token flow [OPEN-4].
+  - For an account created with Google, Facebook or Discord, the verified number is **linked** to the same account (`linkWithCredential`). A number already linked to another account can't be reused; the user is told to sign in with that phone instead.
+  - The server and Security Rules treat a user as verified when their ID token carries a `phone_number` claim.
+- **Profile setup** runs inside the sheet right after the first sign-in (#9): username (unique, 3–20 English letters/digits/_, availability shown while typing), first and last name (required, private: shown only to people the user has a conversation with), email (required, private), an **unticked** "Email me news and offers" opt-in (separate consent for promotional messages, stored with its time), and "I'm 16 or older and agree to the Terms and Privacy Policy" (versioned, timestamp stored). Name and email are prefilled from the provider.
+  - **No location at sign-up:** an address is asked for only when posting a game (W2); distances while browsing use the browsing location (below).
+  - Language isn't asked again: the app's current language is saved, and Settings changes it.
+  - The pending action continues only once the profile is complete. A user who closes the sheet during setup stays signed in; their next protected action (or "Finish setting up" on Profile) reopens the sheet at this step.
 - The guest can close the sheet at any time; nothing is lost and they keep browsing.
-- AC: guests can browse Home, Search and game pages; every protected action opens the sheet with its reason and continues after sign-in; `sign_in_prompted` (with `reason`) on every sheet open; `user_registered` once per new user.
+- AC: guests see every listing detail; actions open the sheet with their reason and continue afterwards; the phone is asked once per account and only for offers, messages and posts; `sign_in_prompted` (with `reason`) on every sheet open; `user_registered` once per new user (with `method`); `phone_verified` once per account.
+
+**Browsing location.** Distances on Home and Search are measured from a browsing location: the device location (with permission, rounded to ~1 km) or a city picked from the CBS locality list, shown as a chip (e.g. "Near: Haifa"). It's kept on the device, works for guests, and signed-in users can also pick one of their saved addresses.
 
 ### W2 — Add Game (listing) — fast by default
 *As a gamer, I list a game in seconds, and can add real photos to get more offers.*
 1. **Identify:** barcode scan (§5.1 flow) or search (Algolia `games`, filtered by platform). User must pick the exact platform.
-2. **Details:** condition (`new_sealed`, `like_new`, `good`, `acceptable`), includes original case (bool), notes (≤300 chars), availability: For Trade and/or For Sale; asking price (required if For Sale, ₪10–₪1,000, informational — paid outside the app).
-3. **Photos (optional):** up to 6, taken in-app or from the gallery. Client compresses to ≤1600px long edge, JPEG ~0.8, and **strips EXIF/GPS**. Uploaded to `listings/{listingId}/{n}.jpg` in Storage (owner-only writes, images only, ≤5MB). Listings with ≥1 photo get the **"Real photos"** badge and a ranking boost. After publishing without photos, show one nudge: "Add a photo of your disc to get more offers".
+2. **Location (saved addresses, like Wolt):** the first post asks for an address: "Use my current location" (device GPS with on-device reverse geocoding) or type an address (on-device geocoding), with a label (Home, Work or a custom name). Saved addresses are offered on later posts; new ones can be added at any time and managed in Settings.
+   - **Privacy (owner decision, 2026-10-24): an exact address never leaves the owner's private data** (`users/{uid}/locations`). The listing stores only an area-level location: the locality name and code, and coordinates snapped to a ~1 km grid. Others see e.g. "Ramat Gan · ~3 km"; the exact meeting spot is agreed in chat.
+3. **Details:** condition (`new_sealed`, `like_new`, `good`, `acceptable`), includes original case (bool), notes (≤300 chars), availability: For Trade and/or For Sale; asking price (required if For Sale, ₪10–₪1,000, informational — paid outside the app).
+4. **Photos (optional):** up to 6, taken in-app or from the gallery. Client compresses to ≤1600px long edge, JPEG ~0.8, and **strips EXIF/GPS**. Uploaded to `listings/{listingId}/{n}.jpg` in Storage (owner-only writes, images only, ≤5MB). Listings with ≥1 photo get the **"Real photos"** badge and a ranking boost. After publishing without photos, show one nudge: "Add a photo of your disc to get more offers".
 - **Quick Add:** the whole flow is reusable as a modal that returns the new listing (used from the offer composer, W5).
-- AC: can't publish without game + platform + condition + at least one of trade/sale. Publishing takes under ~15 seconds with barcode and no photos. `game_listed` event (with `hasPhotos`). Listing appears in search within ~10s.
+- AC: can't publish without game + platform + location + condition + at least one of trade/sale; listings never contain the exact address. Publishing takes under ~15 seconds with barcode and no photos. `game_listed` event (with `hasPhotos`). Listing appears in search within ~10s.
 
 ### W3 — Want List & Matches
 *As a collector, I see people who have what I want and want what I have.*
@@ -202,7 +218,7 @@ Two indexes, written only by Cloud Functions: `games` (catalog) and `listings` (
 
 ### W4 — Search & never a dead end
 *As a gamer, I search for a game and always get something useful.*
-- Search tab: Algolia `listings`; filters: platform, trade/sale, condition, price range, distance (city-level geo). Results in the adaptive listing grid (§3.3: 1–3 per row, default 2, pinch or layout toggle).
+- Search tab: Algolia `listings`; filters: platform, trade/sale, condition, price range, distance (area-level geo, from the browsing location). Results in the adaptive listing grid (§3.3: 1–3 per row, default 2, pinch or layout toggle).
 - Instant results with skeletons while loading; recent searches and popular games when the query is empty.
 - **When nothing matches**, show in order (all real data):
   1. "No one has it yet" plus **"Notify me when it's listed"** (creates a saved search / alert, W8) and **"Add to my want list"**.
@@ -256,7 +272,7 @@ Closing a swap has two separate jobs with different rules (owner decision, 2026-
 ### W7 — Share to WhatsApp / Facebook
 *As a gamer, I share my listing or want list to my gaming groups.*
 - Share button on own listings, any game page, and the want list. Uses the native share sheet with localized text + a link `https://<hosting-domain>/l/{listingId}` (Firebase Hosting [OPEN-12]).
-- The landing page shows the game cover, title, platform and condition (no personal data beyond username and city) and buttons "Open in WeLoot" / "Get the app" (store links; before store release: a "coming soon" message).
+- The landing page shows the game cover, title, platform and condition (no personal data beyond username and area) and buttons "Open in WeLoot" / "Get the app" (store links; before store release: a "coming soon" message).
 - In the app, opening the link (Android App Links / iOS Universal Links via Expo Router) goes straight to the game page.
 - AC: `listing_shared` event; landing pages never expose phone numbers, exact location or photos of a removed listing.
 
@@ -316,12 +332,13 @@ All docs have `createdAt`, `updatedAt` (server timestamps). `🔒` = server-writ
 
 | Collection | Key fields |
 |---|---|
-| `users/{uid}` | **Public profile**, readable by everyone incl. guests: `username`, `usernameLower`, `cityId` (CBS locality code), `geo {lat,lng,geohash}` (city-level), `ratingAvg🔒`, `ratingCount🔒`, `completedTrades🔒`, `createdAt`, `updatedAt`, `deletedAt🔒`. The phone number is **not** stored in Firestore; it stays in Firebase Auth. |
+| `users/{uid}` | **Public profile**, readable by everyone incl. guests: `username`, `usernameLower`, `ratingAvg🔒`, `ratingCount🔒`, `completedTrades🔒`, `createdAt`, `updatedAt`, `deletedAt🔒`. The phone number is **not** stored in Firestore; it stays in Firebase Auth. |
 | `users/{uid}/private/settings` | **Owner only:** `firstName`, `lastName`, `email` (lower-case), `marketingOptIn`, `marketingOptInAt?`, `preferredLanguage ('he'\|'en')`, `tosVersion`, `tosAcceptedAt`, `ageConfirmed`, `fcmTokens[]`, `blockedUserIds[]`, `searchRadiusKm` (default 25). Other users never read this doc: conversations get the participants' names from a Cloud Function. |
+| `users/{uid}/locations/{id}` | **Owner only:** saved addresses for posting: `label`, `address`, `lat`, `lng` (exact), `cityId` (CBS code, when known), `areaName`. Never copied to public docs as-is |
 | `usernames/{usernameLower}` | `uid` (uniqueness guard). Written in the same atomic batch as the profile and settings; Security Rules check the three together |
 | `games/{igdbId}` 🔒 | `title`, `slug`, `platformIds[]`, `coverImageId`, `releaseDate`, `genres[]`, `altNames[]`, `similarGameIds[]` |
 | `barcodes/{ean}` 🔒 | `igdbGameId`, `platformId`, `confirmations`, `trusted` |
-| `listings/{id}` | `userId`, `igdbGameId`, `platformId`, denormalized `gameTitle`, `coverImageId`, `condition`, `hasCase`, `notes`, `isForTrade`, `isForSale`, `askingPriceAgorot`, `photoPaths[]`, `hasPhotos🔒`, `status🔒` (after create), `geo` (copied from owner), `closedWith🔒?` (`{kind: 'deal', userId, conversationId}` or `{kind: 'outside'}`), `closedAt🔒?` |
+| `listings/{id}` | `userId`, `igdbGameId`, `platformId`, denormalized `gameTitle`, `coverImageId`, `condition`, `hasCase`, `notes`, `isForTrade`, `isForSale`, `askingPriceAgorot`, `photoPaths[]`, `hasPhotos🔒`, `status🔒` (after create), `location🔒 {areaName, cityId?, lat, lng, geohash}` (area-level: snapped to a ~1 km grid from the chosen saved address; set by the publish function), `closedWith🔒?` (`{kind: 'deal', userId, conversationId}` or `{kind: 'outside'}`), `closedAt🔒?` |
 | `wantlist/{uid}/items/{igdbGameId_platformId}` | `igdbGameId`, `platformId`, `gameTitle` |
 | `alerts/{uid}/items/{id}` | `igdbGameId`, `platformId?`, `query?`, `radiusKm`, `source ('search'\|'wantlist')`, `lastNotifiedAt🔒` |
 | `matches/{uid}/items/{otherUid}` 🔒 | `theirListingIds[]`, `myListingIds[]`, `perfect`, `score`, `distanceKm` |
@@ -339,18 +356,18 @@ Composite indexes live in `firestore.indexes.json`. Security rules are tested fo
 
 ## 9. Screen Inventory
 
-**A. Start & sign-in:** `Splash` (logo animation while auth state loads) → straight to the tabs. **Sign-in sheet** (modal, opened by protected actions, W1): `Phone` (+972, validation) → `Verify` (6-digit code, resend timer 30s) → `ProfileSetup` on first sign-in (username, city, language, TOS) → closes and continues the action.
+**A. Start & sign-in:** `Splash` (logo animation while auth state loads) → straight to the tabs. **Sign-in sheet** (modal, opened by protected actions, W1): `Methods` (Google, Facebook, Discord, phone) → for phone: `Phone` (+972, validation) → `Verify` (6-digit code, resend timer 30s) → `ProfileSetup` on first sign-in (username, name, email, opt-in, TOS) → closes and continues the action. Offers, messages and posts by a user without a verified phone open the sheet at `Phone` → `Verify` (links the number to the account).
 
 **B. Tabs (custom hide-on-scroll bar):**
 1. `Home`: Perfect Matches, Has games you want, New near you, Wanted near you, New for you (alerts).
 2. `Search`: query + filters, list view, smart empty states (W4).
-3. `Add` (center `+`, sign-in required; guests get the sign-in sheet): `Identify (Scan | Search)` → `Details` → `Photos (optional)` → success (share prompt).
+3. `Add` (center `+`, sign-in required; guests get the sign-in sheet): `Identify (Scan | Search)` → `Location` (saved addresses / add one) → `Details` → `Photos (optional)` → success (share prompt).
 4. `Inbox` (sign-in required; guests get the sign-in sheet): conversations grouped as Needs action (offers to answer, confirmations) / Active deals / Chats / Completed; unread badges.
 5. `Profile`: My Listings, Want List, Alerts, ratings and trade count, Settings. Guests see a "Join WeLoot" card plus language, support and terms.
 
 **C. Deal stack:** `GameDetail` (cover/photos, owner card with trust signals, Make an offer / Ask a question / Open chat, Share, Report), `OfferComposer` (with Quick Add modal), `Conversation` (chat + offer cards + deal header), `RateUser`, `Report`.
 
-**D. Settings:** Account (username, phone (re-verify), delete account) · Preferences (language, city, search radius) · Notifications (offers, messages, alerts, deal reminders) · Safety (tips, blocked users) · Support (WhatsApp deep link `https://wa.me/<EXPO_PUBLIC_SUPPORT_WHATSAPP>?text=` prefilled with user ID; email fallback via `mailto:`) · Legal (TOS, Privacy: remote URLs, both languages) · App version.
+**D. Settings:** Account (username, sign-in methods, phone (verify), saved addresses, delete account) · Preferences (language, browsing location, search radius) · Notifications (offers, messages, alerts, deal reminders) · Safety (tips, blocked users) · Support (WhatsApp deep link `https://wa.me/<EXPO_PUBLIC_SUPPORT_WHATSAPP>?text=` prefilled with user ID; email fallback via `mailto:`) · Legal (TOS, Privacy: remote URLs, both languages) · App version.
 
 ---
 
@@ -369,7 +386,7 @@ Push + in-app badge for: new conversation (offer or question), new message (coll
 
 ## 12. Non-Functional Requirements
 - **Performance:** cold start < 3s on a mid-range Android; search results < 300ms; feed images via `expo-image` with caching; lists virtualized.
-- **Privacy (Israeli Privacy Protection Law incl. Amendment 13):** data minimization, city-level location only, EXIF stripped, privacy policy in Hebrew, account deletion. Users' phone numbers are never shown to other users; people may share contact details in chat themselves.
+- **Privacy (Israeli Privacy Protection Law incl. Amendment 13):** data minimization, exact addresses only in the owner's private data and area-level location (~1 km) everywhere else, EXIF stripped, privacy policy in Hebrew, account deletion. Users' phone numbers are never shown to other users; people may share contact details in chat themselves.
 - **Accessibility:** labels on all touchables, dynamic type up to 1.3×, contrast AA, RTL screen reader order.
 - **Security & abuse:** App Check (Play Integrity / App Attest) on Functions and Firestore; rate-limit callable functions (offers, conversations, barcode lookups, reports) per user; new accounts limited to N new conversations per day (config).
 - **Platforms:** iOS 15+ and Android 8+ (verify against the chosen Expo SDK's minimums).

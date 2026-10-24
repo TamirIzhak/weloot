@@ -2,7 +2,7 @@
 
 Ordered list of issues, mirrored as GitHub Issues with the same numbers. Work top to bottom unless dependencies (`deps`) allow otherwise. Sizes: S (< ½ day), M (1–2 days), L (3+ days; split if possible; needs plan approval).
 
-Milestones bump the app's minor version when complete (see `CLAUDE.md` §2). **v3 (issue #46): lean MVP.** Payments and lockers moved to Phase 2 (bottom of this file). Issue numbers are kept; new MVP issues were added as #47–#50, plus #57 (adaptive listing grid).
+Milestones bump the app's minor version when complete (see `CLAUDE.md` §2). **v3 (issue #46): lean MVP.** Payments and lockers moved to Phase 2 (bottom of this file). Issue numbers are kept; new MVP issues were added as #47–#50, plus #57 (adaptive listing grid). **2026-10-24 (#62):** sign in with Google, Facebook or Discord; one-time phone verification only for offers, messages and posts; addresses only when posting (saved, area shown publicly); added #63–#66. The backlog is worked through end to end, with QA at the end (`CLAUDE.md` §1).
 
 Status: ✅ merged · 🔄 in progress
 
@@ -16,42 +16,55 @@ Status: ✅ merged · 🔄 in progress
 
 **✅ #43 chore(functions): use me-west1 and map the real Firebase projects** · S · deps #2
 
-**🔄 #3 chore(app): dev build with native Firebase** · M · deps #1
+**✅ #3 chore(app): dev build with native Firebase** · M · deps #1
 - `expo-dev-client`, `@react-native-firebase/app|auth|firestore|storage|functions|analytics|crashlytics|messaging` with config plugins; EAS profiles `development|preview|production`.
 - App connects to emulators in dev.
 - AC: development build runs on an Android phone; a test Firestore read works. (iOS deferred: needs a Mac / Apple developer account.)
 
-**#4 feat(ui): design tokens, fonts and base components** · M · deps #1
+**✅ #4 feat(ui): design tokens, fonts and base components** · M · deps #1
 - NativeWind setup, `src/theme` tokens (PRD §3.1), Rubik font, `Button`, `Text`, `Card`, `Chip` (platform colors), `Badge` ("Real photos"), `Input`, `Skeleton`, `ErrorState`, `EmptyState` (title, text, up to 2 actions), `Toast`, root error boundary.
 - AC: a dev-only "kitchen sink" screen renders all components; no raw hex in components.
 
-**#5 feat(i18n): i18next with RTL switching** · M · deps #4
+**✅ #5 feat(i18n): i18next with RTL switching** · M · deps #4
 - `en.json`/`he.json`, device-language default, `setLanguage()` that persists, calls `I18nManager.forceRTL` and reloads (`expo-updates`).
 - `npm run i18n:check`: key parity + lint rule against JSX string literals; added to CI.
 - Bidi helper for numbers/prices; `formatPrice(agorot, locale)`.
 - AC: switching language mirrors the kitchen-sink screen after reload; the check fails on a missing key.
 
-**#6 feat(ui): navigation shell with hide-on-scroll tab bar** · M · deps #4, #5
+**✅ #6 feat(ui): navigation shell with hide-on-scroll tab bar** · M · deps #4, #5
 - Expo Router groups `(onboarding)`, `(tabs)`, `(deal)`; 5 placeholder tab screens; custom tab bar with elevated center `+`; `useHideOnScroll()` hook (PRD §3.4).
 - AC: bar hides on scroll down past threshold, reappears on any scroll up, stays visible for short content; correct in RTL.
 
-**#7 feat(shared): domain models, state machines and money utils** · M · deps #1
+**✅ #7 feat(shared): domain models, state machines and money utils** · M · deps #1
 - zod schemas + TS types for all PRD §8 collections; enums; listing, offer and deal state machines (PRD §7) as pure `canTransition/transition` functions; `money` helpers (agorot); phone utils (E.164 ↔ local).
 - AC: full unit-test coverage of transitions (valid + invalid).
 
 ## M1 — Auth & Profile (`v0.2.0`)
 
-**#8 feat(auth): phone OTP sign-in** · M · deps #3, #6
+**✅ #8 feat(auth): phone OTP sign-in** · M · deps #3, #6
 - Guest-first (PRD W1): the app opens to the tabs for everyone. `Splash` while auth loads. A **sign-in sheet** (modal: phone with +972 prefill and validation, then the 6-digit code with auto-submit, resend timer and error mapping) opens from protected actions with a reason and **continues the action** after sign-in (`useRequireAuth`). The + and Inbox tabs use it for guests; Profile shows a "Join WeLoot" card to guests. EAS keystore SHA-1/SHA-256 registered with the Firebase Android app.
 - AC: guests can browse; protected actions open the sheet and continue after sign-in; sign-in works with test phone numbers and the emulator; errors are localized; `sign_in_prompted` per open, `user_registered` once.
 
-**#9 feat(profile): profile setup and username uniqueness** · M · deps #8, #7
+**✅ #9 feat(profile): profile setup and username uniqueness** · M · deps #8, #7
 - `ProfileSetup` as the last step of the sign-in sheet on a first sign-in: English username (atomic `usernames` guard), full name and email (private), city picker (every CBS locality from data.gov.il with coordinates/geohash), unticked promotions opt-in, 16+ and TOS/Privacy acceptance (current language saved). The pending action continues only after the profile is complete.
 - Rules for `users` and `usernames` + tests.
 - AC: protected actions don't continue until the profile is complete; duplicate usernames rejected; guests unaffected.
 
-**#10 feat(profile): profile tab and settings menu** · M · deps #9
-- Profile tab (My Listings, Want List, Alerts placeholders; rating and trade count; guests: "Join WeLoot" card + language, support, legal), Settings sections (PRD §9-D) with language/city/radius editing, Support deep links, Legal links, version.
+**#63 chore(app): native modules for the rest of the MVP in one dev build** · S · deps #3
+- `expo-location`, `expo-camera`, `expo-image-picker`, `expo-image-manipulator`, `expo-auth-session` + `expo-crypto`, `@react-native-google-signin/google-signin`, `@react-native-async-storage/async-storage`, with config plugins and localized permission strings, so the phone needs one new build.
+
+**#64 feat(auth): sign in with Google, Facebook or Discord** · L · deps #63
+- Methods first in the sign-in sheet (PRD W1). Google (native SDK) and Facebook (browser OAuth) as Firebase providers; Discord via browser OAuth (PKCE) + callable function returning a custom token. Profile setup prefilled with name and email.
+- AC: each method signs in and continues the pending action, or shows "not configured" while its keys are missing; Discord function tests with a mocked API.
+
+**#65 feat(auth): one-time phone verification for offers, messages and posts** · M · deps #64
+- Reasons `offer`, `question`, `add` need a verified phone; social-only users verify once (number linked to the account). Rules/functions check the `phone_number` token claim. `phone_verified` event.
+
+**#66 feat(location): browsing location and saved addresses** · M · deps #63
+- City removed from profile setup and the public profile. Browsing location on the device (rounded GPS or a CBS city; guests too). Saved addresses (`users/{uid}/locations`, owner-only) with current location or typed address; `LocationPicker`; area-level snapping (~1 km) in `packages/shared`.
+
+**#10 feat(profile): profile tab and settings menu** · M · deps #9, #66
+- Profile tab (My Listings, Want List, Alerts placeholders; rating and trade count; guests: "Join WeLoot" card + language, support, legal), Settings sections (PRD §9-D) with language, browsing location, saved addresses and radius editing, sign-in methods and phone verification, Support deep links, Legal links, version.
 - AC: support WhatsApp opens with user ID prefilled; language change reloads into the right direction.
 
 **#11 feat(profile): delete account** · S · deps #10
@@ -72,8 +85,8 @@ Status: ✅ merged · 🔄 in progress
 - `Identify` screen: `expo-camera` EAN-13/UPC-A scanning, `barcodes` lookup, UPC-provider fallback behind an interface (mock in dev, TODO(OPEN-6)), confirm-match UI, mapping write-back; search fallback; platform selection.
 - AC: known barcode → instant match; unknown → suggestions → confirm → mapping saved; camera permission denial handled.
 
-**#16 feat(listings): details, publish and Quick-Add-ready flow** · M · deps #14
-- Details form (condition, case, notes, trade/sale, asking price) with zod; publish via callable function (server sets `status`, `geo`, denormalized fields); the whole Add flow is reusable as a modal returning the new listing ID (for Quick Add).
+**#16 feat(listings): location, details, publish and Quick-Add-ready flow** · M · deps #14, #66
+- Location step (saved addresses via `LocationPicker`, #66), details form (condition, case, notes, trade/sale, asking price) with zod; publish via callable function (server sets `status`, area-level `location` snapped from the saved address, denormalized fields); the whole Add flow is reusable as a modal returning the new listing ID (for Quick Add).
 - `listings` rules + tests; `game_listed` event.
 - AC: invalid combinations rejected client- and server-side; publishing with barcode and no photos takes under ~15 seconds.
 
@@ -91,7 +104,7 @@ Status: ✅ merged · 🔄 in progress
 - AC: pinch and toggle both switch densities smoothly; density persists across restarts; every density is screen-reader accessible; smooth at 3 columns with 100+ items on a mid-range Android; correct in RTL.
 
 **#18 feat(search): listings index and search tab** · L · deps #16, #57
-- Algolia `listings` index (only `active`, `hasPhotos` boost), filters (platform, trade/sale, condition, price, distance), results in the adaptive grid (#57); recent searches and popular games on an empty query; excludes own and blocked users.
+- Algolia `listings` index (only `active`, `hasPhotos` boost), filters (platform, trade/sale, condition, price, distance from the browsing location), results in the adaptive grid (#57); recent searches and popular games on an empty query; excludes own and blocked users.
 
 **#19 feat(listings): game detail screen** · M · deps #18
 - Cover/photo gallery, owner card with trust signals (rating, trade count, account age), report listing. Offer/question buttons arrive with #24.
