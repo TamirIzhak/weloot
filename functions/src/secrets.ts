@@ -5,6 +5,11 @@ import { defineSecret, defineString } from 'firebase-functions/params';
 // Set values with `npx firebase functions:secrets:set <NAME> -P <alias>`; for the emulator, put them in
 // functions/.secret.local (git-ignored). Keep this list in sync with the README "Secrets" table.
 
+// Sign in with Discord (#64). The client ID is public, so it's a plain parameter (functions/.env); it stays empty
+// until the Discord application exists (docs/OWNER-TODO.md), and the function then answers "notConfigured".
+export const DISCORD_CLIENT_ID = defineString('DISCORD_CLIENT_ID', { default: '' });
+export const DISCORD_CLIENT_SECRET = defineSecret('DISCORD_CLIENT_SECRET');
+
 // IGDB / Twitch (#12)
 export const TWITCH_CLIENT_ID = defineSecret('TWITCH_CLIENT_ID');
 export const TWITCH_CLIENT_SECRET = defineSecret('TWITCH_CLIENT_SECRET');

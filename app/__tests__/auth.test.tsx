@@ -21,10 +21,12 @@ const mockConfirm = jest.fn();
 const mockAdditionalInfo = jest.fn();
 const mockLogEvent = jest.fn();
 const mockRetryProfile = jest.fn();
+const mockSocialSignIn = jest.fn();
+let mockConfiguredMethods = ['google', 'facebook', 'discord'];
 let mockAuthState: Record<string, unknown> = { status: 'signedOut' };
-const signedIn = (profile: Record<string, unknown>) => ({
+const signedIn = (profile: Record<string, unknown>, user: Record<string, unknown> = {}) => ({
   status: 'signedIn',
-  user: { uid: 'u1' },
+  user: { uid: 'u1', displayName: null, email: null, ...user },
   profile,
   retryProfile: mockRetryProfile,
 });
@@ -48,6 +50,17 @@ jest.mock('@/features/profile/profileApi', () => ({
   isUsernameAvailable: jest.fn(() => Promise.resolve(true)),
   createProfile: jest.fn(() => Promise.resolve()),
 }));
+
+// Provider sign-in has its own tests (socialSignIn.test.ts).
+jest.mock('@/features/auth/socialSignIn', () => {
+  class SignInCancelled extends Error {}
+  return {
+    SOCIAL_METHODS: ['google', 'facebook', 'discord'],
+    isMethodConfigured: (method: string) => mockConfiguredMethods.includes(method),
+    signInWithMethod: (...args: unknown[]) => mockSocialSignIn(...args),
+    SignInCancelled,
+  };
+});
 
 jest.mock('@react-native-firebase/auth', () => ({
   getAuth: jest.fn(() => ({})),
@@ -77,6 +90,8 @@ beforeEach(() => {
   mockSignIn.mockResolvedValue({ confirm: mockConfirm });
   mockConfirm.mockResolvedValue({ user: { uid: 'u1' } });
   mockAdditionalInfo.mockReturnValue({ isNewUser: false });
+  mockSocialSignIn.mockResolvedValue({ isNewUser: false });
+  mockConfiguredMethods = ['google', 'facebook', 'discord'];
 });
 
 describe('authErrorKey', () => {
@@ -88,8 +103,22 @@ describe('authErrorKey', () => {
     ['auth/network-request-failed', 'auth.errors.network'],
     ['auth/quota-exceeded', 'auth.errors.quotaExceeded'],
     ['weloot/no-pending-verification', 'auth.errors.sessionLost'],
+    ['auth/account-exists-with-different-credential', 'auth.errors.accountExists'],
+    ['weloot/provider-failed', 'auth.errors.providerFailed'],
+    ['weloot/play-services', 'auth.errors.playServices'],
   ])('maps %s', (code, key) => {
     expect(authErrorKey(authError(code))).toBe(key);
+  });
+
+  it.each([
+    ['notConfigured', 'auth.errors.notConfigured'],
+    ['invalidCode', 'auth.errors.providerFailed'],
+    ['providerError', 'auth.errors.providerUnavailable'],
+  ])('maps the discordSignIn reason %s', (reason, key) => {
+    const error = Object.assign(authError('functions/failed-precondition'), {
+      details: { reason },
+    });
+    expect(authErrorKey(error)).toBe(key);
   });
 
   it('falls back to a generic message for anything else, never the raw error', () => {
@@ -292,6 +321,7 @@ describe('SignInSheet', () => {
     const action = jest.fn();
     useAuthGate.getState().open('offer', action);
     const { rerender } = await render(withSafeArea(<SignInSheet />));
+    await fireEvent.press(screen.getByTestId('sign-in-phone'));
     await fireEvent.changeText(screen.getByTestId('phone-input'), '0541234567');
     await fireEvent.press(screen.getByTestId('send-code'));
     await fireEvent.changeText(screen.getByTestId('code-input'), '123456');
@@ -328,6 +358,66 @@ describe('SignInSheet', () => {
       jest.runOnlyPendingTimers();
     });
     expect(action).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts with the sign-in methods, and the phone step can go back to them', async () => {
+    await render(withSafeArea(<SignInSheet />));
+    expect(screen.getByTestId('methods-step')).toBeTruthy();
+    expect(screen.getByText('Continue with Google')).toBeTruthy();
+    expect(screen.getByText('Continue with Facebook')).toBeTruthy();
+    expect(screen.getByText('Continue with Discord')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('sign-in-phone'));
+    expect(screen.getByTestId('phone-input')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('other-methods'));
+    expect(screen.getByTestId('methods-step')).toBeTruthy();
+  });
+
+  it('signs in with a social provider, then follows the auth state to profile setup prefilled from it', async () => {
+    const action = jest.fn();
+    useAuthGate.getState().open('wantlist', action);
+    const { rerender } = await render(withSafeArea(<SignInSheet />));
+    await fireEvent.press(screen.getByTestId('sign-in-discord'));
+    expect(mockSocialSignIn).toHaveBeenCalledWith('discord');
+
+    mockAuthState = signedIn(
+      { status: 'missing' },
+      { displayName: 'Dana Ben David', email: 'dana@example.com' },
+    );
+    await rerender(withSafeArea(<SignInSheet />));
+    expect(screen.getByTestId('first-name-input').props.value).toBe('Dana');
+    expect(screen.getByTestId('last-name-input').props.value).toBe('Ben David');
+    expect(screen.getByTestId('email-input').props.value).toBe('dana@example.com');
+    expect(action).not.toHaveBeenCalled();
+  });
+
+  it('explains a failed social sign-in and stays quiet when the user backs out', async () => {
+    const { SignInCancelled } = jest.requireMock<{ SignInCancelled: new () => Error }>(
+      '@/features/auth/socialSignIn',
+    );
+    await render(withSafeArea(<SignInSheet />));
+    mockSocialSignIn.mockRejectedValueOnce(new SignInCancelled());
+    await fireEvent.press(screen.getByTestId('sign-in-google'));
+    expect(screen.queryByTestId('methods-error')).toBeNull();
+
+    mockSocialSignIn.mockRejectedValueOnce(
+      authError('auth/account-exists-with-different-credential'),
+    );
+    await fireEvent.press(screen.getByTestId('sign-in-google'));
+    expect(screen.getByTestId('methods-error').props.children).toBe(
+      'This email already has an account with another sign-in method. Use that one.',
+    );
+  });
+
+  it('marks methods that are not set up yet (development builds) and disables them', async () => {
+    mockConfiguredMethods = ['google'];
+    await render(withSafeArea(<SignInSheet />));
+    expect(screen.getByTestId('sign-in-facebook').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+    expect(screen.getAllByText('Not set up yet (development build).')).toHaveLength(2);
+    expect(screen.getByTestId('sign-in-google').props.accessibilityState).toMatchObject({
+      disabled: false,
+    });
   });
 
   it('offers a retry when the profile fails to load', async () => {

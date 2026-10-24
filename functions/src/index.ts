@@ -1,9 +1,12 @@
 import { setGlobalOptions } from 'firebase-functions/v2';
-import { onRequest } from 'firebase-functions/v2/https';
+import { onCall, onRequest } from 'firebase-functions/v2/https';
 
 import { FIREBASE_REGION } from '@weloot/shared';
 
+import { adminAuth } from './admin';
+import { handleDiscordSignIn } from './auth/discordSignIn';
 import { healthPayload } from './health';
+import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET } from './secrets';
 
 // Region per ADR 0001.
 setGlobalOptions({ region: FIREBASE_REGION, maxInstances: 10 });
@@ -12,3 +15,13 @@ setGlobalOptions({ region: FIREBASE_REGION, maxInstances: 10 });
 export const health = onRequest({ invoker: 'private' }, (_req, res) => {
   res.json(healthPayload());
 });
+
+// Sign in with Discord (PRD W1, #64): exchanges the OAuth code for a Firebase custom token.
+export const discordSignIn = onCall({ secrets: [DISCORD_CLIENT_SECRET] }, (request) =>
+  handleDiscordSignIn(request.data, {
+    fetch,
+    auth: adminAuth(),
+    clientId: DISCORD_CLIENT_ID.value(),
+    clientSecret: DISCORD_CLIENT_SECRET.value(),
+  }),
+);

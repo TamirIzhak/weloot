@@ -17,6 +17,7 @@ import { ErrorState } from '@/components';
 import { isProfileComplete, useAuth } from '@/features/auth/AuthProvider';
 import { useAuthGate, type SignInReason } from '@/features/auth/authGate';
 import { CodeStep } from '@/features/auth/CodeStep';
+import { MethodsStep } from '@/features/auth/MethodsStep';
 import { PhoneStep } from '@/features/auth/PhoneStep';
 import { usePhoneVerification } from '@/features/auth/phoneVerification';
 import { ProfileStep } from '@/features/profile/ProfileStep';
@@ -34,8 +35,8 @@ const REASON_TITLE_KEY: Record<SignInReason, string> = {
 };
 
 /**
- * The sign-in sheet (modal). Opened by `useRequireAuth` from a protected action; steps through phone → code →
- * profile setup (first sign-in only), then closes and continues the action. Closing it drops the pending action;
+ * The sign-in sheet (modal). Opened by `useRequireAuth` from a protected action; steps through the sign-in method
+ * (Google, Facebook, Discord, or phone → code) → profile setup (first sign-in only), then closes and continues the action. Closing it drops the pending action;
  * a user who closes it during profile setup stays signed in and gets back to setup on their next protected action.
  */
 export default function SignInSheet() {
@@ -43,7 +44,7 @@ export default function SignInSheet() {
   const router = useRouter();
   const auth = useAuth();
   const reason = useAuthGate((s) => s.reason);
-  const [step, setStep] = useState<'phone' | 'code'>('phone');
+  const [step, setStep] = useState<'methods' | 'phone' | 'code'>('methods');
   const complete = isProfileComplete(auth);
   // Opened when there was nothing left to do (e.g. a deep link while signed in with a profile).
   const [openedComplete] = useState(complete);
@@ -101,6 +102,7 @@ export default function SignInSheet() {
               <View onLayout={(e) => (profileStepY.current = e.nativeEvent.layout.y)}>
                 <ProfileStep
                   uid={auth.user.uid}
+                  defaults={profileDefaults(auth.user)}
                   onCityFocus={(y) => {
                     const scrollTo = () =>
                       scrollRef.current?.scrollTo({ y: profileStepY.current + y - 8 });
@@ -121,10 +123,16 @@ export default function SignInSheet() {
               // Loading the profile, or closing once it's ready.
               <ActivityIndicator color={colors.primary} testID="profile-loading" />
             )
+          ) : step === 'methods' ? (
+            <MethodsStep
+              title={t(reason ? REASON_TITLE_KEY[reason] : 'auth.methods.title')}
+              onPhone={() => setStep('phone')}
+            />
           ) : step === 'phone' ? (
             <PhoneStep
-              title={t(reason ? REASON_TITLE_KEY[reason] : 'auth.phone.title')}
+              title={t('auth.phone.title')}
               onSent={() => setStep('code')}
+              onBack={() => setStep('methods')}
             />
           ) : (
             <CodeStep onChangeNumber={() => setStep('phone')} />
@@ -133,4 +141,10 @@ export default function SignInSheet() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+/** Name and email from the sign-in provider (Google, Facebook, Discord), to prefill profile setup. */
+function profileDefaults(user: { displayName: string | null; email: string | null }) {
+  const [firstName = '', ...rest] = (user.displayName ?? '').trim().split(/\s+/);
+  return { firstName, lastName: rest.join(' '), email: user.email ?? '' };
 }

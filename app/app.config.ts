@@ -21,6 +21,10 @@ function resolveVariant(value: string | undefined): Variant {
 
 const variant = resolveVariant(process.env.APP_VARIANT);
 
+// Facebook Login redirects native apps to fb<app id>://authorize, so that scheme is registered once the Facebook
+// app exists (EXPO_PUBLIC_FACEBOOK_APP_ID, docs/OWNER-TODO.md). Changing it needs a new dev build.
+const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID;
+
 // English permission texts (the default). Hebrew ones are in ./locales/he.json.
 const PERMISSIONS = {
   camera: 'WeLoot uses the camera to scan game barcodes and take photos of your games.',
@@ -38,7 +42,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: 'weloot',
+  scheme: facebookAppId ? ['weloot', `fb${facebookAppId}`] : 'weloot',
   userInterfaceStyle: 'dark',
   backgroundColor: '#121212',
   ios: {

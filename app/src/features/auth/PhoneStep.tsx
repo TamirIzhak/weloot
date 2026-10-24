@@ -11,7 +11,16 @@ import { authErrorKey } from './errors';
 import { sendCode } from './phoneVerification';
 
 /** Sign-in step 1 (PRD W1): Israeli mobiles only, +972 prefilled. Calls `onSent` once the SMS is on its way. */
-export function PhoneStep({ title, onSent }: { title: string; onSent: () => void }) {
+export function PhoneStep({
+  title,
+  onSent,
+  onBack,
+}: {
+  title: string;
+  onSent: () => void;
+  /** Back to the other sign-in methods. */
+  onBack?: () => void;
+}) {
   const { t } = useTranslation();
   const [phone, setPhone] = useState('');
   const [touched, setTouched] = useState(false);
@@ -79,6 +88,14 @@ export function PhoneStep({ title, onSent }: { title: string; onSent: () => void
       <Text variant="caption" tone="muted">
         {t('auth.phone.smsNotice')}
       </Text>
+      {onBack ? (
+        <Button
+          variant="ghost"
+          label={t('auth.phone.otherMethods')}
+          onPress={onBack}
+          testID="other-methods"
+        />
+      ) : null}
     </View>
   );
 }

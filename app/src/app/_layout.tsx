@@ -53,6 +53,15 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
+      {/* OAuth redirects land here for a moment and step back (OAuthRedirect). */}
+      <Stack.Screen
+        name="auth/[provider]"
+        options={{ presentation: 'transparentModal', animation: 'none' }}
+      />
+      <Stack.Screen
+        name="authorize"
+        options={{ presentation: 'transparentModal', animation: 'none' }}
+      />
     </Stack>
   );
 }
