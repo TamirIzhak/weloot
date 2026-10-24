@@ -1,6 +1,12 @@
 import { logger } from 'firebase-functions';
 
-import { gameSchema, SEARCH_INDEXES, toGameRecord } from '@weloot/shared';
+import {
+  gameRecordSchema,
+  gameSchema,
+  SEARCH_INDEXES,
+  toGameRecord,
+  type GameRecord,
+} from '@weloot/shared';
 
 // Keeps the Algolia `games` index in step with `games/{igdbId}` (PRD §5.2, #13). Only Cloud Functions write
 // indexes; the app searches with the search-only key.
@@ -62,4 +68,27 @@ export async function syncGameRecord(
   if (JSON.stringify(record) === JSON.stringify(recordOf(gameId, before))) return 'unchanged';
   await client.saveObject({ indexName: SEARCH_INDEXES.games, body: record });
   return 'saved';
+}
+
+/** Server-side catalog search (barcode suggestions, #14). */
+export type AlgoliaSearcher = {
+  searchSingleIndex(args: {
+    indexName: string;
+    searchParams: { query: string; hitsPerPage: number };
+  }): Promise<{ hits: unknown[] }>;
+};
+
+export async function searchGamesIndex(
+  client: AlgoliaSearcher,
+  query: string,
+  hitsPerPage = 5,
+): Promise<GameRecord[]> {
+  const { hits } = await client.searchSingleIndex({
+    indexName: SEARCH_INDEXES.games,
+    searchParams: { query, hitsPerPage },
+  });
+  return hits.flatMap((hit) => {
+    const parsed = gameRecordSchema.safeParse(hit);
+    return parsed.success ? [parsed.data] : [];
+  });
 }

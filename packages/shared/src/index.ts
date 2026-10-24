@@ -4,6 +4,7 @@
 export const APP_NAME = 'WeLoot';
 
 export * from './auth';
+export * from './barcode';
 export * from './cities';
 export * from './enums';
 export * from './firebase';

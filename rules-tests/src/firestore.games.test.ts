@@ -59,3 +59,23 @@ describe('games (catalog, PRD §5.1)', () => {
     await assertFails(getDoc(doc(guest(), 'system/catalogSync')));
   });
 });
+
+describe('barcodes (server-only, PRD §5.1)', () => {
+  it('denies every client read and write: only functions use the barcode table', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'barcodes/0711719541783'), {
+        igdbGameId: 1,
+        platform: 'ps5',
+      });
+    });
+    for (const db of [guest(), as('alice')]) {
+      await assertFails(getDoc(doc(db, 'barcodes/0711719541783')));
+      await assertFails(
+        setDoc(doc(db, 'barcodes/0711719541783'), { igdbGameId: 2, platform: 'ps5' }),
+      );
+      await assertFails(
+        setDoc(doc(db, 'barcodes/0711719541783/votes/alice'), { igdbGameId: 2, platform: 'ps5' }),
+      );
+    }
+  });
+});

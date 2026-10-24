@@ -115,7 +115,7 @@ function Results({
   }
 }
 
-function GameRow({
+export function GameRow({
   game,
   first,
   onSelect,
