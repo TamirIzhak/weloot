@@ -110,7 +110,6 @@
   },
   "placeholders": {
     "search": "Search games near you. Coming soon.",
-    "add": "Scan or search a game to list it in seconds. Coming soon.",
     "inbox": "Your offers and chats will appear here. Coming soon.",
     "profile": "Your games, want list and settings. Coming soon.",
     "gameTitle": "Game",
@@ -353,6 +352,39 @@
       "emptyBody": "Try another spelling or remove the platform filter.",
       "error": "Search isn’t working right now. Try again.",
       "notConfigured": "Game search isn’t set up yet (Algolia keys missing)."
+    }
+  },
+  "listings": {
+    "identify": {
+      "title": "Which game?",
+      "scan": "Scan barcode",
+      "search": "Search",
+      "scanHint": "Point the camera at the barcode on the back of the case.",
+      "looking": "Looking up the barcode…",
+      "lookupFailed": "Couldn’t look up the barcode. Check your connection.",
+      "isThisIt": "Is this your game?",
+      "yesThatsIt": "Yes, that’s it",
+      "noSearch": "No, search for it",
+      "whichOne": "Which one is it?",
+      "noneOfThese": "None of these, search",
+      "unknownBarcode": "We don’t know this barcode yet. Search for the game, and we’ll remember it.",
+      "scanAgain": "Scan again",
+      "searchInstead": "Search instead",
+      "whichPlatform": "Which console is your copy for?",
+      "continue": "Continue",
+      "otherGame": "Choose another game",
+      "camera": {
+        "title": "Scan the barcode",
+        "body": "Allow the camera to scan the barcode on the case. Or search for the game instead.",
+        "blocked": "Camera access is off for WeLoot. Turn it on in your phone’s settings, or search instead.",
+        "allow": "Allow camera",
+        "openSettings": "Open settings"
+      }
+    },
+    "details": {
+      "title": "Your listing",
+      "soonTitle": "Almost there",
+      "soonBody": "Location, condition and publishing come next."
     }
   }
 }

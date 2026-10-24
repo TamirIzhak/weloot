@@ -85,3 +85,13 @@ Needs Algolia (OWNER-TODO 5) and a catalog sync (#12).
 - [ ] Platform chips filter the results (tap again to clear); "Switch" only shows Switch games.
 - [ ] A nonsense query shows "No games found".
 - [ ] Without the Algolia keys, the tab says game search isn't set up yet.
+
+## Identify a game: barcode and search (#14)
+Needs the dev build with the camera (#63), the functions running, a catalog (#12) and Algolia (#13).
+- [ ] Tap **+** (signed in, phone verified): "Which game?" with Scan barcode / Search.
+- [ ] First time: the camera permission prompt; deny → "Allow camera" and "Search instead"; deny permanently → "Open settings".
+- [ ] Scan a game case: "Looking up the barcode…". An unknown barcode → "We don't know this barcode yet" → Search → pick the game → pick the console → Continue.
+- [ ] Scan the same barcode again (any account): "Is this your game?" with that game; "Yes" preselects the console.
+- [ ] A game on several consoles needs a console choice before Continue; a single-console game is chosen automatically.
+- [ ] Search mode alone works without scanning.
+- [ ] Leaving the + tab turns the camera off (no camera indicator).

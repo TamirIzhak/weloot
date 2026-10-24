@@ -9,11 +9,18 @@ import { FIREBASE_REGION } from '@weloot/shared';
 
 import { firestoreAccountStore, handleDeleteAccount } from './account/deleteAccount';
 import { adminAuth, adminDb } from './admin';
+import { handleConfirmBarcode, handleLookupBarcode, noUpcProvider } from './barcodes/barcodes';
 import { handleDiscordSignIn } from './auth/discordSignIn';
 import { syncCatalog, type SyncMode } from './catalog/catalogSync';
 import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
-import { configureGamesIndex, syncGameRecord, type AlgoliaAdmin } from './search/gamesIndex';
+import {
+  configureGamesIndex,
+  searchGamesIndex,
+  syncGameRecord,
+  type AlgoliaAdmin,
+  type AlgoliaSearcher,
+} from './search/gamesIndex';
 import {
   ALGOLIA_ADMIN_KEY,
   ALGOLIA_APP_ID,
@@ -47,7 +54,7 @@ export const deleteAccount = onCall((request) =>
 );
 
 /** The Algolia admin client, or null until the Algolia app is set up (docs/OWNER-TODO.md 5). */
-function algoliaAdmin(): AlgoliaAdmin | null {
+function algoliaAdmin(): (AlgoliaAdmin & AlgoliaSearcher) | null {
   const appId = ALGOLIA_APP_ID.value();
   const adminKey = ALGOLIA_ADMIN_KEY.value();
   if (!appId || !adminKey) return null;
@@ -111,4 +118,20 @@ export const indexGame = onDocumentWritten(
       event.data?.before.data(),
     );
   },
+);
+
+// Barcodes (PRD §5.1, #14): look a scanned code up, and record users' confirmations.
+export const lookupBarcode = onCall({ secrets: [ALGOLIA_ADMIN_KEY] }, (request) =>
+  handleLookupBarcode(request.auth, request.data, {
+    db: adminDb(),
+    upc: noUpcProvider, // TODO(OPEN-6): the UPC/EAN provider isn't chosen yet.
+    searchGames: async (query) => {
+      const algolia = algoliaAdmin();
+      return algolia ? searchGamesIndex(algolia, query) : [];
+    },
+  }),
+);
+
+export const confirmBarcode = onCall((request) =>
+  handleConfirmBarcode(request.auth, request.data, { db: adminDb() }),
 );
