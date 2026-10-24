@@ -20,6 +20,14 @@ function resolveVariant(value: string | undefined): Variant {
 }
 
 const variant = resolveVariant(process.env.APP_VARIANT);
+
+// English permission texts (the default). Hebrew ones are in ./locales/he.json.
+const PERMISSIONS = {
+  camera: 'WeLoot uses the camera to scan game barcodes and take photos of your games.',
+  photos: 'WeLoot uses your photos so you can add pictures of the games you list.',
+  location:
+    'WeLoot uses your location to show games near you and to fill in your address when you post.',
+};
 const { name, appId } = VARIANTS[variant];
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
@@ -49,6 +57,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // Libraries may add these; WeLoot never records audio or tracks location in the background.
+    blockedPermissions: [
+      'android.permission.RECORD_AUDIO',
+      'android.permission.ACCESS_BACKGROUND_LOCATION',
+    ],
   },
   web: {
     output: 'static',
@@ -75,7 +88,39 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-updates',
     // No yellow autofill overlay on Android text fields.
     './plugins/withNoAutofillHighlight',
+    // Sign in with Google (#64). Android reads the OAuth client from google-services.json.
+    '@react-native-google-signin/google-signin',
+    // Barcode scanning (#14) and listing photos (#15); no audio anywhere.
+    [
+      'expo-camera',
+      {
+        cameraPermission: PERMISSIONS.camera,
+        microphonePermission: false,
+        recordAudioAndroid: false,
+        barcodeScannerEnabled: true,
+      },
+    ],
+    [
+      'expo-image-picker',
+      {
+        photosPermission: PERMISSIONS.photos,
+        cameraPermission: PERMISSIONS.camera,
+        microphonePermission: false,
+      },
+    ],
+    // Browsing location and saved addresses (#66): foreground only.
+    [
+      'expo-location',
+      {
+        locationWhenInUsePermission: PERMISSIONS.location,
+        isAndroidBackgroundLocationEnabled: false,
+        isAndroidForegroundServiceEnabled: false,
+        isIosBackgroundLocationEnabled: false,
+      },
+    ],
   ],
+  // iOS permission texts per language (Android uses the system's own wording).
+  locales: { en: './locales/en.json', he: './locales/he.json' },
   experiments: {
     typedRoutes: true,
     reactCompiler: true,

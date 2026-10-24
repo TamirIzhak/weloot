@@ -1,0 +1,5 @@
+{
+  "NSCameraUsageDescription": "WeLoot uses the camera to scan game barcodes and take photos of your games.",
+  "NSPhotoLibraryUsageDescription": "WeLoot uses your photos so you can add pictures of the games you list.",
+  "NSLocationWhenInUseUsageDescription": "WeLoot uses your location to show games near you and to fill in your address when you post."
+}
