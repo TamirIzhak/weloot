@@ -297,6 +297,13 @@ describe('AddressFormScreen', () => {
     expect(mockDelete).toHaveBeenCalledWith('u1', 'home');
   });
 
+  it('waits for the saved list before showing the form', async () => {
+    mockSaved = { status: 'loading' };
+    await render(withSafeArea(<AddressFormScreen />));
+    expect(screen.getByTestId('address-loading')).toBeTruthy();
+    expect(screen.queryByTestId('address-form')).toBeNull();
+  });
+
   it('sends guests away', async () => {
     mockAuthState = { status: 'signedOut' };
     await render(withSafeArea(<AddressFormScreen />));

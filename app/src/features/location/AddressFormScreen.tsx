@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, Card, Chip, Input, Text } from '@/components';
+import { Button, Card, Chip, ErrorState, Input, Text } from '@/components';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { currentLanguage } from '@/i18n';
 import { colors } from '@/theme/tokens';
@@ -34,19 +34,28 @@ type Found = { lat: number; lng: number; cityId: string; areaName: string };
  * see the area others will see (never the address itself). Opened as a modal from the location pickers.
  */
 export function AddressFormScreen({ id }: { id?: string }) {
+  const { t } = useTranslation();
   const auth = useAuth();
   const uid = auth.status === 'signedIn' ? auth.user.uid : undefined;
   const saved = useSavedLocations(uid);
 
   if (!uid) return <Redirect href="/" />;
-  if (id && saved.status === 'loading') {
+  // Wait for the list: it names a first address "Home" and enforces the maximum number of addresses.
+  if (saved.status === 'loading') {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-bg">
+      <SafeAreaView className="flex-1 items-center justify-center bg-bg" testID="address-loading">
         <ActivityIndicator color={colors.primary} />
       </SafeAreaView>
     );
   }
-  const items = saved.status === 'ready' ? saved.items : [];
+  if (saved.status === 'error') {
+    return (
+      <SafeAreaView className="flex-1 justify-center bg-bg">
+        <ErrorState title={t('location.errors.loadFailed')} />
+      </SafeAreaView>
+    );
+  }
+  const items = saved.items;
   const existing = id ? items.find((item) => item.id === id) : undefined;
   if (id && !existing) return <Redirect href="/" />;
   return <AddressForm uid={uid} existing={existing} count={items.length} />;
