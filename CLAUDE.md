@@ -16,20 +16,27 @@ You work in the repository directly: you create branches, run commands, commit, 
 2. **Sync and branch.** `git switch main && git pull`, then create the branch:
    - `feature/<n>-<kebab-summary>` · `fix/<n>-…` · `refactor/<n>-…` · `chore/<n>-…` · `docs/<n>-…`
    - `<n>` is the issue number, zero-padded to 2 digits (`feature/04-barcode-scanner`).
-3. **Plan before code.** Post a short plan in the chat: issue number, branch name, files you'll touch, data/rules changes, how you'll test it, and any [OPEN] questions it touches. For issues labeled `size:L` or touching money/state machines, wait for a go-ahead. Otherwise proceed.
+3. **Plan before code.** Post a short plan in the chat: issue number, branch name, files you'll touch, data/rules changes, how you'll test it, and any [OPEN] questions it touches. Then proceed without waiting (see "Autonomous backlog mode" below).
 4. **Implement** only what the issue's acceptance criteria require. No drive-by refactors; if you spot something worth fixing, note it in the PR under "Follow-ups" (or open an issue).
 5. **Verify** (§4). Fix everything that fails.
 6. **Commit** in small logical commits (§2).
 7. **Push and open the PR** with `gh pr create` using `.github/pull_request_template.md` (§3). Link the issue with `Closes #<n>`.
 8. **Self-review.** Once CI is green, review the full PR diff (`/code-review high <base>...<branch>`, or the same angles by hand: line-by-line bugs, removed behavior, callers/callees, reuse, simplification, efficiency, root cause vs. bandaid, and violations of this file). Fix every real finding, re-run §4, push. Then post a PR comment listing each finding and what happened to it (fixed / not a problem, and why / deferred, with the follow-up issue number). Repeat until a pass finds nothing worth fixing.
 9. **Verify on a clean checkout** for changes to tooling, dependencies or config: clone the branch into a temp folder, run `npm ci` and the §4 commands.
-10. **Report back:** PR link, what was verified and how, what wasn't, review findings and their outcomes, and any follow-ups.
+10. **Report back:** PR link, what was verified and how, what wasn't, review findings and their outcomes, and any follow-ups. Add the issue's manual test steps to `docs/QA.md`.
 11. **Merge and continue.** When CI is green on the latest commit and the last self-review pass found nothing worth fixing, squash-merge (`gh pr merge <n> --squash --delete-branch`), switch to `main`, pull, and start the next issue. Never merge with failing or pending checks, unresolved review findings, or an unanswered stop-and-ask question below. Never force-push `main` or bypass branch protection.
+
+### Autonomous backlog mode (owner decision, 2026-10-24)
+Work through the whole backlog in order, issue after issue, without waiting for a go-ahead or a phone check between issues. The owner runs QA at the end.
+- **Don't wait on the phone.** Verify with tests, emulators and Expo web. Record what to check by hand per issue in `docs/QA.md` (steps, both languages, expected result).
+- **Things only the owner can do** (create accounts or developer apps, paste secrets, click console switches, pay for a plan): add them to `docs/OWNER-TODO.md` with exact steps, build the feature behind config so it shows a clear "not configured" state, and keep going. Mention new items in the report.
+- **Native modules:** batch them so the owner installs as few dev builds as possible; modules the PRD stack (§2) names don't need a separate approval.
+- Still stop and ask for the cases below that can't be built behind config (state machine or data model changes beyond the PRD, contradictions in the PRD).
 
 ### When to stop and ask instead of deciding
 - Anything listed as **[OPEN-x]** in PRD §14 — build behind config/an interface with a `TODO(OPEN-x)` and say so; never invent business rules, fees, legal flows or vendor behavior.
 - Changing a decided stack item (PRD §2), the data model beyond what the issue needs, or a state machine (PRD §7).
-- Adding a dependency that's native (needs a new dev build), large, unmaintained, or duplicates one we already have.
+- Adding a dependency the PRD stack (§2) doesn't name that is native (needs a new dev build), large, unmaintained, or duplicates one we already have.
 - A third-party API behaves differently from the PRD. Report what you observed (request/response, redacting secrets).
 - Acceptance criteria that are ambiguous or contradict the PRD.
 
