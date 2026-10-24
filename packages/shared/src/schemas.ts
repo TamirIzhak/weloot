@@ -224,6 +224,23 @@ export const listingInputSchema = z
   });
 export type ListingInput = z.infer<typeof listingInputSchema>;
 
+/**
+ * What the app sends to `publishListing` (PRD W2). `locationId` is one of the user's saved addresses (only its area
+ * is published). `requestId` becomes the listing's ID, so a repeated tap creates one listing. Photos are added
+ * after publishing (#15).
+ */
+export const publishListingInputSchema = z.object({
+  listing: listingInputSchema,
+  locationId: id,
+  requestId: z.string().regex(/^[A-Za-z0-9]{16,40}$/),
+});
+export type PublishListingInput = z.input<typeof publishListingInputSchema>;
+export type PublishListingResult = { listingId: string };
+
+/** Stable `details.reason` values of `publishListing`. */
+export type PublishListingError =
+  'invalidInput' | 'unknownGame' | 'wrongPlatform' | 'unknownLocation' | 'profileRequired';
+
 export const listingSchema = z.object({
   userId: uid,
   igdbGameId: z.number().int().positive(),

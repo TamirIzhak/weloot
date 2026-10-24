@@ -68,6 +68,7 @@ function RootNavigator() {
       <Stack.Screen name="settings/delete-account" options={withHeader} />
       <Stack.Screen name="me/[section]" options={withHeader} />
       <Stack.Screen name="add/details" options={withHeader} />
+      <Stack.Screen name="add/done" options={{ gestureEnabled: false }} />
       <Stack.Screen name="addresses/new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="addresses/[id]" options={{ presentation: 'modal' }} />
       {/* OAuth redirects land here for a moment and step back (OAuthRedirect). */}

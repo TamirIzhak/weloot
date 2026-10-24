@@ -15,6 +15,7 @@ let mockSelectGame: ((record: unknown) => void) | undefined;
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush }),
   useIsFocused: () => true,
+  useFocusEffect: jest.fn(),
 }));
 jest.mock('expo-camera', () => ({
   useCameraPermissions: () => [mockPermission, mockRequestPermission],
