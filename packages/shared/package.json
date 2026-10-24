@@ -8,7 +8,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "jest"
+    "test": "jest",
+    "cities:update": "node scripts/build-cities.mjs && prettier --write src/cities.data.ts"
   },
   "dependencies": {
     "zod": "^4.6.7"

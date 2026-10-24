@@ -161,6 +161,41 @@
       "title": "Join WeLoot",
       "body": "Swap the games you’ve finished for ones you want. Sign in with your phone number. It takes 20 seconds.",
       "cta": "Sign in"
+    },
+    "setup": {
+      "title": "Set up your profile",
+      "subtitle": "This is how other gamers will see you.",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "e.g. zelda_fan",
+      "usernameHint": "3–20 English letters, digits or _.",
+      "usernameInvalid": "Use 3–20 English letters, digits or _. No spaces.",
+      "usernameChecking": "Checking…",
+      "usernameAvailable": "✓ Available",
+      "usernameTaken": "That username is taken. Try another one.",
+      "cityLabel": "City",
+      "cityPlaceholder": "Search for your city",
+      "cityHint": "Others see your city only, never your address.",
+      "cityNoResults": "No city found. Try another spelling.",
+      "acceptTerms": "I agree to the terms",
+      "submit": "Continue",
+      "saveFailed": "Couldn’t save your profile. Check your connection and try again.",
+      "loadFailed": "Couldn’t load your profile.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "emailHint": "Only we see it, never other users.",
+      "emailInvalid": "Enter a valid email, like you@example.com.",
+      "marketingOptIn": "Email me news and offers",
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "nameHint": "Only people you chat with see your name.",
+      "nameInvalid": "Letters only.",
+      "marketingOptInHint": "Optional. You can stop them anytime.",
+      "acceptTermsHint": "I’m 16 or older and I accept the Terms of Service and the Privacy Policy."
+    },
+    "finish": {
+      "title": "Finish setting up",
+      "body": "Pick a username and your city to start swapping.",
+      "cta": "Continue"
     }
   }
 }

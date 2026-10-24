@@ -7,10 +7,20 @@ import { TabBar } from '@/navigation/TabBar';
 import { TabBarVisibilityProvider } from '@/navigation/TabBarVisibility';
 
 const mockPush = jest.fn();
-let mockAuthState: { status: string } = { status: 'signedIn' };
+const SIGNED_IN = {
+  status: 'signedIn',
+  user: { uid: 'u1' },
+  profile: { status: 'ready', profile: { username: 'Gamer_1' } },
+};
+let mockAuthState: Record<string, unknown> = SIGNED_IN;
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
-jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuthState }));
+jest.mock('@/features/auth/AuthProvider', () => ({
+  ...jest.requireActual<object>('@/features/auth/AuthProvider'),
+  useAuth: () => mockAuthState,
+}));
+jest.mock('@/features/profile/profileApi', () => ({}));
+jest.mock('@react-native-firebase/auth', () => ({}));
 jest.mock('@react-native-firebase/analytics', () => ({
   getAnalytics: jest.fn(() => ({})),
   logEvent: jest.fn(),
@@ -18,7 +28,7 @@ jest.mock('@react-native-firebase/analytics', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockAuthState = { status: 'signedIn' };
+  mockAuthState = SIGNED_IN;
   useAuthGate.getState().cancel();
 });
 

@@ -20,7 +20,15 @@ const mockSignIn = jest.fn();
 const mockConfirm = jest.fn();
 const mockAdditionalInfo = jest.fn();
 const mockLogEvent = jest.fn();
-let mockAuthState: { status: string; user?: unknown } = { status: 'signedOut' };
+const mockRetryProfile = jest.fn();
+let mockAuthState: Record<string, unknown> = { status: 'signedOut' };
+const signedIn = (profile: Record<string, unknown>) => ({
+  status: 'signedIn',
+  user: { uid: 'u1' },
+  profile,
+  retryProfile: mockRetryProfile,
+});
+const READY = { status: 'ready', profile: { username: 'Gamer_1' } };
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, back: mockBack }),
@@ -30,7 +38,16 @@ jest.mock('expo-router', () => ({
   },
 }));
 
-jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuthState }));
+jest.mock('@/features/auth/AuthProvider', () => ({
+  ...jest.requireActual<object>('@/features/auth/AuthProvider'),
+  useAuth: () => mockAuthState,
+}));
+
+// The profile step's data layer has its own tests (profile.test.tsx).
+jest.mock('@/features/profile/profileApi', () => ({
+  isUsernameAvailable: jest.fn(() => Promise.resolve(true)),
+  createProfile: jest.fn(() => Promise.resolve()),
+}));
 
 jest.mock('@react-native-firebase/auth', () => ({
   getAuth: jest.fn(() => ({})),
@@ -134,8 +151,8 @@ describe('useRequireAuth (guest-first gate)', () => {
     );
   }
 
-  it('runs the action immediately for a signed-in user', async () => {
-    mockAuthState = { status: 'signedIn', user: { uid: 'u1' } };
+  it('runs the action immediately for a signed-in user with a profile', async () => {
+    mockAuthState = signedIn(READY);
     const action = jest.fn();
     await render(<Trigger action={action} />);
     await fireEvent.press(screen.getByRole('button'));
@@ -152,6 +169,18 @@ describe('useRequireAuth (guest-first gate)', () => {
     expect(useAuthGate.getState().reason).toBe('offer');
     expect(mockLogEvent).toHaveBeenCalledWith({}, 'sign_in_prompted', { reason: 'offer' });
   });
+
+  it.each([['missing'], ['loading'], ['error']])(
+    'opens the sheet for a signed-in user whose profile is %s',
+    async (status) => {
+      mockAuthState = signedIn({ status });
+      const action = jest.fn();
+      await render(<Trigger action={action} />);
+      await fireEvent.press(screen.getByRole('button'));
+      expect(action).not.toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith('/sign-in');
+    },
+  );
 });
 
 describe('PhoneStep', () => {
@@ -258,25 +287,61 @@ describe('SignInSheet', () => {
     expect(action).not.toHaveBeenCalled();
   });
 
-  it('after verifying, closes and continues the pending action', async () => {
+  it('for a returning user, closes after the code and continues the pending action', async () => {
     jest.useFakeTimers();
     const action = jest.fn();
     useAuthGate.getState().open('offer', action);
-    await render(withSafeArea(<SignInSheet />));
+    const { rerender } = await render(withSafeArea(<SignInSheet />));
     await fireEvent.changeText(screen.getByTestId('phone-input'), '0541234567');
     await fireEvent.press(screen.getByTestId('send-code'));
     await fireEvent.changeText(screen.getByTestId('code-input'), '123456');
-    expect(mockBack).toHaveBeenCalled();
+    expect(mockConfirm).toHaveBeenCalledWith('123456');
+
+    // Firebase reports the sign-in, then the profile loads.
+    mockAuthState = signedIn({ status: 'loading' });
+    await rerender(withSafeArea(<SignInSheet />));
+    expect(screen.getByTestId('profile-loading')).toBeTruthy();
+    expect(mockBack).not.toHaveBeenCalled();
+
+    mockAuthState = signedIn(READY);
+    await rerender(withSafeArea(<SignInSheet />));
+    expect(mockBack).toHaveBeenCalledTimes(1);
     await act(async () => {
       jest.runOnlyPendingTimers();
     });
     expect(action).toHaveBeenCalledTimes(1);
   });
 
-  it('redirects home when opened while already signed in', async () => {
-    mockAuthState = { status: 'signedIn', user: { uid: 'u1' } };
+  it('for a new user, asks for the profile and continues only once it exists', async () => {
+    jest.useFakeTimers();
+    const action = jest.fn();
+    useAuthGate.getState().open('add', action);
+    mockAuthState = signedIn({ status: 'missing' });
+    const { rerender } = await render(withSafeArea(<SignInSheet />));
+    expect(screen.getByTestId('profile-step')).toBeTruthy();
+    expect(mockBack).not.toHaveBeenCalled();
+
+    mockAuthState = signedIn(READY);
+    await rerender(withSafeArea(<SignInSheet />));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+    });
+    expect(action).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers a retry when the profile fails to load', async () => {
+    mockAuthState = signedIn({ status: 'error' });
+    await render(withSafeArea(<SignInSheet />));
+    await fireEvent.press(screen.getByText('Try again'));
+    expect(mockRetryProfile).toHaveBeenCalled();
+  });
+
+  it('redirects home when opened while already signed in with a profile', async () => {
+    mockAuthState = signedIn(READY);
     await render(withSafeArea(<SignInSheet />));
     expect(screen.getByTestId('redirect').props.children).toBe('/');
+    expect(mockBack).not.toHaveBeenCalled();
   });
 });
 

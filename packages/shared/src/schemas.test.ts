@@ -2,9 +2,12 @@ import {
   alertSchema,
   conversationSchema,
   dealSchema,
+  emailSchema,
   listingClosedWithSchema,
   listingInputSchema,
   messageSchema,
+  normalizeEmail,
+  personNameSchema,
   offerInputSchema,
   ratingSchema,
   timestampSchema,
@@ -31,13 +34,43 @@ describe('timestampSchema', () => {
 });
 
 describe('usernameSchema (PRD W1)', () => {
-  it.each(['gamer_il', 'Dana99', 'גיימר_1', 'abc'])('accepts %s', (name) => {
+  it.each(['gamer_il', 'Dana99', 'abc', 'A_1'])('accepts %s', (name) => {
     expect(usernameSchema.safeParse(name).success).toBe(true);
   });
 
-  it.each(['ab', 'a'.repeat(21), 'with space', 'emoji🎮', 'dash-name'])('rejects %p', (name) => {
-    expect(usernameSchema.safeParse(name).success).toBe(false);
+  it.each(['ab', 'a'.repeat(21), 'with space', 'emoji🎮', 'dash-name', 'גיימר_1', 'éclair'])(
+    'rejects %p',
+    (name) => {
+      expect(usernameSchema.safeParse(name).success).toBe(false);
+    },
+  );
+});
+
+describe('personNameSchema', () => {
+  it.each(['Dana', 'דנה', 'Ben-David', "O'Neil", 'Mary Ann', 'Zoë', 'J.'])('accepts %s', (name) => {
+    expect(personNameSchema.safeParse(name).success).toBe(true);
   });
+
+  it.each(['', ' Dana', '-Dana', 'Dana1', 'a'.repeat(41), 'dana@x', '🎮'])('rejects %p', (name) => {
+    expect(personNameSchema.safeParse(name).success).toBe(false);
+  });
+});
+
+describe('emailSchema', () => {
+  it('normalizes emails to trimmed lower case', () => {
+    expect(normalizeEmail(' Dana@Example.COM ')).toBe('dana@example.com');
+  });
+
+  it.each(['dana@example.com', 'a.b+games@mail.co.il'])('accepts %s', (email) => {
+    expect(emailSchema.safeParse(email).success).toBe(true);
+  });
+
+  it.each(['', 'dana', 'dana@', '@example.com', 'dana @example.com', `${'a'.repeat(250)}@x.io`])(
+    'rejects %p',
+    (email) => {
+      expect(emailSchema.safeParse(email).success).toBe(false);
+    },
+  );
 });
 
 describe('listingInputSchema (PRD W2)', () => {
