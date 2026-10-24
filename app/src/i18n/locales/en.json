@@ -343,5 +343,16 @@
       "done": "Your account was deleted.",
       "failed": "Couldn’t delete your account. Check your connection and try again."
     }
+  },
+  "catalog": {
+    "search": {
+      "label": "Game",
+      "placeholder": "Search by name, e.g. Zelda",
+      "hint": "Type a game’s name. Typos are fine.",
+      "emptyTitle": "No games found",
+      "emptyBody": "Try another spelling or remove the platform filter.",
+      "error": "Search isn’t working right now. Try again.",
+      "notConfigured": "Game search isn’t set up yet (Algolia keys missing)."
+    }
   }
 }

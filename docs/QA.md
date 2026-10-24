@@ -77,3 +77,11 @@ Needs the Twitch credentials (OWNER-TODO 4).
 - [ ] Emulator UI → Firestore → `games`: e.g. Elden Ring has title, cover image id, platforms (only PS4/PS5/Xbox), genres and similar game ids; no DLC or bundles appear.
 - [ ] Run it again without `mode=full`: it finishes fast with few or no writes.
 - [ ] Without the credentials, the trigger answers `notConfigured` (503).
+
+## Game search (#13)
+Needs Algolia (OWNER-TODO 5) and a catalog sync (#12).
+- [ ] Search tab: typing "zelda" shows Zelda games with covers, years and platform chips within about a second.
+- [ ] Typos work: "eldn ring" still finds Elden Ring; Hebrew or Japanese alternative names find the game when IGDB has them.
+- [ ] Platform chips filter the results (tap again to clear); "Switch" only shows Switch games.
+- [ ] A nonsense query shows "No games found".
+- [ ] Without the Algolia keys, the tab says game search isn't set up yet.

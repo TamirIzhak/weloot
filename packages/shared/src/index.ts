@@ -12,4 +12,5 @@ export * from './machines';
 export * from './money';
 export * from './phone';
 export * from './schemas';
+export * from './search';
 export * from './stateMachine';
