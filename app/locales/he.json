@@ -1,0 +1,5 @@
+{
+  "NSCameraUsageDescription": "WeLoot משתמשת במצלמה כדי לסרוק ברקודים של משחקים ולצלם את המשחקים שלך.",
+  "NSPhotoLibraryUsageDescription": "WeLoot משתמשת בתמונות שלך כדי שתוכל/י להוסיף תמונות של המשחקים שאת/ה מפרסם/ת.",
+  "NSLocationWhenInUseUsageDescription": "WeLoot משתמשת במיקום שלך כדי להציג משחקים קרובים ולמלא את הכתובת כשמפרסמים משחק."
+}
