@@ -214,6 +214,19 @@
       "title": "Finish setting up",
       "body": "Pick a username and your city to start swapping.",
       "cta": "Continue"
+    },
+    "memberSince": "Member since {{date}}",
+    "rating": "Rating ({{n}})",
+    "noRatings": "No ratings yet",
+    "trades": "Swaps completed",
+    "games": {
+      "title": "Your games",
+      "listings": "My listings",
+      "wantlist": "Want list",
+      "alerts": "Alerts",
+      "listingsSoon": "The games you list will show up here.",
+      "wantlistSoon": "Games you want will show up here, and we’ll tell you when someone lists one.",
+      "alertsSoon": "Your saved searches and “notify me” alerts will show up here."
     }
   },
   "location": {
@@ -265,6 +278,54 @@
       "tooMany": "You’ve saved the maximum number of addresses. Delete one first.",
       "loadFailed": "Couldn’t load your addresses.",
       "generic": "Something went wrong. Try again."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "comingSoon": "Coming soon",
+    "account": {
+      "title": "Account",
+      "username": "Username",
+      "signInWith": "Sign-in",
+      "phone": "Phone",
+      "phoneVerified": "Verified ✓",
+      "phoneVerify": "Verify",
+      "phoneDone": "Your phone is verified.",
+      "addresses": "Saved addresses"
+    },
+    "addresses": {
+      "emptyTitle": "No saved addresses yet"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "language": "Language",
+      "browsingLocation": "Browsing near",
+      "radius": "Show games within"
+    },
+    "email": {
+      "title": "Email",
+      "offers": "News and offers"
+    },
+    "support": {
+      "title": "Support",
+      "whatsapp": "WhatsApp us",
+      "email": "Email us",
+      "guest": "guest",
+      "whatsappText": "Hi WeLoot, I need help. (My user ID: {{id}})",
+      "emailSubject": "WeLoot support",
+      "emailBody": "\n\n—\nMy user ID: {{id}}"
+    },
+    "legal": {
+      "title": "Legal",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy"
+    },
+    "about": {
+      "title": "About",
+      "version": "Version"
+    },
+    "errors": {
+      "saveFailed": "Couldn’t save that. Check your connection and try again."
     }
   }
 }

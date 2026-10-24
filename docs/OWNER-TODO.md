@@ -47,4 +47,7 @@ Needed to deploy Cloud Functions and create the Storage bucket in the real dev p
 ## Before launch
 
 ### 7. Legal texts
-Terms of Service and Privacy Policy in Hebrew and English (they must cover name, email, phone, saved addresses and promotional consent). Needed for the links in Settings and the sign-up checkbox; bump `TOS_VERSION` when they change.
+Terms of Service and Privacy Policy in Hebrew and English (they must cover name, email, phone, saved addresses and promotional consent). Publish them at public URLs and put those in `app/.env` as `EXPO_PUBLIC_TERMS_URL` and `EXPO_PUBLIC_PRIVACY_URL` (`{lang}` in a URL becomes `en` or `he`); until then Settings shows "Coming soon". Bump `TOS_VERSION` when they change.
+
+### 8. Support contacts
+Set `EXPO_PUBLIC_SUPPORT_WHATSAPP` (international format without +) and `EXPO_PUBLIC_SUPPORT_EMAIL` in `app/.env` (and the EAS environments) so Settings → Support works.

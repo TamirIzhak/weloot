@@ -15,6 +15,7 @@ export const SIGN_IN_REASONS = [
   'add',
   'inbox',
   'profile',
+  'phone',
 ] as const;
 export type SignInReason = (typeof SIGN_IN_REASONS)[number];
 
@@ -24,6 +25,7 @@ export const PHONE_REASONS: ReadonlySet<SignInReason> = new Set<SignInReason>([
   'question',
   'message',
   'add',
+  'phone',
 ]);
 
 /** Whether the user can go ahead with an action opened for `reason` without the sheet. */

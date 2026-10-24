@@ -50,3 +50,15 @@ Needs the dev build with the native modules (#63) for location.
 - [ ] Type an address with its city → "Find this address" → the area preview appears. A made-up address shows "We couldn't find that address".
 - [ ] Edit an address (pencil): change its name, save; delete it.
 - [ ] Hebrew and English: all texts translated; the chip and lists mirror in RTL.
+
+## Profile tab and Settings (#10)
+- [ ] Guest: Profile shows "Join WeLoot" and a Settings button; Settings has language, browsing location, support, legal and version, but no account section.
+- [ ] Signed in: Profile shows the username, "Member since <month year>", "No ratings yet" and 0 completed swaps; My listings, Want list and Alerts open placeholder pages.
+- [ ] Settings → Language: tap the other language → the app restarts mirrored (RTL ↔ LTR) and stays that way after reopening.
+- [ ] Settings → Account shows the sign-in method (Google/Facebook/Discord/phone). A social account shows Phone "Verify" → the verify sheet → afterwards "Verified ✓".
+- [ ] Settings → Saved addresses: lists addresses; tap one to edit; "Add an address" works.
+- [ ] Search radius chips change the selection and stay after reopening Settings.
+- [ ] News and offers switch: on/off sticks after reopening.
+- [ ] Support → WhatsApp opens a chat with support with "My user ID: …" filled in (needs `EXPO_PUBLIC_SUPPORT_WHATSAPP`).
+- [ ] Terms and Privacy show "Coming soon" until their URLs are set.
+- [ ] Sign out returns to the Profile tab as a guest.
