@@ -1,6 +1,6 @@
-import { CITIES, cityGeo, findCity, searchCities } from './cities';
-import { CITY_GEOHASH_PRECISION, encodeGeohash } from './geo';
-import { cityIdSchema, geoSchema } from './schemas';
+import { CITIES, cityGeo, findCity, nearestCity, searchCities } from './cities';
+import { CITY_GEOHASH_PRECISION, distanceKm, encodeGeohash, snapToArea } from './geo';
+import { cityIdSchema, geoSchema, savedLocationInputSchema } from './schemas';
 
 describe('encodeGeohash', () => {
   it('matches known geohashes', () => {
@@ -99,5 +99,71 @@ describe('searchCities', () => {
 
   it('returns nothing for a place that does not exist', () => {
     expect(ids('atlantis')).toEqual([]);
+  });
+});
+
+describe('snapToArea', () => {
+  it('snaps to a ~1 km grid so the exact address never shows', () => {
+    expect(snapToArea(32.08512, 34.78187)).toMatchObject({ lat: 32.09, lng: 34.78 });
+    expect(snapToArea(31.7749, 35.2141)).toMatchObject({ lat: 31.77, lng: 35.21 });
+  });
+
+  it('moves a point by at most about half a kilometre', () => {
+    const exact = { lat: 32.0849, lng: 34.7851 };
+    expect(distanceKm(exact, snapToArea(exact.lat, exact.lng))).toBeLessThan(0.75);
+  });
+
+  it('gives neighbours in the same grid cell the same public point', () => {
+    expect(snapToArea(32.0801, 34.7801)).toEqual(snapToArea(32.0849, 34.7849));
+  });
+
+  it('includes the city-level geohash', () => {
+    expect(snapToArea(32.085, 34.782).geohash).toHaveLength(CITY_GEOHASH_PRECISION);
+  });
+});
+
+describe('distanceKm', () => {
+  it('measures known distances', () => {
+    const telAviv = findCity('5000');
+    const jerusalem = findCity('3000');
+    if (!telAviv || !jerusalem) throw new Error('missing cities');
+    expect(distanceKm(telAviv, jerusalem)).toBeGreaterThan(50);
+    expect(distanceKm(telAviv, jerusalem)).toBeLessThan(60);
+    expect(distanceKm(telAviv, telAviv)).toBe(0);
+  });
+});
+
+describe('nearestCity', () => {
+  it('names the locality of a point', () => {
+    // Dizengoff Center, Tel Aviv
+    expect(nearestCity(32.0754, 34.7752).id).toBe('5000');
+    // Haifa port area
+    expect(nearestCity(32.8191, 34.9983).id).toBe('4000');
+  });
+});
+
+describe('savedLocationInputSchema', () => {
+  const valid = {
+    label: 'Home',
+    address: 'Dizengoff 50, Tel Aviv',
+    lat: 32.0754,
+    lng: 34.7752,
+    cityId: '5000',
+    areaName: 'Tel Aviv - Yafo',
+  };
+
+  it('accepts a saved address, with or without a locality code', () => {
+    expect(savedLocationInputSchema.safeParse(valid).success).toBe(true);
+    expect(savedLocationInputSchema.safeParse({ ...valid, cityId: undefined }).success).toBe(true);
+  });
+
+  it.each([
+    ['an empty label', { label: '  ' }],
+    ['a long label', { label: 'x'.repeat(31) }],
+    ['an empty address', { address: '' }],
+    ['a point outside Israel', { lat: 48.85, lng: 2.35 }],
+    ['a bad locality code', { cityId: 'tel-aviv' }],
+  ])('rejects %s', (_, overrides) => {
+    expect(savedLocationInputSchema.safeParse({ ...valid, ...overrides }).success).toBe(false);
   });
 });

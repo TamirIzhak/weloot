@@ -45,24 +45,26 @@ service cloud.firestore {
       return s is string && s.matches("^\\p{L}[\\p{L}\\p{M} '’.-]{0,39}$");
     }
 
-    // City-level location in Israel (same bounds as geoSchema).
-    function isGeo(g) {
-      return g is map && hasExactly(g, ['lat', 'lng', 'geohash'])
-        && g.lat is number && g.lat >= 29 && g.lat <= 34
-        && g.lng is number && g.lng >= 34 && g.lng <= 36
-        && g.geohash is string && g.geohash.matches('^[0-9b-hjkmnp-z]{4,12}$');
+    // Same as savedLocationSchema in packages/shared/src/schemas.ts (timestamps checked by the caller).
+    function isSavedLocation(d) {
+      return d.keys().hasAll(['label', 'address', 'lat', 'lng', 'areaName', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['label', 'address', 'lat', 'lng', 'cityId', 'areaName', 'createdAt', 'updatedAt'])
+        && d.label is string && d.label.size() >= 1 && d.label.size() <= 30
+        && d.address is string && d.address.size() >= 1 && d.address.size() <= 200
+        && d.lat is number && d.lat >= 29 && d.lat <= 34
+        && d.lng is number && d.lng >= 34 && d.lng <= 36
+        && (!('cityId' in d) || (d.cityId is string && d.cityId.matches('^[1-9][0-9]{0,5}$')))
+        && d.areaName is string && d.areaName.size() >= 1 && d.areaName.size() <= 60;
     }
 
     // Public profile: readable by everyone, guests included (listings show their owner).
     match /users/{uid} {
       allow read: if true;
       allow create: if signedInAs(uid)
-        && hasExactly(request.resource.data, ['username', 'usernameLower', 'cityId', 'geo', 'ratingAvg',
-             'ratingCount', 'completedTrades', 'createdAt', 'updatedAt'])
+        && hasExactly(request.resource.data, ['username', 'usernameLower', 'ratingAvg', 'ratingCount',
+             'completedTrades', 'createdAt', 'updatedAt'])
         && isUsername(request.resource.data.username)
         && request.resource.data.usernameLower == request.resource.data.username.lower()
-        && request.resource.data.cityId is string && request.resource.data.cityId.matches('^[1-9][0-9]{0,5}$')
-        && isGeo(request.resource.data.geo)
         // Trust signals start at zero; only Cloud Functions change them.
         && request.resource.data.ratingAvg == 0
         && request.resource.data.ratingCount == 0
@@ -71,6 +73,19 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time
         && getAfter(usernamePath(request.resource.data.usernameLower)).data.uid == uid;
       allow update, delete: if false;
+
+      // Saved addresses for posting (PRD W2): the owner only. Exact points never leave these docs; listings get an
+      // area-level copy from the publish function.
+      match /locations/{locationId} {
+        allow read: if signedInAs(uid);
+        allow create: if signedInAs(uid) && isSavedLocation(request.resource.data)
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+        allow update: if signedInAs(uid) && isSavedLocation(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if signedInAs(uid);
+      }
 
       // Private settings: the owner only. No phone number here either: it stays in Firebase Auth.
       match /private/settings {

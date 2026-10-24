@@ -38,7 +38,7 @@ const uid = id;
 const platform = z.enum(PLATFORM_KEYS as [PlatformKey, ...PlatformKey[]]);
 const timestamps = { createdAt: timestampSchema, updatedAt: timestampSchema };
 
-/** City-level location only, never a precise home location (PRD W1, §12). */
+/** A point in Israel with its geohash. Public docs only hold area-level points (`snapToArea`, PRD W2, §12). */
 export const geoSchema = z.object({
   lat: z.number().min(29).max(34),
   lng: z.number().min(34).max(36),
@@ -49,7 +49,7 @@ export const geoSchema = z.object({
 export const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
 export const usernameSchema = z.string().regex(USERNAME_PATTERN);
 
-/** Users pick a city from the shared list (cities.ts): its CBS locality code, displayed in the reader's language. */
+/** A locality from the shared list (cities.ts): its CBS code, displayed in the reader's language. */
 export const cityIdSchema = z.string().regex(/^[1-9][0-9]{0,5}$/);
 
 /** Contact email (PRD W1): stored lower-case in private settings, never shown to other users. */
@@ -75,8 +75,6 @@ export function normalizeEmail(email: string): string {
 export const userProfileSchema = z.object({
   username: usernameSchema,
   usernameLower: z.string(),
-  cityId: cityIdSchema,
-  geo: geoSchema,
   ratingAvg: z.number().min(0).max(5),
   ratingCount: z.number().int().min(0),
   completedTrades: z.number().int().min(0),
@@ -109,7 +107,6 @@ export type UserSettings = z.infer<typeof userSettingsSchema>;
 /** What the profile-setup step submits (validated in the app; Security Rules enforce the same rules). */
 export const profileSetupInputSchema = z.object({
   username: usernameSchema,
-  cityId: cityIdSchema,
   firstName: personNameSchema,
   lastName: personNameSchema,
   email: emailSchema,
@@ -119,6 +116,37 @@ export const profileSetupInputSchema = z.object({
 export type ProfileSetupInput = z.infer<typeof profileSetupInputSchema>;
 
 export const usernameDocSchema = z.object({ uid });
+
+const latitude = z.number().min(29).max(34);
+const longitude = z.number().min(34).max(36);
+
+/**
+ * `users/{uid}/locations/{id}`: a saved address for posting (PRD W2), like Wolt. Owner-only: the exact address
+ * and point never leave this doc; listings get an area-level copy (`listingLocationSchema`).
+ */
+export const savedLocationInputSchema = z.object({
+  label: z.string().trim().min(1).max(30),
+  address: z.string().trim().min(1).max(200),
+  lat: latitude,
+  lng: longitude,
+  /** CBS code of the locality, when the address could be matched to one. */
+  cityId: cityIdSchema.optional(),
+  /** What others see on a listing, e.g. "Ramat Gan" (the locality or nearest one). */
+  areaName: z.string().trim().min(1).max(60),
+});
+export type SavedLocationInput = z.infer<typeof savedLocationInputSchema>;
+export const savedLocationSchema = savedLocationInputSchema.extend(timestamps);
+export type SavedLocation = z.infer<typeof savedLocationSchema>;
+
+/** Most saved addresses per user (enforced in the app; plenty for home, work, family…). */
+export const MAX_SAVED_LOCATIONS = 10;
+
+/** A listing's public location (🔒, set by the publish function): area only, never the saved address. */
+export const listingLocationSchema = geoSchema.extend({
+  areaName: z.string().min(1).max(60),
+  cityId: cityIdSchema.optional(),
+});
+export type ListingLocation = z.infer<typeof listingLocationSchema>;
 
 export const gameSchema = z.object({
   title: z.string().min(1),
@@ -203,7 +231,7 @@ export const listingSchema = z.object({
   photoPaths: z.array(z.string()).max(6),
   hasPhotos: z.boolean(),
   status: z.enum(LISTING_STATUSES),
-  geo: geoSchema,
+  location: listingLocationSchema,
   closedWith: listingClosedWithSchema.optional(),
   closedAt: timestampSchema.optional(),
   ...timestamps,

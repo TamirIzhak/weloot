@@ -8,9 +8,7 @@ import {
 } from '@react-native-firebase/firestore';
 
 import {
-  cityGeo,
   DEFAULT_SEARCH_RADIUS_KM,
-  findCity,
   normalizeEmail,
   userProfileSchema,
   type LanguageCode,
@@ -60,7 +58,7 @@ export async function isUsernameAvailable(username: string): Promise<boolean> {
 
 export class ProfileSetupError extends Error {
   constructor(
-    readonly reason: 'usernameTaken' | 'unknownCity' | 'failed',
+    readonly reason: 'usernameTaken' | 'failed',
     options?: ErrorOptions,
   ) {
     super(reason, options);
@@ -78,8 +76,6 @@ export async function createProfile(
   input: Omit<ProfileSetupInput, 'acceptedTerms'>,
   language: LanguageCode,
 ): Promise<void> {
-  const city = findCity(input.cityId);
-  if (!city) throw new ProfileSetupError('unknownCity');
   const db = getFirestore();
   const usernameLower = input.username.toLowerCase();
   const now = serverTimestamp();
@@ -89,8 +85,6 @@ export async function createProfile(
   batch.set(doc(db, 'users', uid), {
     username: input.username,
     usernameLower,
-    cityId: city.id,
-    geo: cityGeo(city),
     ratingAvg: 0,
     ratingCount: 0,
     completedTrades: 0,

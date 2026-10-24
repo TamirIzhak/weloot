@@ -33,14 +33,10 @@ afterAll(async () => {
   await env.cleanup();
 });
 
-const geo = { lat: 32.085, lng: 34.782, geohash: 'sv8wr' };
-
 function profile(username: string, overrides: Record<string, unknown> = {}) {
   return {
     username,
     usernameLower: username.toLowerCase(),
-    cityId: '5000',
-    geo,
     ratingAvg: 0,
     ratingCount: 0,
     completedTrades: 0,
@@ -160,11 +156,8 @@ describe('profile setup batch', () => {
     ['a non-zero rating count', { ratingCount: 3 }],
     ['non-zero trades', { completedTrades: 10 }],
     ['a client createdAt', { createdAt: Timestamp.fromMillis(0) }],
-    ['a bad city id', { cityId: 'Tel Aviv' }],
-    ['a city id with a leading zero', { cityId: '0500' }],
-    ['a location outside Israel', { geo: { ...geo, lat: 51.5 } }],
-    ['an extra geo field', { geo: { ...geo, street: 'Dizengoff 1' } }],
-    ['no geo', { geo: null }],
+    ['a city (location is asked only when posting)', { cityId: '5000' }],
+    ['a location', { geo: { lat: 32.085, lng: 34.782, geohash: 'sv8wr' } }],
     ['a phone number', { phoneE164: '+972500000001' }],
   ])('denies a profile with %s', async (_, overrides) => {
     await assertFails(setupBatch(as('alice'), 'alice', 'Alice_1', { profile: overrides }));
@@ -232,7 +225,7 @@ describe('after setup', () => {
   it('denies client updates and deletes (edits come with #10, deletion with #11)', async () => {
     const db = as('alice');
     await assertFails(updateDoc(doc(db, 'users/alice'), { ratingAvg: 5 }));
-    await assertFails(updateDoc(doc(db, 'users/alice'), { cityId: 'haifa' }));
+    await assertFails(updateDoc(doc(db, 'users/alice'), { username: 'Mallory' }));
     await assertFails(deleteDoc(doc(db, 'users/alice')));
     await assertFails(setDoc(doc(db, 'usernames/alice_1'), { uid: 'alice' }));
     await assertFails(deleteDoc(doc(db, 'usernames/alice_1')));

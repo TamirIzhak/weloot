@@ -1,10 +1,10 @@
 import { CITY_ROWS } from './cities.data';
-import { encodeGeohash } from './geo';
+import { distanceKm, encodeGeohash } from './geo';
 
 // Israeli localities users pick as their location (PRD W1): every locality in the Central Bureau of Statistics
-// list, generated from data.gov.il by scripts/build-cities.mjs. Coordinates are the locality's center: users are
-// placed at city level only, never at a home address (PRD §12). Ids are the official CBS locality codes, which
-// are stable, so profiles and listings can store them.
+// list, generated from data.gov.il by scripts/build-cities.mjs. Coordinates are the locality's center; they name
+// the area of a listing and serve as a browsing location (PRD W1, W2). Ids are the official CBS locality codes,
+// which are stable, so listings and saved addresses can store them.
 
 export type City = {
   /** CBS locality code, e.g. "4000" for Haifa. */
@@ -30,7 +30,22 @@ export function findCity(id: string): City | undefined {
   return BY_ID.get(id);
 }
 
-/** The city-level `geo` stored on profiles and listings (PRD §8). */
+/** The locality closest to a point (to name the area of a GPS location or a typed address). */
+export function nearestCity(lat: number, lng: number): City {
+  let best = CITIES[0];
+  let bestKm = Infinity;
+  for (const city of CITIES) {
+    const km = distanceKm({ lat, lng }, city);
+    if (km < bestKm) {
+      best = city;
+      bestKm = km;
+    }
+  }
+  if (!best) throw new Error('The city list is empty');
+  return best;
+}
+
+/** A locality's center as a `geo` point (e.g. the browsing location when the user picks a city). */
 export function cityGeo(city: City): { lat: number; lng: number; geohash: string } {
   return { lat: city.lat, lng: city.lng, geohash: encodeGeohash(city.lat, city.lng) };
 }
