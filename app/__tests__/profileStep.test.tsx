@@ -44,14 +44,12 @@ async function fillNames() {
 async function fillValidForm() {
   await typeUsername('Gamer_1');
   await fillNames();
-  await fireEvent.changeText(screen.getByTestId('city-input'), 'haifa');
-  await fireEvent.press(screen.getByTestId('city-4000'));
   await fireEvent.changeText(screen.getByTestId('email-input'), 'dana@example.com');
   await fireEvent.press(screen.getByTestId('accept-terms'));
 }
 
 describe('ProfileStep', () => {
-  it('enables Continue only with an available username, a city, an email and the 16+/Terms box', async () => {
+  it('enables Continue only with an available username, names, an email and the 16+/Terms box', async () => {
     await render(<ProfileStep uid="u1" />);
     expect(isDisabled()).toBe(true);
     await typeUsername('Gamer_1');
@@ -59,10 +57,8 @@ describe('ProfileStep', () => {
     expect(isDisabled()).toBe(true);
     await fillNames();
     expect(isDisabled()).toBe(true);
-    await fireEvent.changeText(screen.getByTestId('city-input'), 'haifa');
-    await fireEvent.press(screen.getByTestId('city-4000'));
-    expect(screen.getByTestId('city-input').props.value).toBe('Haifa');
-    expect(isDisabled()).toBe(true);
+    // No location at sign-up (PRD W1): it's asked only when posting.
+    expect(screen.queryByTestId('city-input')).toBeNull();
     await fireEvent.changeText(screen.getByTestId('email-input'), 'dana@example.com');
     expect(isDisabled()).toBe(true);
     await fireEvent.press(screen.getByTestId('accept-terms'));
@@ -100,14 +96,6 @@ describe('ProfileStep', () => {
     );
   });
 
-  it('shows city suggestions with the name in both languages', async () => {
-    await render(<ProfileStep uid="u1" />);
-    await fireEvent.changeText(screen.getByTestId('city-input'), 'metula');
-    expect(screen.getByTestId('city-43')).toBeTruthy();
-    expect(screen.getByText('מטולה')).toBeTruthy();
-    expect(screen.getAllByTestId('icon-location-outline')).toHaveLength(1);
-  });
-
   it('explains an invalid username without asking the server', async () => {
     await render(<ProfileStep uid="u1" />);
     await typeUsername('ab');
@@ -136,15 +124,6 @@ describe('ProfileStep', () => {
     expect(isDisabled()).toBe(false);
   });
 
-  it('finds cities in Hebrew spelling too, and says when nothing matches', async () => {
-    await render(<ProfileStep uid="u1" />);
-    await fireEvent.changeText(screen.getByTestId('city-input'), 'חיפה');
-    expect(screen.getByTestId('city-4000')).toBeTruthy();
-    await fireEvent.changeText(screen.getByTestId('city-input'), 'Atlantis');
-    expect(screen.queryByTestId('city-results')).toBeNull();
-    expect(screen.getByText('No city found. Try another spelling.')).toBeTruthy();
-  });
-
   it('saves the profile with the current language', async () => {
     await render(<ProfileStep uid="u1" />);
     await fillValidForm();
@@ -155,7 +134,6 @@ describe('ProfileStep', () => {
         username: 'Gamer_1',
         firstName: 'Dana',
         lastName: 'Ben-David',
-        cityId: '4000',
         email: 'dana@example.com',
         marketingOptIn: false,
       },

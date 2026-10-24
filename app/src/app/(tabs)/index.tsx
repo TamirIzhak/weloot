@@ -8,6 +8,7 @@ import { APP_NAME } from '@weloot/shared';
 
 import { Button, EmptyState, Text } from '@/components';
 import { FirebaseStatus } from '@/features/dev/FirebaseStatus';
+import { LocationChip } from '@/features/location/LocationChip';
 import { SampleFeed } from '@/features/dev/SampleFeed';
 import { initFirebase } from '@/lib/firebase';
 import { useHideOnScroll, useTabBarInset } from '@/navigation/TabBarVisibility';
@@ -28,9 +29,12 @@ export default function Home() {
         contentContainerStyle={{ paddingBottom: bottomInset }}
         testID="home-scroll"
       >
-        <Text variant="title" className="text-[34px] leading-[40px]">
-          {APP_NAME}
-        </Text>
+        <View className="gap-3">
+          <Text variant="title" className="text-[34px] leading-[40px]">
+            {APP_NAME}
+          </Text>
+          <LocationChip />
+        </View>
         <EmptyState title={t('home.welcomeTitle')} body={t('home.welcomeBody')} />
         {__DEV__ && (
           <View className="gap-4">

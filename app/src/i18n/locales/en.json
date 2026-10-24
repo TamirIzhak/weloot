@@ -194,10 +194,6 @@
       "usernameChecking": "Checking…",
       "usernameAvailable": "✓ Available",
       "usernameTaken": "That username is taken. Try another one.",
-      "cityLabel": "City",
-      "cityPlaceholder": "Search for your city",
-      "cityHint": "Others see your city only, never your address.",
-      "cityNoResults": "No city found. Try another spelling.",
       "acceptTerms": "I agree to the terms",
       "submit": "Continue",
       "saveFailed": "Couldn’t save your profile. Check your connection and try again.",
@@ -218,6 +214,57 @@
       "title": "Finish setting up",
       "body": "Pick a username and your city to start swapping.",
       "cta": "Continue"
+    }
+  },
+  "location": {
+    "chip": {
+      "near": "Near: {{place}}",
+      "choose": "Choose your area",
+      "hint": "Games are sorted by distance from here"
+    },
+    "browse": {
+      "title": "Where are you?",
+      "subtitle": "We sort games by distance from here. It stays on this device and is rounded to about 1 km.",
+      "cityLabel": "Or choose a city"
+    },
+    "useCurrent": "Use my current location",
+    "citySearch": {
+      "placeholder": "Search for a city or town",
+      "noResults": "No place found. Try another spelling."
+    },
+    "saved": {
+      "title": "Your addresses",
+      "shownAs": "Others see: {{area}}",
+      "edit": "Edit {{label}}"
+    },
+    "picker": {
+      "empty": "Add the address you’ll swap from. Others only see the area.",
+      "add": "Add an address"
+    },
+    "form": {
+      "addTitle": "Add an address",
+      "editTitle": "Edit address",
+      "subtitle": "Saved for your next posts. Only you see the address; your listings show the area.",
+      "labelTitle": "Name",
+      "home": "Home",
+      "work": "Work",
+      "other": "Other",
+      "customLabel": "Name this address",
+      "customLabelPlaceholder": "e.g. Parents",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Street, number and city",
+      "find": "Find this address",
+      "preview": "Others will see: {{area}}",
+      "previewHint": "Your listings show the area and an approximate distance, never the address.",
+      "save": "Save address",
+      "delete": "Delete address"
+    },
+    "errors": {
+      "unavailable": "Location is off or not allowed. Choose a city, or allow location in your phone’s settings.",
+      "notFound": "We couldn’t find that address. Add the city, or use your current location.",
+      "tooMany": "You’ve saved the maximum number of addresses. Delete one first.",
+      "loadFailed": "Couldn’t load your addresses.",
+      "generic": "Something went wrong. Try again."
     }
   }
 }

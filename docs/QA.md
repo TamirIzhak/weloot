@@ -38,3 +38,15 @@ Needs `docs/OWNER-TODO.md` items 1–3 and a dev build made after them. Until th
 - [ ] Do another trading action: no phone step again (also after closing and reopening the app).
 - [ ] Verify with a number that already belongs to another account (e.g. a phone-only account): "This number already belongs to another WeLoot account…".
 - [ ] Sign in with phone only: trading actions never ask for the phone again.
+
+## Browsing location and saved addresses (#66)
+Needs the dev build with the native modules (#63) for location.
+- [ ] Profile setup no longer asks for a city.
+- [ ] Home and Search show "Choose your area". Tap it → "Use my current location" → allow → the chip shows "Near: <your city>".
+- [ ] Deny location permission → a message suggests choosing a city; searching "חיפה" or "haifa" and tapping it sets "Near: Haifa".
+- [ ] Close and reopen the app: the chip keeps the place (also as a guest).
+- [ ] Signed in: in the location picker, saved addresses appear under "Your addresses"; picking one shows its name on the chip.
+- [ ] Add an address (from the picker or later from the Add flow): "Use my current location" fills the street; "Others will see: <area>" appears; the first address is named Home by default.
+- [ ] Type an address with its city → "Find this address" → the area preview appears. A made-up address shows "We couldn't find that address".
+- [ ] Edit an address (pencil): change its name, save; delete it.
+- [ ] Hebrew and English: all texts translated; the chip and lists mirror in RTL.

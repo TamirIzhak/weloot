@@ -9,7 +9,6 @@ import {
   Pressable,
   ScrollView,
   View,
-  type ScrollViewInstance,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -57,8 +56,6 @@ export default function SignInSheet() {
   // Opened when there was nothing left to do (e.g. a deep link while signed in with a profile).
   const [openedComplete] = useState(complete);
   const finished = useRef(false);
-  const scrollRef = useRef<ScrollViewInstance>(null);
-  const profileStepY = useRef(0);
 
   // Leaving the sheet any way (close, back gesture) without signing in forgets the pending action and code.
   useEffect(
@@ -101,25 +98,12 @@ export default function SignInSheet() {
           </Pressable>
         </View>
         <ScrollView
-          ref={scrollRef}
           contentContainerClassName="flex-grow justify-center px-6 pb-10"
           keyboardShouldPersistTaps="handled"
         >
           {auth.status === 'signedIn' ? (
             auth.profile.status === 'missing' ? (
-              <View onLayout={(e) => (profileStepY.current = e.nativeEvent.layout.y)}>
-                <ProfileStep
-                  uid={auth.user.uid}
-                  defaults={profileDefaults(auth.user)}
-                  onCityFocus={(y) => {
-                    const scrollTo = () =>
-                      scrollRef.current?.scrollTo({ y: profileStepY.current + y - 8 });
-                    scrollTo();
-                    // Again once the keyboard has opened and the sheet has room to scroll that far.
-                    setTimeout(scrollTo, 350);
-                  }}
-                />
-              </View>
+              <ProfileStep uid={auth.user.uid} defaults={profileDefaults(auth.user)} />
             ) : auth.profile.status === 'error' ? (
               <ErrorState
                 title={t('profile.setup.loadFailed')}

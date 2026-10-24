@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
-import { cityGeo, DEFAULT_SEARCH_RADIUS_KM, findCity } from '@weloot/shared';
+import { DEFAULT_SEARCH_RADIUS_KM } from '@weloot/shared';
 
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import {
@@ -48,15 +48,12 @@ const INPUT = {
   username: 'Gamer_1',
   firstName: ' Dana ',
   lastName: 'Ben-David',
-  cityId: '4000',
   email: ' Dana@Example.com ',
   marketingOptIn: false,
 };
 const PROFILE = {
   username: 'Gamer_1',
   usernameLower: 'gamer_1',
-  cityId: '4000',
-  geo: { lat: 32.794, lng: 34.99, geohash: 'svbsd' },
   ratingAvg: 0,
   ratingCount: 0,
   completedTrades: 0,
@@ -130,8 +127,6 @@ describe('isUsernameAvailable', () => {
 describe('createProfile', () => {
   it('writes the username claim, public profile and private settings in one batch', async () => {
     await createProfile('u1', INPUT, 'he');
-    const haifa = findCity('4000');
-    if (!haifa) throw new Error('haifa missing');
     expect(mockBatchSet.mock.calls).toEqual([
       ['usernames/gamer_1', { uid: 'u1' }],
       [
@@ -139,8 +134,6 @@ describe('createProfile', () => {
         {
           username: 'Gamer_1',
           usernameLower: 'gamer_1',
-          cityId: '4000',
-          geo: cityGeo(haifa),
           ratingAvg: 0,
           ratingCount: 0,
           completedTrades: 0,
@@ -178,16 +171,9 @@ describe('createProfile', () => {
     });
   });
 
-  it('never writes the phone number', async () => {
+  it('never writes the phone number or a location', async () => {
     await createProfile('u1', INPUT, 'en');
-    expect(JSON.stringify(mockBatchSet.mock.calls)).not.toMatch(/phone|\+972/i);
-  });
-
-  it('rejects an unknown city before writing anything', async () => {
-    await expect(createProfile('u1', { ...INPUT, cityId: '999999' }, 'en')).rejects.toMatchObject({
-      reason: 'unknownCity',
-    });
-    expect(mockCommit).not.toHaveBeenCalled();
+    expect(JSON.stringify(mockBatchSet.mock.calls)).not.toMatch(/phone|\+972|geo|city|lat/i);
   });
 
   it('reports a name claimed by someone else in the meantime as taken', async () => {
