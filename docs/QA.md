@@ -62,3 +62,11 @@ Needs the dev build with the native modules (#63) for location.
 - [ ] Support → WhatsApp opens a chat with support with "My user ID: …" filled in (needs `EXPO_PUBLIC_SUPPORT_WHATSAPP`).
 - [ ] Terms and Privacy show "Coming soon" until their URLs are set.
 - [ ] Sign out returns to the Profile tab as a guest.
+
+## Delete account (#11)
+Needs the functions running (emulators) or deployed (OWNER-TODO 6).
+- [ ] Settings → Account → Delete account: the screen lists what's deleted; the button stays disabled until the box is ticked.
+- [ ] Delete → back on Home as a guest with "Your account was deleted".
+- [ ] Sign in again with the same method → a brand-new account (profile setup again); the old username can be taken.
+- [ ] In the Emulator UI (Firestore): `users/<old uid>` shows `deleted_user` with `deletedAt`; its `private/settings` and `locations` are gone.
+- [ ] With no connection, Delete shows "Couldn't delete your account…" and nothing changes.

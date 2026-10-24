@@ -109,6 +109,12 @@ function AccountSection({ auth }: { auth: Extract<AuthState, { status: 'signedIn
         onPress={() => router.push('/settings/addresses')}
         testID="settings-addresses"
       />
+      <SettingsRow
+        icon="trash-outline"
+        label={t('settings.delete.title')}
+        onPress={() => router.push('/settings/delete-account')}
+        testID="settings-delete-account"
+      />
     </SettingsSection>
   );
 }

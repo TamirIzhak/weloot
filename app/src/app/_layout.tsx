@@ -65,6 +65,7 @@ function RootNavigator() {
       {/* Pushed screens with a header and back button (titles set by each screen). */}
       <Stack.Screen name="settings/index" options={withHeader} />
       <Stack.Screen name="settings/addresses" options={withHeader} />
+      <Stack.Screen name="settings/delete-account" options={withHeader} />
       <Stack.Screen name="me/[section]" options={withHeader} />
       <Stack.Screen name="addresses/new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="addresses/[id]" options={{ presentation: 'modal' }} />
