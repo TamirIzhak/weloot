@@ -14,7 +14,9 @@ export const DISCORD_CLIENT_SECRET = defineSecret('DISCORD_CLIENT_SECRET');
 export const TWITCH_CLIENT_ID = defineSecret('TWITCH_CLIENT_ID');
 export const TWITCH_CLIENT_SECRET = defineSecret('TWITCH_CLIENT_SECRET');
 
-// Algolia admin key, for index writes only (#13). The app uses the public search-only key.
+// Algolia admin key, for index writes only (#13). The app uses the public search-only key. The application ID is
+// public: a plain parameter (functions/.env), empty until the Algolia app exists (docs/OWNER-TODO.md).
+export const ALGOLIA_APP_ID = defineString('ALGOLIA_APP_ID', { default: '' });
 export const ALGOLIA_ADMIN_KEY = defineSecret('ALGOLIA_ADMIN_KEY');
 
 // UPC/EAN barcode lookup provider (#14, OPEN-6)

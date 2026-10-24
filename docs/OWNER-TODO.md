@@ -37,7 +37,8 @@ All steps are for the **dev** Firebase project (`development-1c64a`) unless note
 1. [algolia.com](https://www.algolia.com) → sign up → create an application (free **Build** plan), region closest to Israel (e.g. Europe).
 2. **Settings → API Keys**: copy the **Application ID** and **Search-Only API Key** (both public) and the **Admin API Key** (secret).
 3. `npx firebase functions:secrets:set ALGOLIA_ADMIN_KEY -P dev`, plus `ALGOLIA_ADMIN_KEY=...` in `functions/.secret.local`.
-4. Tell Claude the Application ID and Search-Only key.
+4. Tell Claude the Application ID and Search-Only key (both public). They go in `app/.env` and the EAS environments (`EXPO_PUBLIC_ALGOLIA_APP_ID`, `EXPO_PUBLIC_ALGOLIA_SEARCH_KEY`) and, for the functions, `ALGOLIA_APP_ID` in `functions/.env`.
+5. The index fills itself as games are written; to fill it right away, run a full catalog sync (README "Game catalog").
 
 ## Firebase project
 

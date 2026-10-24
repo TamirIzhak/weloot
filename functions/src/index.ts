@@ -1,7 +1,9 @@
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { logger } from 'firebase-functions';
 import { onCall, onRequest } from 'firebase-functions/v2/https';
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { algoliasearch } from 'algoliasearch';
 
 import { FIREBASE_REGION } from '@weloot/shared';
 
@@ -11,7 +13,10 @@ import { handleDiscordSignIn } from './auth/discordSignIn';
 import { syncCatalog, type SyncMode } from './catalog/catalogSync';
 import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
+import { configureGamesIndex, syncGameRecord, type AlgoliaAdmin } from './search/gamesIndex';
 import {
+  ALGOLIA_ADMIN_KEY,
+  ALGOLIA_APP_ID,
   DISCORD_CLIENT_ID,
   DISCORD_CLIENT_SECRET,
   TWITCH_CLIENT_ID,
@@ -41,9 +46,17 @@ export const deleteAccount = onCall((request) =>
   handleDeleteAccount(request.auth, { store: firestoreAccountStore(adminDb()), auth: adminAuth() }),
 );
 
+/** The Algolia admin client, or null until the Algolia app is set up (docs/OWNER-TODO.md 5). */
+function algoliaAdmin(): AlgoliaAdmin | null {
+  const appId = ALGOLIA_APP_ID.value();
+  const adminKey = ALGOLIA_ADMIN_KEY.value();
+  if (!appId || !adminKey) return null;
+  return algoliasearch(appId, adminKey);
+}
+
 // Catalog sync from IGDB (PRD §5.1, #12): nightly (only what changed) and on demand.
 const catalogOptions = {
-  secrets: [TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET],
+  secrets: [TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, ALGOLIA_ADMIN_KEY],
   timeoutSeconds: 540,
   memory: '512MiB' as const,
 };
@@ -56,6 +69,9 @@ async function runCatalogSync(mode: SyncMode) {
     return null;
   }
   const db = adminDb();
+  // Index settings are idempotent; applying them on every run keeps a new Algolia app configured.
+  const algolia = algoliaAdmin();
+  if (algolia) await configureGamesIndex(algolia);
   return syncCatalog(createIgdbClient({ fetch, db, clientId, clientSecret }), db, mode);
 }
 
@@ -76,5 +92,23 @@ export const catalogSyncNow = onRequest(
       return;
     }
     res.json(result);
+  },
+);
+
+// Algolia `games` index (PRD §5.2, #13): mirrors every `games` change.
+export const indexGame = onDocumentWritten(
+  { document: 'games/{gameId}', secrets: [ALGOLIA_ADMIN_KEY] },
+  async (event) => {
+    const algolia = algoliaAdmin();
+    if (!algolia) {
+      logger.warn('indexGame: Algolia is not set up (docs/OWNER-TODO.md)');
+      return;
+    }
+    await syncGameRecord(
+      algolia,
+      event.params.gameId,
+      event.data?.after.data(),
+      event.data?.before.data(),
+    );
   },
 );

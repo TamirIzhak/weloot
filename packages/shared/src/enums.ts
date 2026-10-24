@@ -1,12 +1,15 @@
 // Fixed value lists from the PRD, shared by app, functions and rules tests.
 
-/** Consoles WeLoot supports (PRD §1, §5.1), with their IGDB platform IDs and UI family (chip color). */
+/**
+ * Consoles WeLoot supports (PRD §1, §5.1), with their IGDB platform IDs, UI family (chip color) and display name
+ * (brand names: the same in every language).
+ */
 export const PLATFORMS = {
-  ps5: { igdbId: 167, family: 'ps' },
-  ps4: { igdbId: 48, family: 'ps' },
-  switch: { igdbId: 130, family: 'nintendo' },
-  xbox_series: { igdbId: 169, family: 'xbox' },
-  xbox_one: { igdbId: 49, family: 'xbox' },
+  ps5: { igdbId: 167, family: 'ps', label: 'PS5' },
+  ps4: { igdbId: 48, family: 'ps', label: 'PS4' },
+  switch: { igdbId: 130, family: 'nintendo', label: 'Switch' },
+  xbox_series: { igdbId: 169, family: 'xbox', label: 'Xbox Series X|S' },
+  xbox_one: { igdbId: 49, family: 'xbox', label: 'Xbox One' },
   // Switch 2: add once its IGDB platform ID is verified (PRD §5.1).
 } as const;
 export type PlatformKey = keyof typeof PLATFORMS;

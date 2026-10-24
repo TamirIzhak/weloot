@@ -15,6 +15,7 @@ import {
   usernameSchema,
 } from './schemas';
 import { platformForIgdbId } from './enums';
+import { gameRecordSchema, platformFilter, toGameRecord } from './search';
 
 const ts = { toMillis: () => 1_760_000_000_000 };
 
@@ -299,5 +300,44 @@ describe('platformForIgdbId', () => {
     expect(platformForIgdbId(167)).toBe('ps5');
     expect(platformForIgdbId(130)).toBe('switch');
     expect(platformForIgdbId(6)).toBeUndefined();
+  });
+});
+
+describe('game search records', () => {
+  const game = {
+    title: 'Elden Ring',
+    slug: 'elden-ring',
+    platforms: ['ps5' as const],
+    platformIds: [167],
+    coverImageId: 'co4jni',
+    releaseDate: { toMillis: () => Date.UTC(2022, 1, 25) },
+    genres: ['RPG'],
+    altNames: ['ER'],
+    similarGameIds: [1],
+    igdbUpdatedAt: 1700000000,
+  };
+
+  it('keeps what search needs, with the release year', () => {
+    expect(toGameRecord('119133', game)).toEqual({
+      objectID: '119133',
+      title: 'Elden Ring',
+      slug: 'elden-ring',
+      platforms: ['ps5'],
+      coverImageId: 'co4jni',
+      releaseYear: 2022,
+      genres: ['RPG'],
+      altNames: ['ER'],
+    });
+    expect(gameRecordSchema.safeParse(toGameRecord('119133', game)).success).toBe(true);
+  });
+
+  it('leaves out a missing cover or release date', () => {
+    const record = toGameRecord('1', { ...game, coverImageId: undefined, releaseDate: undefined });
+    expect(record).not.toHaveProperty('coverImageId');
+    expect(record).not.toHaveProperty('releaseYear');
+  });
+
+  it('builds a platform filter', () => {
+    expect(platformFilter('xbox_series')).toBe('platforms:xbox_series');
   });
 });

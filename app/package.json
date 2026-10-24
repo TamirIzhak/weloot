@@ -28,6 +28,7 @@
     "@react-native-firebase/storage": "^26.4.0",
     "@react-native-google-signin/google-signin": "^16.1.5",
     "@weloot/shared": "*",
+    "algoliasearch": "^5.60.0",
     "expo": "~58.0.16",
     "expo-auth-session": "~58.0.14",
     "expo-build-properties": "~58.0.11",
