@@ -194,6 +194,15 @@ describe('Settings', () => {
     expect(mockSetLanguage).toHaveBeenCalledTimes(1);
   });
 
+  it('restarts in the new language even while the save is still pending (offline)', async () => {
+    mockAuthState = signedIn();
+    mockSettings = { status: 'ready', settings: SETTINGS };
+    mockUpdateSettings.mockReturnValue(new Promise(() => undefined));
+    await render(withSafeArea(<SettingsScreen />));
+    await fireEvent.press(screen.getByTestId('language-he'));
+    expect(mockSetLanguage).toHaveBeenCalledWith('he');
+  });
+
   it('switches language for guests without saving anything', async () => {
     await render(withSafeArea(<SettingsScreen />));
     await fireEvent.press(screen.getByTestId('language-he'));

@@ -123,8 +123,11 @@ function PreferencesSection({ uid, settings }: { uid?: string; settings: UserSet
   const switchLanguage = async (next: Language) => {
     if (next === language) return;
     try {
-      // Saved first (for notifications in the right language); the app then restarts in the new direction.
-      if (uid && settings) await updateSettings(uid, { preferredLanguage: next });
+      // Saved for notifications in the right language. Not awaited: offline, a Firestore write only resolves once
+      // the server has it, but it's already queued locally and syncs after the restart.
+      if (uid && settings) {
+        updateSettings(uid, { preferredLanguage: next }).catch(() => undefined);
+      }
       await setLanguage(next);
     } catch {
       toast.show(t('language.failed'), 'error');
