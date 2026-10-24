@@ -91,17 +91,23 @@ async function upsertUser(
   } catch (error) {
     if (!hasCode(error, 'auth/user-not-found')) throw error;
   }
+  // A concurrent first sign-in (double tap, retried request) may create the user first: that's a returning user.
+  const create = async (props: { uid: string; displayName: string; email?: string }) => {
+    try {
+      await auth.createUser(props);
+      return true;
+    } catch (error) {
+      if (hasCode(error, 'auth/uid-already-exists')) return false;
+      throw error;
+    }
+  };
   // Only a verified Discord email is trusted for the account (it prefills profile setup).
   const email = user.verified && user.email ? user.email.toLowerCase() : undefined;
   try {
-    await auth.createUser({ uid, displayName, email });
+    return await create({ uid, displayName, email });
   } catch (error) {
     // The email already belongs to another WeLoot account: create this one without it.
-    if (email && hasCode(error, 'auth/email-already-exists')) {
-      await auth.createUser({ uid, displayName });
-      return true;
-    }
+    if (email && hasCode(error, 'auth/email-already-exists')) return create({ uid, displayName });
     throw error;
   }
-  return true;
 }

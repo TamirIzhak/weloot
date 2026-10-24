@@ -128,6 +128,15 @@ describe('handleDiscordSignIn', () => {
     });
   });
 
+  it('treats a user created by a concurrent first sign-in as returning', async () => {
+    const { deps, auth } = setup();
+    auth.createUser.mockRejectedValueOnce(authError('auth/uid-already-exists'));
+    await expect(handleDiscordSignIn(INPUT, deps)).resolves.toEqual({
+      token: 'custom-token',
+      isNewUser: false,
+    });
+  });
+
   it('answers notConfigured until the Discord app is set up', async () => {
     const { deps, fetch } = setup({ clientId: '' });
     await expect(failureOf(handleDiscordSignIn(INPUT, deps))).resolves.toEqual({
