@@ -104,7 +104,11 @@ describe('users/{uid}/locations (saved addresses, PRD W2)', () => {
 
   it('keeps createdAt and requires a fresh updatedAt on edits', async () => {
     const db = as('alice');
-    await assertSucceeds(setDoc(doc(db, HOME), address()));
+    // Seeded with old timestamps: a write in the same millisecond as the create could otherwise match request.time.
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const old = Timestamp.fromMillis(1_000);
+      await setDoc(doc(ctx.firestore(), HOME), address({ createdAt: old, updatedAt: old }));
+    });
     await assertFails(updateDoc(doc(db, HOME), { label: 'Work' }));
     await assertFails(
       updateDoc(doc(db, HOME), {
