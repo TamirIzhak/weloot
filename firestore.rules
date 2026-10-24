@@ -8,6 +8,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Game catalog (PRD §5.1): synced from IGDB by a Cloud Function; readable by everyone, guests included.
+    match /games/{gameId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // App-wide settings the app reads (fees, limits, app status — PRD §8). Edited by ops in the console only.
     match /config/{docId} {
       allow read: if true;

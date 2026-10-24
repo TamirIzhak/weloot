@@ -13,6 +13,11 @@ export type PlatformKey = keyof typeof PLATFORMS;
 export const PLATFORM_KEYS = Object.keys(PLATFORMS) as PlatformKey[];
 export type PlatformFamily = (typeof PLATFORMS)[PlatformKey]['family'];
 
+/** The WeLoot platform for an IGDB platform ID, if we support it. */
+export function platformForIgdbId(igdbId: number): PlatformKey | undefined {
+  return PLATFORM_KEYS.find((key) => PLATFORMS[key].igdbId === igdbId);
+}
+
 /** Listing condition, best to worst (PRD W2). */
 export const CONDITIONS = ['new_sealed', 'like_new', 'good', 'acceptable'] as const;
 export type Condition = (typeof CONDITIONS)[number];

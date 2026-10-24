@@ -148,16 +148,24 @@ export const listingLocationSchema = geoSchema.extend({
 });
 export type ListingLocation = z.infer<typeof listingLocationSchema>;
 
+/**
+ * `games/{igdbId}` 🔒: the catalog, synced from IGDB by a Cloud Function (PRD §5.1); readable by everyone.
+ * `platforms` holds only the consoles WeLoot supports.
+ */
 export const gameSchema = z.object({
   title: z.string().min(1),
   slug: z.string().min(1),
+  platforms: z.array(platform).min(1),
   platformIds: z.array(z.number().int()),
   coverImageId: z.string().optional(),
   releaseDate: timestampSchema.optional(),
   genres: z.array(z.string()),
   altNames: z.array(z.string()),
   similarGameIds: z.array(z.number().int()),
+  /** IGDB's `updated_at` (Unix seconds), for incremental syncs. */
+  igdbUpdatedAt: z.number().int(),
 });
+export type Game = z.infer<typeof gameSchema>;
 
 export const barcodeSchema = z.object({
   igdbGameId: z.number().int(),

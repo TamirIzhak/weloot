@@ -3,6 +3,7 @@ import {
   conversationSchema,
   dealSchema,
   emailSchema,
+  gameSchema,
   listingClosedWithSchema,
   listingInputSchema,
   messageSchema,
@@ -13,6 +14,7 @@ import {
   timestampSchema,
   usernameSchema,
 } from './schemas';
+import { platformForIgdbId } from './enums';
 
 const ts = { toMillis: () => 1_760_000_000_000 };
 
@@ -267,5 +269,35 @@ describe('messageSchema, alertSchema, ratingSchema', () => {
     expect(ratingSchema.safeParse({ ...rating, stars: 5 }).success).toBe(true);
     expect(ratingSchema.safeParse({ ...rating, stars: 0 }).success).toBe(false);
     expect(ratingSchema.safeParse({ ...rating, stars: 4.5 }).success).toBe(false);
+  });
+});
+
+describe('gameSchema', () => {
+  const game = {
+    title: 'Elden Ring',
+    slug: 'elden-ring',
+    platforms: ['ps5'],
+    platformIds: [167],
+    genres: [],
+    altNames: [],
+    similarGameIds: [],
+    igdbUpdatedAt: 1700000000,
+  };
+
+  it('accepts a synced game', () => {
+    expect(gameSchema.safeParse(game).success).toBe(true);
+  });
+
+  it('needs at least one supported platform', () => {
+    expect(gameSchema.safeParse({ ...game, platforms: [] }).success).toBe(false);
+    expect(gameSchema.safeParse({ ...game, platforms: ['pc'] }).success).toBe(false);
+  });
+});
+
+describe('platformForIgdbId', () => {
+  it('maps IGDB platform IDs to WeLoot platforms', () => {
+    expect(platformForIgdbId(167)).toBe('ps5');
+    expect(platformForIgdbId(130)).toBe('switch');
+    expect(platformForIgdbId(6)).toBeUndefined();
   });
 });
