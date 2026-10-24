@@ -50,24 +50,24 @@ Status: ✅ merged · 🔄 in progress
 - Rules for `users` and `usernames` + tests.
 - AC: protected actions don't continue until the profile is complete; duplicate usernames rejected; guests unaffected.
 
-**#63 chore(app): native modules for the rest of the MVP in one dev build** · S · deps #3
+**✅ #63 chore(app): native modules for the rest of the MVP in one dev build** · S · deps #3
 - `expo-location`, `expo-camera`, `expo-image-picker`, `expo-image-manipulator`, `expo-auth-session` + `expo-crypto`, `@react-native-google-signin/google-signin`, `@react-native-async-storage/async-storage`, with config plugins and localized permission strings, so the phone needs one new build.
 
-**#64 feat(auth): sign in with Google, Facebook or Discord** · L · deps #63
+**✅ #64 feat(auth): sign in with Google, Facebook or Discord** · L · deps #63
 - Methods first in the sign-in sheet (PRD W1). Google (native SDK) and Facebook (browser OAuth) as Firebase providers; Discord via browser OAuth (PKCE) + callable function returning a custom token. Profile setup prefilled with name and email.
 - AC: each method signs in and continues the pending action, or shows "not configured" while its keys are missing; Discord function tests with a mocked API.
 
-**#65 feat(auth): one-time phone verification for offers, messages and posts** · M · deps #64
+**✅ #65 feat(auth): one-time phone verification for offers, messages and posts** · M · deps #64
 - Reasons `offer`, `question`, `add` need a verified phone; social-only users verify once (number linked to the account). Rules/functions check the `phone_number` token claim. `phone_verified` event.
 
-**#66 feat(location): browsing location and saved addresses** · M · deps #63
+**✅ #66 feat(location): browsing location and saved addresses** · M · deps #63
 - City removed from profile setup and the public profile. Browsing location on the device (rounded GPS or a CBS city; guests too). Saved addresses (`users/{uid}/locations`, owner-only) with current location or typed address; `LocationPicker`; area-level snapping (~1 km) in `packages/shared`.
 
-**#10 feat(profile): profile tab and settings menu** · M · deps #9, #66
+**✅ #10 feat(profile): profile tab and settings menu** · M · deps #9, #66
 - Profile tab (My Listings, Want List, Alerts placeholders; rating and trade count; guests: "Join WeLoot" card + language, support, legal), Settings sections (PRD §9-D) with language, browsing location, saved addresses and radius editing, sign-in methods and phone verification, Support deep links, Legal links, version.
 - AC: support WhatsApp opens with user ID prefilled; language change reloads into the right direction.
 
-**#11 feat(profile): delete account** · S · deps #10
+**✅ #11 feat(profile): delete account** · S · deps #10
 - Callable function: anonymize/delete user data, revoke auth, cancel open offers and deals.
 - AC: function and rules tests; user is signed out afterwards.
 

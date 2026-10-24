@@ -326,6 +326,22 @@
     },
     "errors": {
       "saveFailed": "Couldn’t save that. Check your connection and try again."
+    },
+    "delete": {
+      "title": "Delete account",
+      "heading": "Delete your WeLoot account?",
+      "body": "This can’t be undone. You’ll be signed out and need a new account to use WeLoot again.",
+      "items": {
+        "profile": "Your name, email and phone number",
+        "private": "Your settings and consent choices",
+        "addresses": "Your saved addresses",
+        "username": "Your username (others can take it)"
+      },
+      "kept": "Your past ratings and messages stay with the people you traded with, shown as “deleted_user”.",
+      "confirm": "I understand that my account and data will be deleted.",
+      "button": "Delete my account",
+      "done": "Your account was deleted.",
+      "failed": "Couldn’t delete your account. Check your connection and try again."
     }
   }
 }

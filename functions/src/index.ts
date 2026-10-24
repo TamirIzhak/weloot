@@ -3,7 +3,8 @@ import { onCall, onRequest } from 'firebase-functions/v2/https';
 
 import { FIREBASE_REGION } from '@weloot/shared';
 
-import { adminAuth } from './admin';
+import { firestoreAccountStore, handleDeleteAccount } from './account/deleteAccount';
+import { adminAuth, adminDb } from './admin';
 import { handleDiscordSignIn } from './auth/discordSignIn';
 import { healthPayload } from './health';
 import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET } from './secrets';
@@ -24,4 +25,9 @@ export const discordSignIn = onCall({ secrets: [DISCORD_CLIENT_SECRET] }, (reque
     clientId: DISCORD_CLIENT_ID.value(),
     clientSecret: DISCORD_CLIENT_SECRET.value(),
   }),
+);
+
+// Delete account (PRD W9, #11): deletes personal data, frees the username, leaves a tombstone, deletes the Auth user.
+export const deleteAccount = onCall((request) =>
+  handleDeleteAccount(request.auth, { store: firestoreAccountStore(adminDb()), auth: adminAuth() }),
 );
