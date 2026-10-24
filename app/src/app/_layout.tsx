@@ -42,6 +42,14 @@ const navigationTheme: Theme = {
   },
 };
 
+const withHeader = {
+  headerShown: true,
+  headerStyle: { backgroundColor: colors.bg },
+  headerTintColor: colors['text-primary'],
+  headerTitleStyle: { fontFamily: 'Rubik_500Medium' },
+  headerShadowVisible: false,
+} as const;
+
 /**
  * Guest-first navigation (PRD W1): everyone lands on the tabs. Protected actions open the `sign-in` modal
  * through `useRequireAuth`; nothing is locked at the app level.
@@ -54,6 +62,10 @@ function RootNavigator() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
       <Stack.Screen name="location" options={{ presentation: 'modal' }} />
+      {/* Pushed screens with a header and back button (titles set by each screen). */}
+      <Stack.Screen name="settings/index" options={withHeader} />
+      <Stack.Screen name="settings/addresses" options={withHeader} />
+      <Stack.Screen name="me/[section]" options={withHeader} />
       <Stack.Screen name="addresses/new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="addresses/[id]" options={{ presentation: 'modal' }} />
       {/* OAuth redirects land here for a moment and step back (OAuthRedirect). */}

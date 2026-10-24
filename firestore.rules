@@ -121,7 +121,22 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time
           // Created in the setup batch (or after it), never before the profile.
           && existsAfter(usersPath(uid));
-        allow update, delete: if false;
+        // Settings (PRD §9-D): language, search radius and the promotions opt-in. Opting in records the server
+        // time; opting out removes it. Everything else (names, email, tokens, blocks) changes elsewhere.
+        allow update: if signedInAs(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['preferredLanguage',
+               'searchRadiusKm', 'marketingOptIn', 'marketingOptInAt', 'updatedAt'])
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.preferredLanguage in ['en', 'he']
+          && request.resource.data.searchRadiusKm is int
+          && request.resource.data.searchRadiusKm >= 1 && request.resource.data.searchRadiusKm <= 200
+          && request.resource.data.marketingOptIn is bool
+          && (!request.resource.data.marketingOptIn
+                ? !('marketingOptInAt' in request.resource.data)
+                : resource.data.marketingOptIn
+                  ? request.resource.data.marketingOptInAt == resource.data.marketingOptInAt
+                  : request.resource.data.marketingOptInAt == request.time);
+        allow delete: if false;
       }
     }
 

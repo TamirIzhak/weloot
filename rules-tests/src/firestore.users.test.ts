@@ -9,6 +9,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  deleteField,
   serverTimestamp,
   setDoc,
   Timestamp,
@@ -196,9 +197,22 @@ describe('profile setup batch', () => {
   });
 });
 
+/** Moves the setup docs' timestamps into the past, so a write that leaves them unchanged can't match request.time. */
+async function ageSetupDocs(uid: string) {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const old = Timestamp.fromMillis(1_000);
+    await updateDoc(doc(ctx.firestore(), 'users', uid), { createdAt: old, updatedAt: old });
+    await updateDoc(doc(ctx.firestore(), 'users', uid, 'private', 'settings'), {
+      createdAt: old,
+      updatedAt: old,
+    });
+  });
+}
+
 describe('after setup', () => {
   beforeEach(async () => {
     await setupBatch(as('alice'), 'alice', 'Alice_1');
+    await ageSetupDocs('alice');
   });
 
   it('lets anyone, guests included, read a public profile and check a username', async () => {
@@ -222,7 +236,7 @@ describe('after setup', () => {
     await assertFails(setupBatch(as('alice'), 'alice', 'Alice_2'));
   });
 
-  it('denies client updates and deletes (edits come with #10, deletion with #11)', async () => {
+  it('denies profile edits, deletes, and settings changes without a fresh updatedAt', async () => {
     const db = as('alice');
     await assertFails(updateDoc(doc(db, 'users/alice'), { ratingAvg: 5 }));
     await assertFails(updateDoc(doc(db, 'users/alice'), { username: 'Mallory' }));
@@ -234,6 +248,67 @@ describe('after setup', () => {
   });
 
   it("denies a squatter taking a released-looking name or another user's claim", async () => {
+    await assertFails(setDoc(doc(as('bob'), 'usernames', 'alice_1'), { uid: 'bob' }));
+  });
+});
+
+describe('settings updates (PRD §9-D)', () => {
+  const SETTINGS = 'users/alice/private/settings';
+
+  beforeEach(async () => {
+    await setupBatch(as('alice'), 'alice', 'Alice_1');
+    await ageSetupDocs('alice');
+  });
+
+  const change = (db: Firestore, data: Record<string, unknown>) =>
+    updateDoc(doc(db, SETTINGS), { ...data, updatedAt: serverTimestamp() });
+
+  it('lets the owner change language and search radius', async () => {
+    await assertSucceeds(change(as('alice'), { preferredLanguage: 'en' }));
+    await assertSucceeds(change(as('alice'), { searchRadiusKm: 50 }));
+  });
+
+  it('records opting in to promotions with the server time, and removes it on opting out', async () => {
+    await assertSucceeds(
+      change(as('alice'), { marketingOptIn: true, marketingOptInAt: serverTimestamp() }),
+    );
+    // Other edits keep the original consent time.
+    await assertSucceeds(change(as('alice'), { searchRadiusKm: 10 }));
+    await assertSucceeds(
+      change(as('alice'), { marketingOptIn: false, marketingOptInAt: deleteField() }),
+    );
+  });
+
+  it.each<[string, Record<string, unknown>]>([
+    ['an opt-in without its time', { marketingOptIn: true }],
+    [
+      'an opt-in with a client time',
+      { marketingOptIn: true, marketingOptInAt: Timestamp.fromMillis(0) },
+    ],
+    [
+      'an opt-out that keeps the old time',
+      { marketingOptIn: false, marketingOptInAt: serverTimestamp() },
+    ],
+    ['an unknown language', { preferredLanguage: 'fr' }],
+    ['a radius out of range', { searchRadiusKm: 0 }],
+    ['a fractional radius', { searchRadiusKm: 2.5 }],
+    ['a new email', { email: 'mallory@example.com' }],
+    ['new names', { firstName: 'Mallory' }],
+    ['push tokens', { fcmTokens: ['token'] }],
+    ['a block list', { blockedUserIds: ['bob'] }],
+    ['a new TOS acceptance', { tosVersion: 'v2' }],
+  ])('denies %s', async (_, data) => {
+    await assertFails(change(as('alice'), data));
+  });
+
+  it("denies changing someone else's settings", async () => {
+    await assertFails(change(as('bob'), { searchRadiusKm: 50 }));
+  });
+});
+
+describe('usernames', () => {
+  it('stay claimed', async () => {
+    await setupBatch(as('alice'), 'alice', 'Alice_1');
     await assertFails(setDoc(doc(as('bob'), 'usernames', 'alice_1'), { uid: 'bob' }));
   });
 
