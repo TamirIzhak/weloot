@@ -119,12 +119,13 @@
   "auth": {
     "signOut": "Sign out",
     "phone": {
-      "title": "Welcome to WeLoot",
+      "title": "Your phone number",
       "subtitle": "Enter your phone number to sign in. We’ll text you a code.",
       "label": "Mobile number",
       "placeholder": "050-123-4567",
       "sendCode": "Send code",
-      "smsNotice": "Israeli mobile numbers only. Standard SMS rates may apply."
+      "smsNotice": "Israeli mobile numbers only. Standard SMS rates may apply.",
+      "otherMethods": "Other ways to sign in"
     },
     "verify": {
       "title": "Enter the code",
@@ -143,7 +144,12 @@
       "network": "No connection. Check your internet and try again.",
       "quotaExceeded": "We can’t send codes right now. Try again later.",
       "sessionLost": "Your sign-in session ended. Enter your number again.",
-      "generic": "Something went wrong. Try again."
+      "generic": "Something went wrong. Try again.",
+      "accountExists": "This email already has an account with another sign-in method. Use that one.",
+      "providerFailed": "Sign-in didn’t go through. Try again.",
+      "providerUnavailable": "That sign-in method isn’t answering right now. Try again or use another one.",
+      "notConfigured": "This sign-in method isn’t available yet. Use another one.",
+      "playServices": "Google sign-in needs Google Play services. Update them or use another method."
     },
     "close": "Close",
     "reasons": {
@@ -154,6 +160,16 @@
       "add": "Sign in to list your game",
       "inbox": "Sign in to see your offers and chats",
       "profile": "Join WeLoot"
+    },
+    "methods": {
+      "title": "Welcome to WeLoot",
+      "subtitle": "Choose how to sign in. It takes a few seconds.",
+      "google": "Continue with Google",
+      "facebook": "Continue with Facebook",
+      "discord": "Continue with Discord",
+      "phone": "Continue with phone",
+      "notSetUp": "Not set up yet (development build).",
+      "phoneNote": "We’ll also ask to verify your phone once, the first time you make an offer, send a message or post a game."
     }
   },
   "profile": {

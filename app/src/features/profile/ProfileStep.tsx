@@ -38,9 +38,12 @@ const USERNAME_MESSAGE_KEY: Record<UsernameCheck, string | null> = {
  */
 export function ProfileStep({
   uid,
+  defaults,
   onCityFocus,
 }: {
   uid: string;
+  /** Prefill from the sign-in provider (name and email); the user can change them. */
+  defaults?: { firstName: string; lastName: string; email: string };
   /** Called with the city field's y offset (in this step) when the user searches, so the sheet can scroll it up. */
   onCityFocus?: (y: number) => void;
 }) {
@@ -50,10 +53,10 @@ export function ProfileStep({
   const [username, setUsername] = useState('');
   const [cityQuery, setCityQuery] = useState('');
   const [city, setCity] = useState<City | null>(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [firstName, setFirstName] = useState(defaults?.firstName ?? '');
+  const [lastName, setLastName] = useState(defaults?.lastName ?? '');
   const [namesTouched, setNamesTouched] = useState({ first: false, last: false });
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(defaults?.email ?? '');
   const [emailTouched, setEmailTouched] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [accepted, setAccepted] = useState(false);

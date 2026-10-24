@@ -21,3 +21,13 @@ Get sign-in codes from the Auth emulator: `curl http://127.0.0.1:9099/emulator/v
 - [ ] After Continue, the sheet closes and the original action continues.
 - [ ] Close the sheet during profile setup: Profile shows "Finish setting up"; its button reopens setup.
 - [ ] Profile shows the username; Sign out returns to guest mode.
+
+## Social sign-in (#64)
+Needs `docs/OWNER-TODO.md` items 1–3 and a dev build made after them. Until then, development builds show each unset method as "not set up yet".
+- [ ] The sign-in sheet opens on the methods: Google, Facebook, Discord, phone. "Continue with phone" leads to the number; "Other ways to sign in" goes back.
+- [ ] **Google:** pick an account → a first sign-in shows profile setup with name and email filled in; the original action continues afterwards.
+- [ ] **Facebook:** the browser opens, approve → back in the app (no "Unmatched route" screen) → profile setup prefilled.
+- [ ] **Discord:** the browser opens Discord, approve → back in the app → profile setup prefilled with the Discord name (and email when it's verified on Discord).
+- [ ] Backing out of any provider screen leaves the sheet as it was, with no error.
+- [ ] The same email already used with another method shows "This email already has an account with another sign-in method".
+- [ ] Sign out, then sign in again with the same method: no profile setup the second time.

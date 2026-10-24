@@ -92,6 +92,14 @@ The app is guest-first (PRD W1): sign-in opens as a sheet from protected actions
 
   Real numbers get a real SMS. The EAS dev keystore's SHA-1/SHA-256 are registered on the Firebase Android app (Android requires them for phone sign-in).
 
+### Social sign-in (Google, Facebook, Discord)
+
+Each method needs its developer app and console settings first (`docs/OWNER-TODO.md`). Until then the app hides it, or, in development builds, shows it as "not set up yet".
+
+- Public IDs go in `app/.env`: `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`, `EXPO_PUBLIC_FACEBOOK_APP_ID`, `EXPO_PUBLIC_DISCORD_CLIENT_ID`.
+- Discord sign-in goes through the `discordSignIn` function: `DISCORD_CLIENT_ID` in `functions/.env` (public) and the `DISCORD_CLIENT_SECRET` secret.
+- With the emulators, Google and Facebook tokens aren't verified, but the real provider screens still need the real IDs.
+
 ## Firebase projects
 
 | Alias     | Project ID          | Console name | Use                                                               |
@@ -115,6 +123,7 @@ Server credentials live in Google Secret Manager and are declared in [`functions
 
 | Secret                                     | Used by                     | Issue |
 | ------------------------------------------ | --------------------------- | ----- |
+| `DISCORD_CLIENT_SECRET`                    | Sign in with Discord        | #64   |
 | `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` | IGDB catalog sync           | #12   |
 | `ALGOLIA_ADMIN_KEY`                        | Algolia index writes        | #13   |
 | `UPC_LOOKUP_API_KEY`                       | Barcode lookup fallback     | #14   |
