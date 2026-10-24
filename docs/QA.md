@@ -70,3 +70,10 @@ Needs the functions running (emulators) or deployed (OWNER-TODO 6).
 - [ ] Sign in again with the same method → a brand-new account (profile setup again); the old username can be taken.
 - [ ] In the Emulator UI (Firestore): `users/<old uid>` shows `deleted_user` with `deletedAt`; its `private/settings` and `locations` are gone.
 - [ ] With no connection, Delete shows "Couldn't delete your account…" and nothing changes.
+
+## Game catalog sync (#12)
+Needs the Twitch credentials (OWNER-TODO 4).
+- [ ] Emulator: trigger `catalogSyncNow?mode=full` (README "Game catalog"); it answers with counts (thousands of games) within a few minutes.
+- [ ] Emulator UI → Firestore → `games`: e.g. Elden Ring has title, cover image id, platforms (only PS4/PS5/Xbox), genres and similar game ids; no DLC or bundles appear.
+- [ ] Run it again without `mode=full`: it finishes fast with few or no writes.
+- [ ] Without the credentials, the trigger answers `notConfigured` (503).

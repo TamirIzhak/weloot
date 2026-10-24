@@ -100,6 +100,14 @@ Each method needs its developer app and console settings first (`docs/OWNER-TODO
 - Discord sign-in goes through the `discordSignIn` function: `DISCORD_CLIENT_ID` in `functions/.env` (public) and the `DISCORD_CLIENT_SECRET` secret.
 - With the emulators, Google and Facebook tokens aren't verified, but the real provider screens still need the real IDs.
 
+### Game catalog (IGDB)
+
+`games/{igdbId}` is filled from IGDB by Cloud Functions (#12): `catalogSyncNightly` (03:00 Israel time, only games changed since the last run) and `catalogSyncNow` (private; `?mode=full` re-syncs everything). Both need the Twitch credentials (`docs/OWNER-TODO.md` 4).
+
+- **Emulator:** put `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET` in `functions/.secret.local`, run `npm run emulators`, then
+  `curl "http://127.0.0.1:5001/demo-weloot/me-west1/catalogSyncNow?mode=full"` (the emulator doesn't enforce the private invoker).
+- **Dev project:** after deploying, `gcloud functions call` or the Cloud Run console's "Test" with an authorized account.
+
 ## Firebase projects
 
 | Alias     | Project ID          | Console name | Use                                                               |
