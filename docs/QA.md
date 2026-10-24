@@ -31,3 +31,10 @@ Needs `docs/OWNER-TODO.md` items 1–3 and a dev build made after them. Until th
 - [ ] Backing out of any provider screen leaves the sheet as it was, with no error.
 - [ ] The same email already used with another method shows "This email already has an account with another sign-in method".
 - [ ] Sign out, then sign in again with the same method: no profile setup the second time.
+
+## One-time phone verification (#65)
+- [ ] Sign in with Google (or Facebook/Discord) and finish profile setup. Adding to the want list or an alert works without any phone step.
+- [ ] Tap **+** (or Make an offer / Ask a question once they exist): the sheet asks "Verify your phone"; after the SMS code the original action continues.
+- [ ] Do another trading action: no phone step again (also after closing and reopening the app).
+- [ ] Verify with a number that already belongs to another account (e.g. a phone-only account): "This number already belongs to another WeLoot account…".
+- [ ] Sign in with phone only: trading actions never ask for the phone again.

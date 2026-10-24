@@ -149,7 +149,8 @@
       "providerFailed": "Sign-in didn’t go through. Try again.",
       "providerUnavailable": "That sign-in method isn’t answering right now. Try again or use another one.",
       "notConfigured": "This sign-in method isn’t available yet. Use another one.",
-      "playServices": "Google sign-in needs Google Play services. Update them or use another method."
+      "playServices": "Google sign-in needs Google Play services. Update them or use another method.",
+      "phoneInUse": "This number already belongs to another WeLoot account. Sign out and continue with this phone instead."
     },
     "close": "Close",
     "reasons": {
@@ -159,7 +160,8 @@
       "alert": "Sign in to get alerts",
       "add": "Sign in to list your game",
       "inbox": "Sign in to see your offers and chats",
-      "profile": "Join WeLoot"
+      "profile": "Join WeLoot",
+      "message": "Sign in to send messages"
     },
     "methods": {
       "title": "Welcome to WeLoot",
@@ -170,6 +172,10 @@
       "phone": "Continue with phone",
       "notSetUp": "Not set up yet (development build).",
       "phoneNote": "We’ll also ask to verify your phone once, the first time you make an offer, send a message or post a game."
+    },
+    "verifyPhone": {
+      "title": "Verify your phone",
+      "subtitle": "Once per account, before your first offer, message or post. We’ll text you a code. Other users never see your number."
     }
   },
   "profile": {

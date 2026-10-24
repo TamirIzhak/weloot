@@ -14,6 +14,7 @@ export type AuthErrorKey =
   | 'auth.errors.providerUnavailable'
   | 'auth.errors.notConfigured'
   | 'auth.errors.playServices'
+  | 'auth.errors.phoneInUse'
   | 'auth.errors.generic';
 
 const BY_CODE: Record<string, AuthErrorKey> = {
@@ -28,6 +29,7 @@ const BY_CODE: Record<string, AuthErrorKey> = {
   'auth/quota-exceeded': 'auth.errors.quotaExceeded',
   'auth/account-exists-with-different-credential': 'auth.errors.accountExists',
   'auth/invalid-credential': 'auth.errors.providerFailed',
+  'auth/credential-already-in-use': 'auth.errors.phoneInUse',
   'weloot/no-pending-verification': 'auth.errors.sessionLost',
   'weloot/provider-failed': 'auth.errors.providerFailed',
   'weloot/play-services': 'auth.errors.playServices',
