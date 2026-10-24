@@ -15,7 +15,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ErrorState } from '@/components';
 import { isProfileComplete, useAuth } from '@/features/auth/AuthProvider';
-import { useAuthGate, type SignInReason } from '@/features/auth/authGate';
+import {
+  isReadyFor,
+  PHONE_REASONS,
+  useAuthGate,
+  type SignInReason,
+} from '@/features/auth/authGate';
 import { CodeStep } from '@/features/auth/CodeStep';
 import { MethodsStep } from '@/features/auth/MethodsStep';
 import { PhoneStep } from '@/features/auth/PhoneStep';
@@ -27,6 +32,7 @@ import { colors } from '@/theme/tokens';
 const REASON_TITLE_KEY: Record<SignInReason, string> = {
   offer: 'auth.reasons.offer',
   question: 'auth.reasons.question',
+  message: 'auth.reasons.message',
   wantlist: 'auth.reasons.wantlist',
   alert: 'auth.reasons.alert',
   add: 'auth.reasons.add',
@@ -45,7 +51,9 @@ export default function SignInSheet() {
   const auth = useAuth();
   const reason = useAuthGate((s) => s.reason);
   const [step, setStep] = useState<'methods' | 'phone' | 'code'>('methods');
-  const complete = isProfileComplete(auth);
+  // Trading actions also need a verified phone; anything else is done once the profile is.
+  const needsPhone = reason !== null && PHONE_REASONS.has(reason);
+  const complete = reason ? isReadyFor(auth, reason) : isProfileComplete(auth);
   // Opened when there was nothing left to do (e.g. a deep link while signed in with a profile).
   const [openedComplete] = useState(complete);
   const finished = useRef(false);
@@ -119,6 +127,17 @@ export default function SignInSheet() {
                 onRetry={auth.retryProfile}
                 testID="profile-load-error"
               />
+            ) : auth.profile.status === 'ready' && needsPhone && !auth.phoneVerified ? (
+              // One-time phone verification before the first offer, message or post.
+              step === 'code' ? (
+                <CodeStep onChangeNumber={() => setStep('phone')} />
+              ) : (
+                <PhoneStep
+                  mode="link"
+                  title={t('auth.verifyPhone.title')}
+                  onSent={() => setStep('code')}
+                />
+              )
             ) : (
               // Loading the profile, or closing once it's ready.
               <ActivityIndicator color={colors.primary} testID="profile-loading" />

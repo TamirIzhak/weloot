@@ -69,7 +69,7 @@ export function CodeStep({
     setResending(true);
     setError(undefined);
     try {
-      await sendCode(pending.phoneE164);
+      await sendCode(pending.phoneE164, pending.mode);
     } catch (e) {
       setError(t(authErrorKey(e)));
     } finally {

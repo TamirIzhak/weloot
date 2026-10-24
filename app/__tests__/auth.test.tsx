@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -20,13 +20,22 @@ const mockSignIn = jest.fn();
 const mockConfirm = jest.fn();
 const mockAdditionalInfo = jest.fn();
 const mockLogEvent = jest.fn();
+const mockVerifyPhone = jest.fn();
+const mockLink = jest.fn();
+const mockGetIdToken = jest.fn();
+let mockCurrentUser: unknown = { uid: 'u1' };
 const mockRetryProfile = jest.fn();
 const mockSocialSignIn = jest.fn();
 let mockConfiguredMethods = ['google', 'facebook', 'discord'];
 let mockAuthState: Record<string, unknown> = { status: 'signedOut' };
-const signedIn = (profile: Record<string, unknown>, user: Record<string, unknown> = {}) => ({
+const signedIn = (
+  profile: Record<string, unknown>,
+  user: Record<string, unknown> = {},
+  phoneVerified = true,
+) => ({
   status: 'signedIn',
   user: { uid: 'u1', displayName: null, email: null, ...user },
+  phoneVerified,
   profile,
   retryProfile: mockRetryProfile,
 });
@@ -63,8 +72,18 @@ jest.mock('@/features/auth/socialSignIn', () => {
 });
 
 jest.mock('@react-native-firebase/auth', () => ({
-  getAuth: jest.fn(() => ({})),
+  getAuth: jest.fn(() => ({
+    get currentUser() {
+      return mockCurrentUser;
+    },
+  })),
   signInWithPhoneNumber: (...args: unknown[]) => mockSignIn(...args),
+  verifyPhoneNumber: (...args: unknown[]) => mockVerifyPhone(...args),
+  linkWithCredential: (...args: unknown[]) => mockLink(...args),
+  getIdToken: (...args: unknown[]) => mockGetIdToken(...args),
+  PhoneAuthProvider: {
+    credential: (verificationId: string, code: string) => ({ verificationId, code }),
+  },
   getAdditionalUserInfo: (...args: unknown[]) => mockAdditionalInfo(...args),
 }));
 
@@ -91,6 +110,10 @@ beforeEach(() => {
   mockConfirm.mockResolvedValue({ user: { uid: 'u1' } });
   mockAdditionalInfo.mockReturnValue({ isNewUser: false });
   mockSocialSignIn.mockResolvedValue({ isNewUser: false });
+  mockVerifyPhone.mockResolvedValue({ verificationId: 'ver-1' });
+  mockLink.mockResolvedValue({});
+  mockGetIdToken.mockResolvedValue('token');
+  mockCurrentUser = { uid: 'u1' };
   mockConfiguredMethods = ['google', 'facebook', 'discord'];
 });
 
@@ -130,8 +153,8 @@ describe('authErrorKey', () => {
 
 describe('phone verification flow', () => {
   it('sends the code and remembers the pending verification', async () => {
-    await sendCode('+972541234567', () => 1000);
-    expect(mockSignIn).toHaveBeenCalledWith({}, '+972541234567');
+    await sendCode('+972541234567', 'signIn', () => 1000);
+    expect(mockSignIn).toHaveBeenCalledWith(expect.anything(), '+972541234567');
     expect(usePhoneVerification.getState().pending).toMatchObject({
       phoneE164: '+972541234567',
       sentAt: 1000,
@@ -144,7 +167,30 @@ describe('phone verification flow', () => {
     await expect(confirmCode('123456')).resolves.toEqual({ isNewUser: true });
     expect(mockConfirm).toHaveBeenCalledWith('123456');
     expect(mockLogEvent).toHaveBeenCalledWith({}, 'user_registered', { method: 'phone' });
+    expect(mockLogEvent).toHaveBeenCalledWith({}, 'phone_verified', { mode: 'signIn' });
     expect(usePhoneVerification.getState().pending).toBeNull();
+  });
+
+  it('links the phone to the signed-in account and refreshes the token for the phone_number claim', async () => {
+    await sendCode('+972541234567', 'link');
+    expect(mockVerifyPhone).toHaveBeenCalledWith(expect.anything(), '+972541234567');
+    expect(mockSignIn).not.toHaveBeenCalled();
+    await expect(confirmCode('123456')).resolves.toEqual({ isNewUser: false });
+    expect(mockLink).toHaveBeenCalledWith(
+      { uid: 'u1' },
+      { verificationId: 'ver-1', code: '123456' },
+    );
+    expect(mockGetIdToken).toHaveBeenCalledWith({ uid: 'u1' }, true);
+    expect(mockLogEvent).toHaveBeenCalledWith({}, 'phone_verified', { mode: 'link' });
+    expect(mockLogEvent).not.toHaveBeenCalledWith({}, 'user_registered', expect.anything());
+  });
+
+  it('explains a number that already belongs to another account', async () => {
+    await sendCode('+972541234567', 'link');
+    mockLink.mockRejectedValueOnce(authError('auth/credential-already-in-use'));
+    const error: unknown = await confirmCode('123456').catch((e: unknown) => e);
+    expect(authErrorKey(error)).toBe('auth.errors.phoneInUse');
+    expect(mockGetIdToken).not.toHaveBeenCalled();
   });
 
   it('does not log user_registered for a returning user', async () => {
@@ -199,6 +245,20 @@ describe('useRequireAuth (guest-first gate)', () => {
     expect(mockLogEvent).toHaveBeenCalledWith({}, 'sign_in_prompted', { reason: 'offer' });
   });
 
+  it('asks for the phone once before a trading action, but not for the want list', async () => {
+    mockAuthState = signedIn(READY, {}, false);
+    const action = jest.fn();
+    await render(<Trigger action={action} />);
+    await fireEvent.press(screen.getByRole('button'));
+    expect(action).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith('/sign-in');
+
+    const { result } = await renderHook(() => useRequireAuth());
+    const wantlist = jest.fn();
+    await act(async () => result.current('wantlist', wantlist));
+    expect(wantlist).toHaveBeenCalledTimes(1);
+  });
+
   it.each([['missing'], ['loading'], ['error']])(
     'opens the sheet for a signed-in user whose profile is %s',
     async (status) => {
@@ -236,7 +296,7 @@ describe('PhoneStep', () => {
     await render(<PhoneStep title="Sign in" onSent={onSent} />);
     await fireEvent.changeText(screen.getByTestId('phone-input'), '054 123 4567');
     await fireEvent.press(screen.getByTestId('send-code'));
-    expect(mockSignIn).toHaveBeenCalledWith({}, '+972541234567');
+    expect(mockSignIn).toHaveBeenCalledWith(expect.anything(), '+972541234567');
     expect(onSent).toHaveBeenCalled();
   });
 
@@ -279,7 +339,7 @@ describe('CodeStep', () => {
 
   it('enables "Resend code" only after the cooldown, then resends', async () => {
     jest.useFakeTimers({ now: 0 });
-    await sendCode('+972541234567', () => 0);
+    await sendCode('+972541234567', 'signIn', () => 0);
     await render(<CodeStep onVerified={jest.fn()} onChangeNumber={jest.fn()} />);
     expect(screen.getByTestId('resend-code').props.accessibilityState).toMatchObject({
       disabled: true,
@@ -420,6 +480,40 @@ describe('SignInSheet', () => {
     });
   });
 
+  it('verifies the phone of a social account before a trading action, then continues it', async () => {
+    jest.useFakeTimers();
+    const action = jest.fn();
+    useAuthGate.getState().open('add', action);
+    mockAuthState = signedIn(READY, {}, false);
+    const { rerender } = await render(withSafeArea(<SignInSheet />));
+    expect(screen.getByText('Verify your phone')).toBeTruthy();
+    await fireEvent.changeText(screen.getByTestId('phone-input'), '0541234567');
+    await fireEvent.press(screen.getByTestId('send-code'));
+    expect(mockVerifyPhone).toHaveBeenCalled();
+    await fireEvent.changeText(screen.getByTestId('code-input'), '123456');
+    expect(mockLink).toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
+
+    // The refreshed token now has the phone number.
+    mockAuthState = signedIn(READY);
+    await rerender(withSafeArea(<SignInSheet />));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+    });
+    expect(action).toHaveBeenCalledTimes(1);
+  });
+
+  it("doesn't ask for the phone when the action doesn't trade", async () => {
+    useAuthGate.getState().open('wantlist', jest.fn());
+    mockAuthState = signedIn({ status: 'loading' }, {}, false);
+    const { rerender } = await render(withSafeArea(<SignInSheet />));
+    mockAuthState = signedIn(READY, {}, false);
+    await rerender(withSafeArea(<SignInSheet />));
+    expect(screen.queryByText('Verify your phone')).toBeNull();
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
   it('offers a retry when the profile fails to load', async () => {
     mockAuthState = signedIn({ status: 'error' });
     await render(withSafeArea(<SignInSheet />));
@@ -444,6 +538,6 @@ describe('PhoneStep input length', () => {
     );
     await fireEvent.changeText(screen.getByTestId('phone-input'), '+972 54-123-4567');
     await fireEvent.press(screen.getByTestId('send-code'));
-    expect(mockSignIn).toHaveBeenCalledWith({}, '+972541234567');
+    expect(mockSignIn).toHaveBeenCalledWith(expect.anything(), '+972541234567');
   });
 });

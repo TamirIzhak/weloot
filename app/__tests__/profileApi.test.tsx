@@ -37,7 +37,7 @@ jest.mock('@react-native-firebase/firestore', () => ({
 
 jest.mock('@react-native-firebase/auth', () => ({
   getAuth: jest.fn(() => ({})),
-  onAuthStateChanged: (_auth: unknown, listener: (user: unknown) => void) => {
+  onIdTokenChanged: (_auth: unknown, listener: (user: unknown) => void) => {
     mockAuthListener = listener;
     return jest.fn();
   },
@@ -257,6 +257,27 @@ describe('AuthProvider', () => {
     await act(async () => mockAuthListener?.({ uid: 'u2' }));
     expect(probe()).toBe('signedIn/loading');
     expect(mockListeners[1]?.path).toBe('users/u2');
+  });
+
+  it('reports a verified phone, including right after linking one', async () => {
+    function PhoneProbe() {
+      const auth = useAuth();
+      return (
+        <Text testID="phone">{auth.status === 'signedIn' ? String(auth.phoneVerified) : '-'}</Text>
+      );
+    }
+    await render(
+      <AuthProvider>
+        <PhoneProbe />
+      </AuthProvider>,
+    );
+    const user = { uid: 'u1', phoneNumber: null as string | null };
+    await act(async () => mockAuthListener?.(user));
+    expect(screen.getByTestId('phone').props.children).toBe('false');
+    // Same user object, now with a linked number (token refreshed).
+    user.phoneNumber = '+972541234567';
+    await act(async () => mockAuthListener?.(user));
+    expect(screen.getByTestId('phone').props.children).toBe('true');
   });
 
   it('listens again on retry after an error', async () => {

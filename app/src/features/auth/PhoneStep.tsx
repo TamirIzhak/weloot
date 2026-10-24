@@ -8,18 +8,23 @@ import { Button, Input, Text } from '@/components';
 import { isolate } from '@/i18n';
 
 import { authErrorKey } from './errors';
-import { sendCode } from './phoneVerification';
+import { sendCode, type PhoneVerificationMode } from './phoneVerification';
 
-/** Sign-in step 1 (PRD W1): Israeli mobiles only, +972 prefilled. Calls `onSent` once the SMS is on its way. */
+/**
+ * Phone number step (PRD W1): Israeli mobiles only, +972 prefilled. Calls `onSent` once the SMS is on its way.
+ * `mode="link"` verifies the phone of a signed-in user (once per account) instead of signing in.
+ */
 export function PhoneStep({
   title,
   onSent,
   onBack,
+  mode = 'signIn',
 }: {
   title: string;
   onSent: () => void;
   /** Back to the other sign-in methods. */
   onBack?: () => void;
+  mode?: PhoneVerificationMode;
 }) {
   const { t } = useTranslation();
   const [phone, setPhone] = useState('');
@@ -36,7 +41,7 @@ export function PhoneStep({
     setSending(true);
     setError(undefined);
     try {
-      await sendCode(toE164IL(phone));
+      await sendCode(toE164IL(phone), mode);
       onSent();
     } catch (e) {
       setError(t(authErrorKey(e)));
@@ -49,7 +54,9 @@ export function PhoneStep({
     <View className="gap-6">
       <View className="gap-2">
         <Text variant="title">{title}</Text>
-        <Text tone="secondary">{t('auth.phone.subtitle')}</Text>
+        <Text tone="secondary">
+          {t(mode === 'link' ? 'auth.verifyPhone.subtitle' : 'auth.phone.subtitle')}
+        </Text>
       </View>
       <View className="flex-row items-end gap-2">
         <View className="h-12 justify-center rounded-button bg-surface-raised px-4">

@@ -10,6 +10,7 @@ const mockPush = jest.fn();
 const SIGNED_IN = {
   status: 'signedIn',
   user: { uid: 'u1' },
+  phoneVerified: true,
   profile: { status: 'ready', profile: { username: 'Gamer_1' } },
 };
 let mockAuthState: Record<string, unknown> = SIGNED_IN;
@@ -95,6 +96,15 @@ describe('TabBar', () => {
     const { navigateToTab } = await renderTabBar(0);
     await fireEvent.press(screen.getByRole('tab', { name: 'Add a game' }));
     expect(navigateToTab).toHaveBeenCalledWith('add-key');
+  });
+
+  it('asks a signed-in user without a verified phone to verify it before adding a game', async () => {
+    mockAuthState = { ...SIGNED_IN, phoneVerified: false };
+    const { navigateToTab } = await renderTabBar(0);
+    await fireEvent.press(screen.getByRole('tab', { name: 'Add a game' }));
+    expect(navigateToTab).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith('/sign-in');
+    expect(useAuthGate.getState().reason).toBe('add');
   });
 
   it('does not navigate when pressing the focused tab or when the press is prevented', async () => {
