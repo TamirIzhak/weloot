@@ -46,6 +46,24 @@ export type RespondToOfferInput = z.infer<typeof respondToOfferInputSchema>;
 
 export const markReadInputSchema = z.object({ conversationId: id });
 
+/**
+ * Deal actions (PRD W6, #47) by a participant: `confirm` ("Swapped" / "Yes, we swapped"; closes the caller's games
+ * still reserved in the deal), `dispute` ("No, it didn't happen"), `cancel` (before anyone confirmed, with a reason).
+ */
+export const DEAL_ACTIONS = ['confirm', 'dispute', 'cancel'] as const;
+export type DealAction = (typeof DEAL_ACTIONS)[number];
+export const dealActionInputSchema = z
+  .object({
+    conversationId: id,
+    action: z.enum(DEAL_ACTIONS),
+    reason: z.string().trim().min(1).max(300).optional(),
+  })
+  .refine((input) => input.action !== 'cancel' || input.reason !== undefined, {
+    message: 'Cancelling a deal needs a reason',
+    path: ['reason'],
+  });
+export type DealActionInput = z.infer<typeof dealActionInputSchema>;
+
 /** Stable `details.reason` values of the conversation and offer callables. */
 export type ConversationError =
   | 'invalidInput'
@@ -63,7 +81,11 @@ export type ConversationError =
   | 'notSender'
   | 'notLatestOffer'
   | 'offerExpired'
-  | 'dealExists';
+  | 'dealExists'
+  | 'noDeal'
+  | 'invalidTransition'
+  | 'alreadyConfirmed'
+  | 'notInDeal';
 
 /**
  * System messages carry an event code, not text, so each participant reads them in their own language (PRD §3.5).
@@ -75,6 +97,16 @@ export const SYSTEM_EVENTS = [
   'offer_withdrawn',
   'offer_expired',
   'offer_invalidated',
+  /** Someone confirmed the swap; the other is asked "Did you swap?". */
+  'deal_confirmed',
+  'deal_completed',
+  'deal_cancelled',
+  'deal_disputed',
+  'deal_unconfirmed',
+  /** 2 days after acceptance, nobody has closed it yet. */
+  'deal_swap_reminder',
+  /** Day 1 and 3 of waiting for the second confirmation. */
+  'deal_confirm_reminder',
 ] as const;
 export type SystemEvent = (typeof SYSTEM_EVENTS)[number];
 

@@ -10,6 +10,11 @@ const mockManage = jest.fn();
 let mockState: Record<string, unknown> = { status: 'loading' };
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
+let mockConversations: unknown[] = [];
+jest.mock('@/features/offers/offersApi', () => ({ useMyConversations: () => mockConversations }));
+jest.mock('@/features/profile/usePublicProfile', () => ({
+  usePublicProfile: (uid: string) => ({ status: 'ready', profile: { username: `user_${uid}` } }),
+}));
 jest.mock('@/features/listings/myListings', () => ({
   useMyListings: () => mockState,
   manageListing: (...args: unknown[]) => mockManage(...args),
@@ -44,6 +49,7 @@ const listing = (overrides: Record<string, unknown> = {}) => ({
 });
 
 beforeEach(() => {
+  mockConversations = [];
   jest.clearAllMocks();
   mockManage.mockResolvedValue('paused');
   mockState = { status: 'ready', listings: [listing()] };
@@ -97,6 +103,41 @@ describe('MyListingsScreen', () => {
       listingId: 'l1',
       action: 'closeTraded',
       closedWith: { kind: 'outside' },
+    });
+  });
+
+  it('offers the deal counterpart and recent chats under "Who with?", and closes with them', async () => {
+    const at = (ms: number) => ({ toMillis: () => ms });
+    mockConversations = [
+      {
+        id: 'l1_chatter',
+        listingId: 'l1',
+        participants: ['u1', 'chatter'],
+        updatedAt: at(Date.now()),
+      },
+      {
+        id: 'l9_dealer',
+        listingId: 'l9',
+        participants: ['dealer', 'u1'],
+        updatedAt: at(Date.now() - 60 * 24 * 3600 * 1000),
+        deal: { status: 'agreed', itemsOwner: ['l9'], itemsOther: ['l1'] },
+      },
+      // Too old, and about something else.
+      { id: 'l1_old', listingId: 'l1', participants: ['u1', 'old'], updatedAt: at(0) },
+      { id: 'l7_x', listingId: 'l7', participants: ['u1', 'x'], updatedAt: at(Date.now()) },
+    ];
+    await open();
+    await fireEvent.press(screen.getByTestId('action-swapped'));
+    const choices = screen.getByTestId('who-with');
+    expect(choices.children).toHaveLength(2);
+    expect(screen.getByText('With user_dealer (your deal)')).toBeTruthy();
+    expect(screen.getByText('With user_chatter')).toBeTruthy();
+    expect(screen.queryByText('With user_old')).toBeNull();
+    await fireEvent.press(screen.getByTestId('who-dealer'));
+    expect(mockManage).toHaveBeenCalledWith({
+      listingId: 'l1',
+      action: 'closeTraded',
+      closedWith: { kind: 'deal', userId: 'dealer', conversationId: 'l9_dealer' },
     });
   });
 

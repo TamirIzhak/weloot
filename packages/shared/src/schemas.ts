@@ -273,7 +273,8 @@ export type ManageListingError =
   | 'invalidTransition'
   | 'notForTrade'
   | 'notForSale'
-  | 'dealNotAvailable';
+  | 'notInDeal'
+  | 'notParticipant';
 
 /** Stable `details.reason` values of `publishListing`. */
 export type PublishListingError =
@@ -407,6 +408,10 @@ export const dealSchema = z
     ...cashTopUp,
     confirmedBy: z.array(uid).max(2),
     awaitingSince: timestampSchema.optional(),
+    /** 🔒 The 2-day "Did the swap happen?" reminder was sent (PRD W6). */
+    swapReminderAt: timestampSchema.optional(),
+    /** 🔒 Confirmation reminders sent (day 1 and day 3 of waiting). */
+    confirmRemindersSent: z.number().int().min(0).max(2).optional(),
     fulfillmentMethod: z.literal('in_person'),
     agreedAt: timestampSchema,
     completedAt: timestampSchema.optional(),

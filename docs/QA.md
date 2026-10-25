@@ -225,3 +225,14 @@ Two accounts A (owner) and B, after B made an offer or asked a question.
 - [ ] Accept → "Offer accepted. It's a deal!", the safety tips card, a deal header ("Deal agreed", what each side gives, cash), and the offer button is disabled. The games disappear from search.
 - [ ] Decline / Withdraw / an offer left 72 h → the right system line, in each phone's language.
 - [ ] Hebrew: bubbles and offer cards mirror; the send arrow points left.
+
+## Deals: Swapped, confirm, dispute, cancel (#47)
+Two accounts after an accepted offer.
+- [ ] Chat header: "Deal agreed: meet and swap" with what each side gives, plus Swapped and Cancel deal.
+- [ ] Cancel deal asks for a reason; then both games are back in search ("The deal was cancelled").
+- [ ] A taps Swapped → A's game closes at once; B sees "Did you swap … with A?" Yes / No. A sees "Waiting for B to confirm".
+- [ ] B taps Yes → "Swap completed!"; B's game closes too; both profiles show one more completed trade.
+- [ ] Instead, B taps No → "reported as not happening"; a report appears in Firestore `reports`; no trade counted.
+- [ ] My listings → Swapped → "Who with?" lists the deal partner first ("your deal"), then people you chatted with about it in the last 30 days, then "Someone outside WeLoot". Choosing a person does the same as Swapped in the chat.
+- [ ] Agreed in chat without an accepted offer: My listings → Swapped → pick the chat partner → they get "Did you swap…?".
+- [ ] After 2 days with the deal still agreed: "Did the swap happen?" in the chat. Waiting for a confirmation: reminders after 1 and 3 days, and after 7 days "wasn't confirmed… doesn't count".

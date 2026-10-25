@@ -91,13 +91,13 @@ describe('manageListing', () => {
     });
   });
 
-  it('does not close with a WeLoot user until deals exist (#47)', async () => {
+  it('closes with a WeLoot user only through a conversation they share (#47)', async () => {
     await expect(
       manage({
         action: 'closeTraded',
         closedWith: { kind: 'deal', userId: 'u2', conversationId: 'c1' },
       }),
-    ).rejects.toMatchObject({ details: { reason: 'dealNotAvailable' } });
+    ).rejects.toMatchObject({ details: { reason: 'notFound' } });
     expect(await listing()).toMatchObject({ status: 'active' });
   });
 

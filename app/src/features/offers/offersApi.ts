@@ -4,7 +4,9 @@ import {
   collection,
   doc,
   getFirestore,
+  limit,
   onSnapshot,
+  orderBy,
   query,
   where,
 } from '@react-native-firebase/firestore';
@@ -19,6 +21,8 @@ import {
   offerSchema,
   type ConversationDoc,
   type ConversationError,
+  type DealActionInput,
+  type DealStatus,
   type OfferDoc,
   type OfferInput,
   type RespondToOfferInput,
@@ -204,4 +208,50 @@ export function useConversation(
 
   if (!conversationId) return null;
   return state?.id === conversationId ? state.value : 'loading';
+}
+
+/** Deal header and banner actions (PRD W6, #47): confirm the swap, say it didn't happen, or cancel. */
+export async function dealAction(input: DealActionInput): Promise<{ status: DealStatus }> {
+  const result = await call<DealActionInput, { status: DealStatus }>('dealAction')(input);
+  const event =
+    result.status === 'completed'
+      ? 'deal_completed'
+      : input.action === 'confirm'
+        ? 'deal_confirmed'
+        : input.action === 'dispute'
+          ? 'deal_disputed'
+          : 'deal_cancelled';
+  track(event, {});
+  return result;
+}
+
+/** Conversations shown at a time (inbox, "Who with?"). */
+export const CONVERSATIONS_SHOWN = 100;
+
+/** The user's conversations, most recently active first. */
+export function useMyConversations(uid: string | undefined): Conversation[] | null {
+  const [state, setState] = useState<{ uid: string; list: Conversation[] } | null>(null);
+
+  useEffect(() => {
+    if (!uid) return;
+    return onSnapshot(
+      query(
+        collection(getFirestore(), 'conversations'),
+        where('participants', 'array-contains', uid),
+        orderBy('updatedAt', 'desc'),
+        limit(CONVERSATIONS_SHOWN),
+      ),
+      (snapshot) => {
+        const list = snapshot.docs.flatMap((d) => {
+          const parsed = conversationSchema.safeParse(d.data({ serverTimestamps: 'estimate' }));
+          return parsed.success ? [{ ...parsed.data, id: d.id }] : [];
+        });
+        setState({ uid, list });
+      },
+      () => setState({ uid, list: [] }),
+    );
+  }, [uid]);
+
+  if (!uid) return [];
+  return state?.uid === uid ? state.list : null;
 }

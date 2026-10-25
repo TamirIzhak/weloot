@@ -239,6 +239,9 @@ describe('after setup', () => {
   it('denies profile edits, deletes, and settings changes without a fresh updatedAt', async () => {
     const db = as('alice');
     await assertFails(updateDoc(doc(db, 'users/alice'), { ratingAvg: 5 }));
+    // Trade counts only come from completed deals (functions, #47).
+    await assertFails(updateDoc(doc(db, 'users/alice'), { completedTrades: 10 }));
+    await assertFails(updateDoc(doc(db, 'users/alice'), { ratingCount: 1 }));
     await assertFails(updateDoc(doc(db, 'users/alice'), { username: 'Mallory' }));
     await assertFails(deleteDoc(doc(db, 'users/alice')));
     await assertFails(setDoc(doc(db, 'usernames/alice_1'), { uid: 'alice' }));
