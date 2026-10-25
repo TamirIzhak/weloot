@@ -202,3 +202,6 @@ Pushes need the device registration from #27; until then alerts land in New for 
 - [ ] Pausing and resuming a listing counts as "new" again for people who haven't got it yet; it never shows twice.
 - [ ] (After #27) at most one push per alert per 6 hours and 5 a day; the rest only in New for you. Push text is in your app language.
 - [ ] Delete account → alerts and New for you are gone.
+
+## Conversations, offers and deal model (#23)
+Server side only; checked through the screens in #24 (offer composer), #25 (chat) and #47 (deals). In the Firestore console after those: one `conversations/{listingId}_{uid}` per listing and interested user, offers under it with `pending` → `accepted`/`declined`/`withdrawn`/`superseded`/`expired`, and listings `reserved` when an offer is accepted.

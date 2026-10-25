@@ -448,6 +448,8 @@ export const messageSchema = z
     type: z.enum(MESSAGE_TYPES),
     text: z.string().min(1).max(2000).optional(),
     offerId: id.optional(),
+    /** System messages: what happened (shown in each reader's language). */
+    event: z.string().min(1).max(40).optional(),
     createdAt: timestampSchema,
   })
   .refine((m) => (m.type === 'text' ? m.text !== undefined : true), {
@@ -479,6 +481,19 @@ export const offerSchema = z.object({
   toUid: uid,
   itemsFrom: z.array(id).max(5),
   itemsTo: z.array(id).max(5),
+  /** Both sides' listing IDs together (🔒), to find pending offers that include a listing. */
+  listingIds: z.array(id).max(10),
+  /** What each game looked like when the offer was sent (🔒): the other side can't read reserved listings. */
+  items: z.record(
+    id,
+    z.object({
+      ownerId: uid,
+      igdbGameId: z.number().int().positive(),
+      gameTitle: z.string().min(1),
+      platform,
+      coverImageId: z.string().optional(),
+    }),
+  ),
   ...cashTopUp,
   note: z.string().max(300).optional(),
   status: z.enum(OFFER_STATUSES),
@@ -486,6 +501,10 @@ export const offerSchema = z.object({
   expiresAt: timestampSchema,
   ...timestamps,
 });
+export type OfferDoc = z.infer<typeof offerSchema>;
+export type ConversationDoc = z.infer<typeof conversationSchema>;
+export type DealDoc = z.infer<typeof dealSchema>;
+export type MessageDoc = z.infer<typeof messageSchema>;
 
 export const ratingSchema = z.object({
   raterId: uid,

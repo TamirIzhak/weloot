@@ -15,6 +15,15 @@ import { alertOnListingWrite, type Notifier } from './alerts/alerts';
 import { adminAuth, adminDb } from './admin';
 import { handleConfirmBarcode, handleLookupBarcode, noUpcProvider } from './barcodes/barcodes';
 import { handleDiscordSignIn } from './auth/discordSignIn';
+import {
+  expireOffers,
+  handleMarkRead,
+  handleRespondToOffer,
+  handleSendMessage,
+  handleSendOffer,
+  handleStartConversation,
+  invalidateOffersFor,
+} from './conversations/conversations';
 import { syncCatalog, type SyncMode } from './catalog/catalogSync';
 import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
@@ -191,6 +200,40 @@ export const alertOnListing = onDocumentWritten('listings/{listingId}', async (e
     event.data?.after.data(),
   );
 });
+
+// Conversations and offers (PRD W5, #23): clients never write them; every change goes through these.
+export const startConversation = onCall((request) =>
+  handleStartConversation(request.auth, request.data, { db: adminDb() }),
+);
+export const sendMessage = onCall((request) =>
+  handleSendMessage(request.auth, request.data, { db: adminDb() }),
+);
+export const sendOffer = onCall((request) =>
+  handleSendOffer(request.auth, request.data, { db: adminDb() }),
+);
+export const respondToOffer = onCall((request) =>
+  handleRespondToOffer(request.auth, request.data, { db: adminDb() }),
+);
+export const markConversationRead = onCall((request) =>
+  handleMarkRead(request.auth, request.data, { db: adminDb() }),
+);
+export const expireOffersScheduled = onSchedule(
+  { schedule: 'every 30 minutes', timeZone: 'Asia/Jerusalem' },
+  async () => {
+    await expireOffers(adminDb());
+  },
+);
+export const invalidateOffersOnListing = onDocumentWritten(
+  'listings/{listingId}',
+  async (event) => {
+    await invalidateOffersFor(
+      adminDb(),
+      event.params.listingId,
+      event.data?.before.data(),
+      event.data?.after.data(),
+    );
+  },
+);
 
 // Barcodes (PRD §5.1, #14): look a scanned code up, and record users' confirmations.
 export const lookupBarcode = onCall({ secrets: [ALGOLIA_ADMIN_KEY] }, (request) =>
