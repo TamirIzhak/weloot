@@ -14,7 +14,8 @@ import type { AlgoliaAdmin } from './gamesIndex';
 export const LISTINGS_INDEX_SETTINGS = {
   searchableAttributes: ['gameTitle'],
   attributesForFaceting: [
-    'filterOnly(platform)',
+    // Facet counts per console: "also on PS4 (3)" when a search finds nothing (#48).
+    'platform',
     'filterOnly(condition)',
     'filterOnly(isForTrade)',
     'filterOnly(isForSale)',

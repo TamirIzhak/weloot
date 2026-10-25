@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { ListingFilters } from '@weloot/shared';
+import type { ListingFilters, PlatformKey } from '@weloot/shared';
 
-import { Button, Chip, EmptyState, ErrorState, Input, Skeleton, Text } from '@/components';
+import { Button, Chip, ErrorState, Input, Skeleton, Text } from '@/components';
 import { DensityToggle, ListingGrid } from '@/features/listings/grid/ListingGrid';
 import { useBrowsingLocation } from '@/features/location/browsingLocation';
 import { LocationChip } from '@/features/location/LocationChip';
@@ -17,6 +17,7 @@ import { currentLanguage, formatNumber } from '@/i18n';
 import { useHideOnScroll, useTabBarInset } from '@/navigation/TabBarVisibility';
 import { colors } from '@/theme/tokens';
 
+import { EmptySearch } from './EmptySearch';
 import { FiltersPanel } from './FiltersPanel';
 import { useRecentSearches } from './recentSearches';
 import {
@@ -108,11 +109,9 @@ export function ListingSearchScreen() {
           query={query}
           filters={toListingFilters(filters, viewer.excludedUserIds)}
           area={area}
-          canClearFilters={filterCount > 0}
           onClearFilters={() => setFilters(EMPTY_FILTERS)}
-          onSearchEverywhere={
-            radiusKm !== null && area ? () => setFilters({ ...filters, radiusKm: null }) : undefined
-          }
+          onPlatform={(platform) => setFilters({ ...filters, platform })}
+          onRadius={(km) => setFilters({ ...filters, radiusKm: km })}
         />
       ) : (
         <Idle area={area} onSearch={search} onBrowseAll={() => setBrowseAll(true)} />
@@ -125,16 +124,16 @@ function Results({
   query,
   filters,
   area,
-  canClearFilters,
   onClearFilters,
-  onSearchEverywhere,
+  onPlatform,
+  onRadius,
 }: {
   query: string;
   filters: ListingFilters;
   area: SearchArea | null;
-  canClearFilters: boolean;
   onClearFilters: () => void;
-  onSearchEverywhere?: () => void;
+  onPlatform: (platform: PlatformKey) => void;
+  onRadius: (radiusKm: number | null) => void;
 }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -160,23 +159,14 @@ function Results({
   }
 
   if (state.hits.length === 0) {
-    const actions = [
-      ...(onSearchEverywhere
-        ? [{ label: t('search.empty.everywhere'), onPress: onSearchEverywhere }]
-        : []),
-      ...(canClearFilters ? [{ label: t('search.filters.reset'), onPress: onClearFilters }] : []),
-      ...(!area
-        ? [{ label: t('search.empty.chooseLocation'), onPress: () => router.push('/location') }]
-        : []),
-    ];
     return (
-      <EmptyState
-        title={t('search.empty.title')}
-        body={t('search.empty.body')}
-        primaryAction={actions[0]}
-        secondaryAction={actions[1]}
-        className="px-4"
-        testID="search-empty"
+      <EmptySearch
+        query={query}
+        filters={filters}
+        area={area}
+        onPlatform={onPlatform}
+        onRadius={onRadius}
+        onClearFilters={onClearFilters}
       />
     );
   }
