@@ -64,6 +64,23 @@ export const dealActionInputSchema = z
   });
 export type DealActionInput = z.infer<typeof dealActionInputSchema>;
 
+/** Rating the other trader after a completed deal (PRD W9, #36): 1–5 stars and an optional comment. */
+export const rateUserInputSchema = z.object({
+  conversationId: id,
+  stars: z.number().int().min(1).max(5),
+  comment: z.string().trim().max(500).optional(),
+});
+export type RateUserInput = z.infer<typeof rateUserInputSchema>;
+
+/** A rating's ID: one per deal and rater (PRD §10 `ratings/{dealConversationId_raterId}`). */
+export const ratingIdFor = (conversationId: string, raterId: string) =>
+  `${conversationId}_${raterId}`;
+
+/** The new average after one more rating, kept to two decimals. */
+export function addToAverage(average: number, count: number, stars: number): number {
+  return Math.round(((average * count + stars) / (count + 1)) * 100) / 100;
+}
+
 /** Stable `details.reason` values of the conversation and offer callables. */
 export type ConversationError =
   | 'invalidInput'
@@ -85,7 +102,9 @@ export type ConversationError =
   | 'noDeal'
   | 'invalidTransition'
   | 'alreadyConfirmed'
-  | 'notInDeal';
+  | 'notInDeal'
+  | 'notCompleted'
+  | 'alreadyRated';
 
 /**
  * System messages carry an event code, not text, so each participant reads them in their own language (PRD §3.5).

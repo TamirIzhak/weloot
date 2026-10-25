@@ -27,7 +27,7 @@ describe('firestore default deny', () => {
   it('denies a signed-in user collections without rules yet, even for their own data', async () => {
     const db = env.authenticatedContext('alice').firestore();
     await assertFails(setDoc(doc(db, 'listings/l1'), { userId: 'alice' }));
-    await assertFails(getDoc(doc(db, 'ratings/r1')));
+    await assertFails(getDoc(doc(db, 'payments/p1')));
   });
 
   it('denies access to server-only collections', async () => {

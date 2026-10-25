@@ -6,6 +6,8 @@ import { Button, Input, Text, useToast } from '@/components';
 import { dealAction, OfferError, type Conversation, type Offer } from '@/features/offers/offersApi';
 import { currentLanguage, formatPrice, isolate } from '@/i18n';
 
+import { RateCard } from './RateCard';
+
 /**
  * The deal at the top of the chat (PRD W6, #47): what each side gives, the cash line and the status, with the
  * actions that fit: Swapped / Cancel deal while agreed; "Did you swap…?" Yes / No for the person asked to confirm.
@@ -147,6 +149,10 @@ export function DealPanel({
             />
           </View>
         </View>
+      ) : null}
+
+      {deal.status === 'completed' ? (
+        <RateCard conversationId={conversation.id} me={me} name={names.them} />
       ) : null}
 
       {deal.status === 'awaiting_confirmation' && iConfirmed ? (
