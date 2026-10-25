@@ -1,16 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useId, useState, type ComponentProps, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  FlatList,
-  Pressable,
-  useWindowDimensions,
-  View,
-  type NativeScrollEvent,
-  type ListViewToken,
-  type NativeSyntheticEvent,
-} from 'react-native';
+import { Pressable, useWindowDimensions, View, type ListViewToken } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 
 import { cn } from '@/components';
 import { colors } from '@/theme/tokens';
@@ -82,14 +75,18 @@ export function ListingGrid({
   onEndReached,
   ListEmptyComponent,
   ListFooterComponent,
+  bottomInset = 0,
   testID = 'listing-grid',
 }: {
   items: ListingTileData[];
   onPressItem?: (item: ListingTileData) => void;
-  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  /** E.g. `useHideOnScroll()` (the list is an `Animated.FlatList`). */
+  onScroll?: ComponentProps<typeof Animated.FlatList>['onScroll'];
   onEndReached?: () => void;
   ListEmptyComponent?: ReactElement;
   ListFooterComponent?: ReactElement;
+  /** Space after the last row, e.g. to clear the tab bar. */
+  bottomInset?: number;
   testID?: string;
 }) {
   const { width } = useWindowDimensions();
@@ -112,7 +109,7 @@ export function ListingGrid({
 
   return (
     <GestureDetector gesture={pinch}>
-      <FlatList
+      <Animated.FlatList
         // A new list per density: FlatList can't change its column count in place.
         key={`density-${density}`}
         data={items}
@@ -127,7 +124,11 @@ export function ListingGrid({
           />
         )}
         columnWrapperStyle={density > 1 ? { gap: GAP } : undefined}
-        contentContainerStyle={{ paddingHorizontal: SIDE_PADDING, gap: GAP }}
+        contentContainerStyle={{
+          paddingHorizontal: SIDE_PADDING,
+          gap: GAP,
+          paddingBottom: bottomInset,
+        }}
         getItemLayout={(_, index) => ({
           length: layout.rowHeight,
           offset: layout.rowHeight * index,

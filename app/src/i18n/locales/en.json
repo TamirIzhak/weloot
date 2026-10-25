@@ -471,5 +471,53 @@
     "tile": {
       "distance": "~{{km}} km"
     }
+  },
+  "search": {
+    "input": {
+      "label": "Search listings",
+      "placeholder": "Game name, e.g. Zelda"
+    },
+    "filters": {
+      "button": "Filters",
+      "buttonCount": "Filters ({{count}})",
+      "platform": "Console",
+      "any": "Any",
+      "mode": "Trade or sale",
+      "trade": "Trade",
+      "sale": "For sale",
+      "condition": "Condition",
+      "price": "Price (₪)",
+      "min": "From",
+      "max": "Up to",
+      "priceHint": "A price shows only listings for sale.",
+      "distance": "Distance",
+      "anywhere": "Anywhere",
+      "distanceNeedsLocation": "Choose a location (top of the screen) to filter by distance.",
+      "show": "Show results",
+      "reset": "Clear filters"
+    },
+    "recent": {
+      "title": "Recent searches",
+      "clear": "Clear",
+      "remove": "Remove “{{query}}”"
+    },
+    "popular": {
+      "title": "Popular on WeLoot",
+      "nearYou": "Popular near you",
+      "game": "{{title}} · {{count}}"
+    },
+    "browseAll": "See all listings",
+    "browseNearYou": "See all listings near you",
+    "results": {
+      "count": "Results: {{count}}"
+    },
+    "empty": {
+      "title": "No listings match",
+      "body": "Try another spelling, fewer filters or a wider distance.",
+      "everywhere": "Search all of Israel",
+      "chooseLocation": "Choose your location"
+    },
+    "error": "Search isn’t working right now. Try again.",
+    "notConfigured": "Listing search isn’t set up yet (Algolia keys missing)."
   }
 }

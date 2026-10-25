@@ -26,6 +26,7 @@ import {
   type AlgoliaAdmin,
   type AlgoliaSearcher,
 } from './search/gamesIndex';
+import { configureListingsIndex, syncListingRecord } from './search/listingsIndex';
 import {
   ALGOLIA_ADMIN_KEY,
   ALGOLIA_APP_ID,
@@ -90,7 +91,7 @@ async function runCatalogSync(mode: SyncMode) {
   const db = adminDb();
   // Index settings are idempotent; applying them on every run keeps a new Algolia app configured.
   const algolia = algoliaAdmin();
-  if (algolia) await configureGamesIndex(algolia);
+  if (algolia) await Promise.all([configureGamesIndex(algolia), configureListingsIndex(algolia)]);
   return syncCatalog(createIgdbClient({ fetch, db, clientId, clientSecret }), db, mode);
 }
 
@@ -129,6 +130,21 @@ export const indexGame = onDocumentWritten(
       event.data?.after.data(),
       event.data?.before.data(),
     );
+  },
+);
+
+// Listings search index (PRD §5.2, #18): only active listings; synced from the current doc, so order doesn't matter.
+export const indexListing = onDocumentWritten(
+  { document: 'listings/{listingId}', secrets: [ALGOLIA_ADMIN_KEY] },
+  async (event) => {
+    const algolia = algoliaAdmin();
+    if (!algolia) {
+      logger.warn('indexListing: Algolia is not set up (docs/OWNER-TODO.md)');
+      return;
+    }
+    const { listingId } = event.params;
+    const current = await adminDb().collection('listings').doc(listingId).get();
+    await syncListingRecord(algolia, listingId, current.data(), event.data?.before.data());
   },
 );
 
