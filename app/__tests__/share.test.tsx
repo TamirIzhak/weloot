@@ -26,7 +26,9 @@ jest.mock('expo-router', () => ({
 let shareSpy: jest.SpyInstance;
 beforeEach(() => {
   jest.clearAllMocks();
-  shareSpy = jest.spyOn(Share, 'share').mockResolvedValue({ action: Share.sharedAction, activityType: undefined });
+  shareSpy = jest
+    .spyOn(Share, 'share')
+    .mockResolvedValue({ action: Share.sharedAction, activityType: undefined });
 });
 afterEach(() => shareSpy.mockRestore());
 
