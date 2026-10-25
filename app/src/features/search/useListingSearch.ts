@@ -102,8 +102,10 @@ export function useListingSearch(params: ListingSearchParams): ListingSearchStat
   const key = JSON.stringify(params);
   const [pages, setPages] = useState<Pages | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
-  const [wanted, setWanted] = useState<{ key: string; page: number }>({ key: '', page: 0 });
+  // `attempt` re-runs a failed "load more" when the end of the list is reached again.
+  const [wanted, setWanted] = useState({ key: '', page: 0, attempt: 0 });
   const page = wanted.key === key ? wanted.page : 0;
+  const attempt = wanted.key === key ? wanted.attempt : 0;
 
   useEffect(() => {
     if (!isSearchConfigured()) return;
@@ -144,21 +146,25 @@ export function useListingSearch(params: ListingSearchParams): ListingSearchStat
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [key, page]);
+  }, [key, page, attempt]);
 
   if (!isSearchConfigured()) return { status: 'notConfigured' };
   const current = pages?.key === key ? pages : null;
   if (!current || current.page < page) {
     if (failed === `${key}#${page}`) {
       // A failed "load more" keeps what's shown; a failed first page is an error.
-      return current ? readyState(current, false, () => undefined) : { status: 'error' };
+      if (!current) return { status: 'error' };
+      return readyState(current, false, () => {
+        setFailed(null);
+        setWanted({ key, page, attempt: attempt + 1 });
+      });
     }
     if (!current) return { status: 'loading' };
   }
   const loadingMore = current.page < page;
   return readyState(current, loadingMore, () => {
     if (!loadingMore && current.page + 1 < current.nbPages) {
-      setWanted({ key, page: current.page + 1 });
+      setWanted({ key, page: current.page + 1, attempt: 0 });
     }
   });
 }

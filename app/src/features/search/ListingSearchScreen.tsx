@@ -48,6 +48,8 @@ export function ListingSearchScreen() {
   const [browseAll, setBrowseAll] = useState(false);
 
   const ready = settings.status === 'ready' ? settings.settings : null;
+  // Signed in: wait for the block list, so a blocked user's listings never flash up (on a load error, search anyway).
+  const settingsPending = uid !== undefined && settings.status === 'loading';
   const excluded = [...(uid ? [uid] : []), ...(ready?.blockedUserIds ?? [])];
   const radiusKm =
     filters.radiusKm === undefined
@@ -107,6 +109,8 @@ export function ListingSearchScreen() {
           hasLocation={browsing !== null}
           onDone={() => setFiltersOpen(false)}
         />
+      ) : searching && settingsPending ? (
+        <SkeletonGrid />
       ) : searching ? (
         <Results
           query={query}

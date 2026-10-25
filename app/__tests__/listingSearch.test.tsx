@@ -202,14 +202,25 @@ describe('Search tab', () => {
     });
   });
 
-  it('never shows your own or blocked users’ listings', async () => {
+  it('never shows your own or blocked users’ listings, not even while settings load', async () => {
     mockAuthState = { status: 'signedIn', user: { uid: 'me' } };
+    const { rerender } = await render(<ListingSearchScreen />);
+    await type('zelda');
+    expect(listingRequests()).toHaveLength(0);
+    expect(screen.getByTestId('search-loading')).toBeTruthy();
     mockSettings = {
       status: 'ready',
       settings: { blockedUserIds: ['troll'], searchRadiusKm: 10 },
     };
-    await render(<ListingSearchScreen />);
-    await type('zelda');
+    await rerender(
+      <SafeAreaProvider initialMetrics={SAFE_AREA}>
+        <TabBarVisibilityProvider>
+          <ListingSearchScreen />
+        </TabBarVisibilityProvider>
+      </SafeAreaProvider>,
+    );
+    await settle();
+    expect(listingRequests()).toHaveLength(1);
     expect(listingRequests().at(-1)).toMatchObject({
       filters: 'NOT userId:"me" AND NOT userId:"troll"',
     });
@@ -289,6 +300,37 @@ describe('Search tab', () => {
       jest.advanceTimersByTime(0);
     });
     expect(listingRequests().at(-1)).toMatchObject({ page: 1 });
+    expect(screen.getAllByTestId(/^listing-tile-/)).toHaveLength(2);
+  });
+
+  it('keeps the results when loading more fails, and tries again at the end of the list', async () => {
+    let failNext = true;
+    mockSearch.mockImplementation(
+      async ({ requests }: { requests: { hitsPerPage: number; page?: number }[] }) => {
+        const request = requests[0]!;
+        if (request.hitsPerPage === 0) return facets({});
+        if (request.page === 1 && failNext) {
+          failNext = false;
+          throw new Error('network');
+        }
+        return request.page === 0
+          ? page([RECORD], { nbHits: 2, nbPages: 2 })
+          : page([{ ...RECORD, objectID: 'l2' }], { nbHits: 2, nbPages: 2 });
+      },
+    );
+    await render(<ListingSearchScreen />);
+    await type('elden');
+    const endReached = async () => {
+      await act(async () => {
+        screen.getByTestId('search-results').props.onEndReached();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+    };
+    await endReached();
+    expect(screen.getAllByTestId(/^listing-tile-/)).toHaveLength(1);
+    await endReached();
     expect(screen.getAllByTestId(/^listing-tile-/)).toHaveLength(2);
   });
 
