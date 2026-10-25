@@ -644,5 +644,50 @@
       "saveFailed": "Couldn’t update your alerts. Try again.",
       "full": "You have the maximum of {{max}} alerts. Remove one to add another."
     }
+  },
+  "offers": {
+    "makeOffer": "Make an offer",
+    "askQuestion": "Ask a question",
+    "openChat": "Open chat",
+    "composer": {
+      "title": "Make an offer",
+      "counterTitle": "Counter-offer",
+      "youGive": "You give",
+      "youGet": "You get",
+      "noGames": "You have no games listed yet. Add one here, or offer cash for a game that’s for sale.",
+      "quickAdd": "List a game",
+      "cash": "Cash top-up (optional)",
+      "cashMode": {
+        "none": "No cash",
+        "me": "I add cash",
+        "them": "They add cash"
+      },
+      "amount": "Amount in ₪ (up to {{max}})",
+      "amountInvalid": "Whole shekels, from ₪1 to ₪2,000.",
+      "cashHint": "Paid in person or by Bit. WeLoot doesn’t handle the money.",
+      "note": "Note (optional)",
+      "needsGame": "Pick at least one game.",
+      "send": "Send offer",
+      "sendCounter": "Send counter-offer"
+    },
+    "question": {
+      "title": "Ask a question",
+      "hint": "The owner gets your message and can answer in the chat.",
+      "label": "Your question",
+      "placeholder": "e.g. Does it come with the case?",
+      "send": "Send"
+    },
+    "chat": {
+      "title": "Chat",
+      "soon": "The chat opens here."
+    },
+    "errors": {
+      "failed": "Couldn’t send. Check your connection and try again.",
+      "listingUnavailable": "One of these games isn’t available anymore.",
+      "notForSale": "Cash alone works only for games that are for sale. Add a game in return.",
+      "dealExists": "You already have a deal here. Finish or cancel it first.",
+      "blocked": "You can’t message this person.",
+      "ownListing": "This is your own listing."
+    }
   }
 }

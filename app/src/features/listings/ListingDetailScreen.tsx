@@ -13,6 +13,7 @@ import { useRequireAuth } from '@/features/auth/authGate';
 import { coverUrl } from '@/features/catalog/igdbImages';
 import { useBrowsingLocation } from '@/features/location/browsingLocation';
 import { usePublicProfile } from '@/features/profile/usePublicProfile';
+import { useConversationFor } from '@/features/offers/offersApi';
 import { useWantToggle } from '@/features/wantlist/useWantToggle';
 import {
   currentLanguage,
@@ -147,6 +148,8 @@ function ListingDetail({ listing }: { listing: Listing }) {
           </View>
         ) : null}
 
+        {own || listing.status !== 'active' ? null : <Openers listingId={listing.id} />}
+
         {own ? null : (
           <Button
             variant="secondary"
@@ -187,6 +190,56 @@ function ListingDetail({ listing }: { listing: Listing }) {
         )}
       </View>
     </ScrollView>
+  );
+}
+
+/**
+ * Game page openers (PRD W5): "Make an offer" (primary) and "Ask a question" while the viewer has no conversation
+ * about this listing, then "Open chat". Both need an account and a verified phone (asked once, PRD W1).
+ */
+function Openers({ listingId }: { listingId: string }) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const auth = useAuth();
+  const requireAuth = useRequireAuth();
+  const existing = useConversationFor(
+    listingId,
+    auth.status === 'signedIn' ? auth.user.uid : undefined,
+  );
+  if (existing === 'loading') return null;
+  if (existing !== 'none') {
+    return (
+      <Button
+        size="lg"
+        label={t('offers.openChat')}
+        onPress={() => router.push({ pathname: '/conversations/[id]', params: { id: existing } })}
+        testID="listing-open-chat"
+      />
+    );
+  }
+  return (
+    <View className="gap-2">
+      <Button
+        size="lg"
+        label={t('offers.makeOffer')}
+        onPress={() =>
+          requireAuth('offer', () =>
+            router.push({ pathname: '/offer/[listingId]', params: { listingId } }),
+          )
+        }
+        testID="listing-make-offer"
+      />
+      <Button
+        variant="secondary"
+        label={t('offers.askQuestion')}
+        onPress={() =>
+          requireAuth('question', () =>
+            router.push({ pathname: '/listings/[id]/ask', params: { id: listingId } }),
+          )
+        }
+        testID="listing-ask"
+      />
+    </View>
   );
 }
 
