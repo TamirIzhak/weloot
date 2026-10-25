@@ -19,6 +19,7 @@ import { healthPayload } from './health';
 import { deletePhotosOf, syncListingPhotos, type PhotoDeps } from './listings/listingPhotos';
 import { handleManageListing } from './listings/manageListing';
 import { matchOnListingWrite, matchOnWantWrite } from './matching/matches';
+import { handleWantedNearYou } from './matching/wantedNearYou';
 import { handlePublishListing, removeListingsOf } from './listings/publishListing';
 import { handleSubmitReport } from './reports/submitReport';
 import {
@@ -163,6 +164,11 @@ export const matchOnWant = onDocumentWritten('wantlist/{uid}/items/{itemId}', as
     event.data?.after.data(),
   );
 });
+
+// Home "Wanted near you" (PRD W3, #22): counts only, never who.
+export const wantedNearYou = onCall((request) =>
+  handleWantedNearYou(request.auth, request.data, { db: adminDb() }),
+);
 
 // Barcodes (PRD §5.1, #14): look a scanned code up, and record users' confirmations.
 export const lookupBarcode = onCall({ secrets: [ALGOLIA_ADMIN_KEY] }, (request) =>

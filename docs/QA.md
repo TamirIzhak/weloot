@@ -172,3 +172,14 @@ Background only (Home shows matches with #22). Check in the Firestore console (`
 - [ ] B pauses or closes the listing → A's doc goes (and B's turns one-way or goes).
 - [ ] A removes the game from the want list → the docs go.
 - [ ] A want list item for "any console" matches a listing on any console; a PS4 want doesn't match a PS5 listing.
+
+## Home feed (#22)
+Needs Algolia, and two accounts with listings and want lists for the match carousels.
+- [ ] Guest: "New on WeLoot" (or "New near you" with a location) with cards from the last two weeks, plus a "Find your matches / Join WeLoot" card. No match carousels.
+- [ ] Signed in with no want list: "Has games you want" invites to "Find games to want" (opens Search). Perfect matches is hidden while there are none.
+- [ ] With matches: "Perfect matches" shows mutual ones; "Has games you want" shows the rest. Cards open the game page; ♡ works.
+- [ ] Your own listings never appear in New near you.
+- [ ] "See all" on each carousel opens the full list in the grid (1/2/3 toggle, pinch); New near you loads more at the end.
+- [ ] "Wanted near you": without a location it asks for one; with one, it shows "N near you want <game> (<console>)" for your listed games (count real wanters with an address or listing within your radius, at least 5 km), or a nudge to list games.
+- [ ] Pause a listing that's in someone's match → it disappears from their carousels after a refresh.
+- [ ] Loading shows card-sized skeletons; Hebrew: carousels scroll from the right; titles and "See all" sit correctly.

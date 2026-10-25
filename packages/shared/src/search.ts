@@ -95,6 +95,8 @@ export type ListingFilters = {
   conditions?: readonly Condition[];
   minPriceAgorot?: number;
   maxPriceAgorot?: number;
+  /** Only listings published after this time (Home "New near you"). */
+  listedAfterMs?: number;
   /** The searcher's own and blocked users' listings never show. */
   excludeUserIds?: readonly string[];
 };
@@ -118,6 +120,8 @@ export function listingFilters(filters: ListingFilters): string {
     const any = filters.conditions.map((c) => `condition:${c}`).join(' OR ');
     parts.push(filters.conditions.length > 1 ? `(${any})` : any);
   }
+  if (filters.listedAfterMs !== undefined)
+    parts.push(`createdAtMs > ${Math.floor(filters.listedAfterMs)}`);
   for (const uid of (filters.excludeUserIds ?? []).slice(0, MAX_EXCLUDED_USERS)) {
     // Quoted: user IDs are free-form strings to Algolia's filter parser.
     parts.push(`NOT userId:"${uid.replace(/["\\]/g, '')}"`);

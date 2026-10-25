@@ -5,14 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DEFAULT_SEARCH_RADIUS_KM, type ListingFilters } from '@weloot/shared';
+import type { ListingFilters } from '@weloot/shared';
 
 import { Button, Chip, EmptyState, ErrorState, Input, Skeleton, Text } from '@/components';
-import { useAuth } from '@/features/auth/AuthProvider';
 import { DensityToggle, ListingGrid } from '@/features/listings/grid/ListingGrid';
 import { useBrowsingLocation } from '@/features/location/browsingLocation';
 import { LocationChip } from '@/features/location/LocationChip';
-import { useUserSettings } from '@/features/profile/settingsApi';
 import { useWantToggle } from '@/features/wantlist/useWantToggle';
 import { WantHeart } from '@/features/wantlist/WantHeart';
 import { currentLanguage, formatNumber } from '@/i18n';
@@ -30,6 +28,7 @@ import {
 } from './searchFilters';
 import { usePopularGames } from './usePopularGames';
 import { useListingSearch, type SearchArea } from './useListingSearch';
+import { useViewer } from './useViewer';
 
 /**
  * Search tab (PRD W4, #18): listings by game title over the `listings` index, with filters (console, trade/sale,
@@ -38,9 +37,7 @@ import { useListingSearch, type SearchArea } from './useListingSearch';
  */
 export function ListingSearchScreen() {
   const { t } = useTranslation();
-  const auth = useAuth();
-  const uid = auth.status === 'signedIn' ? auth.user.uid : undefined;
-  const settings = useUserSettings(uid);
+  const viewer = useViewer();
   const browsing = useBrowsingLocation((s) => s.location);
   const addRecent = useRecentSearches((s) => s.add);
 
@@ -49,14 +46,7 @@ export function ListingSearchScreen() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [browseAll, setBrowseAll] = useState(false);
 
-  const ready = settings.status === 'ready' ? settings.settings : null;
-  // Signed in: wait for the block list, so a blocked user's listings never flash up (on a load error, search anyway).
-  const settingsPending = uid !== undefined && settings.status === 'loading';
-  const excluded = [...(uid ? [uid] : []), ...(ready?.blockedUserIds ?? [])];
-  const radiusKm =
-    filters.radiusKm === undefined
-      ? (ready?.searchRadiusKm ?? DEFAULT_SEARCH_RADIUS_KM)
-      : filters.radiusKm;
+  const radiusKm = filters.radiusKm === undefined ? viewer.radiusKm : filters.radiusKm;
   const area: SearchArea | null = browsing
     ? { lat: browsing.lat, lng: browsing.lng, radiusKm }
     : null;
@@ -107,16 +97,16 @@ export function ListingSearchScreen() {
         <FiltersPanel
           value={filters}
           onChange={setFilters}
-          defaultRadiusKm={ready?.searchRadiusKm ?? DEFAULT_SEARCH_RADIUS_KM}
+          defaultRadiusKm={viewer.radiusKm}
           hasLocation={browsing !== null}
           onDone={() => setFiltersOpen(false)}
         />
-      ) : searching && settingsPending ? (
+      ) : searching && viewer.pending ? (
         <SkeletonGrid />
       ) : searching ? (
         <Results
           query={query}
-          filters={toListingFilters(filters, excluded)}
+          filters={toListingFilters(filters, viewer.excludedUserIds)}
           area={area}
           canClearFilters={filterCount > 0}
           onClearFilters={() => setFilters(EMPTY_FILTERS)}

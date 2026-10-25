@@ -6,14 +6,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_NAME } from '@weloot/shared';
 
-import { Button, EmptyState, Text } from '@/components';
+import { Button, Text } from '@/components';
 import { FirebaseStatus } from '@/features/dev/FirebaseStatus';
-import { LocationChip } from '@/features/location/LocationChip';
 import { SampleFeed } from '@/features/dev/SampleFeed';
+import { HomeScreen } from '@/features/home/HomeScreen';
+import { LocationChip } from '@/features/location/LocationChip';
 import { initFirebase } from '@/lib/firebase';
 import { useHideOnScroll, useTabBarInset } from '@/navigation/TabBarVisibility';
 
-/** Home tab. The real feed (matches, near you) arrives in #22; until then a welcome state and dev tools. */
+/** Home tab: the feed (#22), plus development tools in dev builds. */
 export default function Home() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -25,19 +26,19 @@ export default function Home() {
       <Animated.ScrollView
         onScroll={onScroll}
         scrollEventThrottle={16}
-        contentContainerClassName="gap-6 px-4 pt-2"
+        contentContainerClassName="gap-6 pt-2"
         contentContainerStyle={{ paddingBottom: bottomInset }}
         testID="home-scroll"
       >
-        <View className="gap-3">
+        <View className="gap-3 px-4">
           <Text variant="title" className="text-[34px] leading-[40px]">
             {APP_NAME}
           </Text>
           <LocationChip />
         </View>
-        <EmptyState title={t('home.welcomeTitle')} body={t('home.welcomeBody')} />
+        <HomeScreen />
         {__DEV__ && (
-          <View className="gap-4">
+          <View className="gap-4 px-4">
             <FirebaseStatus emulatorHost={initFirebase()} />
             <Button
               variant="secondary"

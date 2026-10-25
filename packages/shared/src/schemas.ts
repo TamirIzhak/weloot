@@ -349,6 +349,19 @@ export const matchSchema = z.object({
 });
 export type MatchDoc = z.infer<typeof matchSchema>;
 
+/** What the app sends to `wantedNearYou` (PRD W3): the browsing location (area level) and the search radius. */
+export const wantedNearYouInputSchema = z.object({
+  lat: latitude,
+  lng: longitude,
+  radiusKm: z.number().int().min(1).max(200),
+});
+export type WantedNearYouInput = z.infer<typeof wantedNearYouInputSchema>;
+
+/** "4 people near you want Zelda": real counts per game the user has listed, most wanted first. */
+export type WantedNearYouResult = {
+  games: { igdbGameId: number; gameTitle: string; platform: PlatformKey; count: number }[];
+};
+
 /** Who pays a recorded cash top-up, if any (PRD W5). The amount is whole shekels, at most ₪2,000. */
 const cashTopUp = {
   cashAgorot: z.number().refine((value) => isWholeShekelAmount(value, 0, CASH_TOP_UP_MAX_AGOROT), {
