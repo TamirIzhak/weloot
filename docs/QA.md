@@ -265,3 +265,11 @@ Needs a new dev build only if messaging wasn't in the last one (it is, since #63
 - [ ] Chat → ⋯ → Block → confirmation → "dana is blocked"; the message bar is replaced by "You blocked dana" with Unblock.
 - [ ] After blocking, each of you stops seeing the other's listings in Search and Home, and new offers or messages between you are refused. Matches between you disappear.
 - [ ] Settings → Blocked users lists them with Unblock; unblocking brings listings back.
+
+## Sharing (#50)
+Needs a new dev build (link config changed) and Hosting deployed (`npx firebase deploy --only hosting,functions -P dev`).
+- [ ] Game page → Share → the share sheet with "<game> (<console>) is up for grabs on WeLoot: https://…/l/<id>"; your own listing says "I'm offering…". My listings → Share too.
+- [ ] Want list → Share my want list → "Looking for: …".
+- [ ] Open the link on a phone with the app: it goes straight to the game page (after OWNER-TODO §10; before that, the landing page's "Open in WeLoot").
+- [ ] Open it in a desktop browser: cover, title, console, condition, "Listed by <username> · <area>", in Hebrew for a Hebrew browser; no notes, phone, address or photos.
+- [ ] Pause or close the listing → the link shows "This listing isn't available anymore".

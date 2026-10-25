@@ -154,6 +154,17 @@ describe('WantlistScreen', () => {
     expect(mockDeleteDoc).toHaveBeenCalledWith('wantlist/me/items/119133_ps5');
   });
 
+  it('shares the want list as text (#50)', async () => {
+    const { shareWantlist } = jest.requireMock('@/features/share/share') as {
+      shareWantlist: jest.Mock;
+    };
+    await renderScreen(<WantlistScreen uid="me" />);
+    await fireEvent.press(screen.getByTestId('wantlist-share'));
+    expect(shareWantlist).toHaveBeenCalledWith(
+      'Looking for: Elden Ring (PS5), Zelda: Tears of the Kingdom. Got one? Let’s swap on WeLoot: https://weloot.test',
+    );
+  });
+
   it('points an empty list to search', async () => {
     mockDocs = [];
     await renderScreen(<WantlistScreen uid="me" />);

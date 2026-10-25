@@ -24,6 +24,7 @@ import {
 } from '@/components';
 import { coverUrl } from '@/features/catalog/igdbImages';
 import { useMyConversations } from '@/features/offers/offersApi';
+import { shareListing } from '@/features/share/share';
 import { usePublicProfile } from '@/features/profile/usePublicProfile';
 import { currentLanguage, formatPrice } from '@/i18n';
 import { colors } from '@/theme/tokens';
@@ -238,6 +239,14 @@ function ListingActions({ listing }: { listing: Listing }) {
             router.push({ pathname: '/listings/[id]/photos', params: { id: listing.id } })
           }
           testID="action-photos"
+        />
+      ) : null}
+      {listing.status === 'active' ? (
+        <Button
+          variant="secondary"
+          label={t('share.listing')}
+          onPress={() => void shareListing(listing, (v) => t('share.mineText', v), 'my_listings')}
+          testID="action-share"
         />
       ) : null}
       {allowed.pause ? (

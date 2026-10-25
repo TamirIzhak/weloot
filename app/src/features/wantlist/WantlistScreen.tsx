@@ -4,7 +4,8 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { MAX_WANTLIST_ITEMS, PLATFORMS } from '@weloot/shared';
 
-import { Card, Chip, EmptyState, ErrorState, Text, useToast } from '@/components';
+import { Button, Card, Chip, EmptyState, ErrorState, Text, useToast } from '@/components';
+import { shareDomain, shareWantlist } from '@/features/share/share';
 import { formatNumber, currentLanguage } from '@/i18n';
 import { colors } from '@/theme/tokens';
 
@@ -35,6 +36,25 @@ export function WantlistScreen({ uid }: { uid: string }) {
   }
   return (
     <View className="gap-3" testID="wantlist">
+      <Button
+        variant="secondary"
+        label={t('share.wantlist')}
+        onPress={() =>
+          void shareWantlist(
+            t('share.wantlistText', {
+              games: state.items
+                .map((item) =>
+                  item.platform
+                    ? `${item.gameTitle} (${PLATFORMS[item.platform].label})`
+                    : item.gameTitle,
+                )
+                .join(', '),
+              link: `https://${shareDomain()}`,
+            }),
+          )
+        }
+        testID="wantlist-share"
+      />
       <Text variant="caption" tone="muted">
         {t('wantlist.count', {
           count: formatNumber(state.items.length, currentLanguage()),

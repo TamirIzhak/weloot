@@ -42,6 +42,7 @@ import { handleWantedNearYou } from './matching/wantedNearYou';
 import { handlePublishListing, removeListingsOf } from './listings/publishListing';
 import { handleSubmitReport } from './reports/submitReport';
 import { handleSetBlocked } from './safety/block';
+import { languageOf, renderListingPage } from './share/listingPage';
 import {
   configureGamesIndex,
   searchGamesIndex,
@@ -329,3 +330,15 @@ export const submitReport = onCall((request) =>
 export const setBlocked = onCall((request) =>
   handleSetBlocked(request.auth, request.data, { db: adminDb() }),
 );
+
+// Shared links (PRD W7, #50): Hosting rewrites /l/{listingId} here; public, no personal data.
+export const listingPage = onRequest({ invoker: 'public' }, async (req, res) => {
+  const listingId = decodeURIComponent(req.path.split('/').filter(Boolean)[1] ?? '');
+  const { status, html } = await renderListingPage(
+    adminDb(),
+    listingId,
+    languageOf(req.get('accept-language')),
+  );
+  res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
+  res.status(status).type('html').send(html);
+});

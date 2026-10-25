@@ -15,6 +15,30 @@
       "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
     }
   ],
+  "hosting": {
+    "public": "hosting/public",
+    "ignore": ["firebase.json", "**/.*.swp"],
+    "rewrites": [
+      {
+        "source": "/l/**",
+        "function": {
+          "functionId": "listingPage",
+          "region": "me-west1"
+        }
+      }
+    ],
+    "headers": [
+      {
+        "source": "/.well-known/**",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      }
+    ]
+  },
   "emulators": {
     "singleProjectMode": true,
     "auth": {

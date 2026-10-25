@@ -55,3 +55,10 @@ Set `EXPO_PUBLIC_SUPPORT_WHATSAPP` (international format without +) and `EXPO_PU
 
 ### 9. Push notifications on iPhone
 Android pushes work with the existing Firebase setup. For iOS: Apple Developer → Keys → create an **APNs** key (download the `.p8`, note the Key ID and Team ID) → Firebase console → Project settings → Cloud Messaging → Apple app configuration → upload it, for each project (dev, staging, prod). Only needed once the iOS app is built.
+
+### 10. Shared links (App Links / Universal Links)
+Shared links are `https://<project>.web.app/l/{id}` until a WeLoot domain is chosen (OPEN-12; set `EXPO_PUBLIC_SHARE_DOMAIN` then). For the links to open the app directly instead of the web page:
+1. Android: `npx eas-cli@latest credentials -p android` (from `app/`) → copy the **SHA-256 fingerprint** of each build's signing key into `hosting/public/.well-known/assetlinks.json` (and add an entry per package: `com.weloot.app`, `.staging`, `.dev`).
+2. iOS (once there's an Apple developer account): replace `TEAMID` in `hosting/public/.well-known/apple-app-site-association` with the Team ID.
+3. Deploy Hosting with the functions: `npx firebase deploy --only hosting,functions -P dev` (and staging / prod).
+Until then links open the landing page, whose "Open in WeLoot" button still opens the app.

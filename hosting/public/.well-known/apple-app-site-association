@@ -1,0 +1,5 @@
+{
+  "applinks": {
+    "details": [{ "appIDs": ["TEAMID.com.weloot.app"], "components": [{ "/": "/l/*" }] }]
+  }
+}
