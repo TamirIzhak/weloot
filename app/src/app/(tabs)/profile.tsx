@@ -99,9 +99,7 @@ function ProfileScreen({ profile }: { profile: UserProfile }) {
             first
             icon="albums-outline"
             label={t('profile.games.listings')}
-            onPress={() =>
-              router.push({ pathname: '/me/[section]', params: { section: 'listings' } })
-            }
+            onPress={() => router.push('/me/listings')}
             testID="my-listings"
           />
           <SettingsRow

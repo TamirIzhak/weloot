@@ -3,9 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { PlaceholderScreen } from '@/navigation/PlaceholderScreen';
 
-/** The user's lists from the Profile tab, until their issues land: My listings (#17), Want list (#20), Alerts (#49). */
+/** The user's lists from the Profile tab, until their issues land: Want list (#20), Alerts (#49). */
 const SECTIONS = {
-  listings: { title: 'profile.games.listings', body: 'profile.games.listingsSoon' },
   wantlist: { title: 'profile.games.wantlist', body: 'profile.games.wantlistSoon' },
   alerts: { title: 'profile.games.alerts', body: 'profile.games.alertsSoon' },
 } as const;
@@ -13,7 +12,7 @@ const SECTIONS = {
 export default function MySection() {
   const { t } = useTranslation();
   const { section } = useLocalSearchParams<{ section: string }>();
-  const keys = SECTIONS[section as keyof typeof SECTIONS] ?? SECTIONS.listings;
+  const keys = SECTIONS[section as keyof typeof SECTIONS] ?? SECTIONS.wantlist;
   return (
     <>
       <Stack.Screen options={{ title: t(keys.title) }} />

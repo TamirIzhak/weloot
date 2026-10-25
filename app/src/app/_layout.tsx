@@ -66,6 +66,7 @@ function RootNavigator() {
       <Stack.Screen name="settings/index" options={withHeader} />
       <Stack.Screen name="settings/addresses" options={withHeader} />
       <Stack.Screen name="settings/delete-account" options={withHeader} />
+      <Stack.Screen name="me/listings" options={withHeader} />
       <Stack.Screen name="me/[section]" options={withHeader} />
       <Stack.Screen name="add/details" options={withHeader} />
       <Stack.Screen name="add/done" options={{ gestureEnabled: false }} />
