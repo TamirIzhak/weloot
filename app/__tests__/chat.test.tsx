@@ -1,0 +1,220 @@
+import { fireEvent, render, screen } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import { ToastProvider } from '@/components';
+import { ConversationScreen } from '@/features/chat/ConversationScreen';
+
+const mockPush = jest.fn();
+const mockSendMessage = jest.fn();
+const mockMarkRead = jest.fn();
+const mockRespond = jest.fn();
+let mockConversation: unknown = 'loading';
+let mockMessages: unknown[] | null = [];
+let mockOffers = new Map<string, unknown>();
+
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('@/features/profile/usePublicProfile', () => ({
+  usePublicProfile: () => ({ status: 'ready', profile: { username: 'dana_games' } }),
+}));
+jest.mock('@/features/chat/chatApi', () => ({
+  useMessages: () => mockMessages,
+  useOffers: () => mockOffers,
+}));
+jest.mock('@/features/offers/offersApi', () => {
+  class OfferError extends Error {
+    reason: string;
+    constructor(reason: string) {
+      super(reason);
+      this.reason = reason;
+    }
+  }
+  return {
+    OfferError,
+    useConversation: () => mockConversation,
+    sendMessage: (...args: unknown[]) => mockSendMessage(...args),
+    markConversationRead: (...args: unknown[]) => mockMarkRead(...args),
+    respondToOffer: (...args: unknown[]) => mockRespond(...args),
+  };
+});
+
+const at = (ms: number) => ({ toMillis: () => ms });
+const CONVERSATION = {
+  id: 'l1_me',
+  listingId: 'l1',
+  ownerId: 'dana',
+  otherId: 'me',
+  participants: ['dana', 'me'],
+  openedWith: 'offer',
+  unread: { me: 2, dana: 0 },
+  currentOfferId: 'o2',
+  createdAt: at(1),
+  updatedAt: at(1),
+};
+const item = (title: string, ownerId: string) => ({
+  ownerId,
+  igdbGameId: 1,
+  gameTitle: title,
+  platform: 'ps5',
+});
+const offer = (id: string, fromUid: string, overrides: Record<string, unknown> = {}) => ({
+  id,
+  fromUid,
+  toUid: fromUid === 'me' ? 'dana' : 'me',
+  itemsFrom: fromUid === 'me' ? ['mine'] : ['l1'],
+  itemsTo: fromUid === 'me' ? ['l1'] : ['mine'],
+  listingIds: ['mine', 'l1'],
+  items: { mine: item('My Game', 'me'), l1: item('Elden Ring', 'dana') },
+  cashAgorot: 5000,
+  cashPayerId: 'me',
+  status: 'pending',
+  expiresAt: at(9e12),
+  createdAt: at(1),
+  updatedAt: at(1),
+  ...overrides,
+});
+// Newest first, as the inverted list wants them.
+const MESSAGES = [
+  { id: 'm4', senderId: 'dana', type: 'offer', offerId: 'o2', createdAt: at(4) },
+  { id: 'm3', senderId: 'system', type: 'system', event: 'offer_declined', createdAt: at(3) },
+  { id: 'm2', senderId: 'me', type: 'offer', offerId: 'o1', createdAt: at(2) },
+  { id: 'm1', senderId: 'dana', type: 'text', text: 'Hi! Still interested?', createdAt: at(1) },
+];
+
+const SAFE_AREA = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 0, left: 0, right: 0, bottom: 0 },
+};
+const renderChat = (ui: ReactElement = <ConversationScreen conversationId="l1_me" me="me" />) =>
+  render(
+    <SafeAreaProvider initialMetrics={SAFE_AREA}>
+      <ToastProvider>{ui}</ToastProvider>
+    </SafeAreaProvider>,
+  );
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockConversation = CONVERSATION;
+  mockMessages = MESSAGES;
+  mockOffers = new Map<string, unknown>([
+    ['o1', offer('o1', 'me', { status: 'declined' })],
+    ['o2', offer('o2', 'dana', { cashAgorot: 0, cashPayerId: undefined })],
+  ]);
+  mockSendMessage.mockResolvedValue({ ok: true });
+  mockMarkRead.mockResolvedValue({ ok: true });
+  mockRespond.mockResolvedValue({ status: 'accepted' });
+});
+
+describe('ConversationScreen', () => {
+  it('shows texts, offer cards and system messages in the reader’s language, and clears unread', async () => {
+    await renderChat();
+    expect(screen.getByText('Hi! Still interested?')).toBeTruthy();
+    expect(screen.getByText('Your offer')).toBeTruthy();
+    expect(screen.getByText('Offer from dana_games')).toBeTruthy();
+    expect(screen.getByText('The offer was declined.')).toBeTruthy();
+    expect(screen.getByText(/paid by you/)).toBeTruthy();
+    expect(mockMarkRead).toHaveBeenCalledWith({ conversationId: 'l1_me' });
+  });
+
+  it('lets the recipient of the latest pending offer accept, counter or decline it', async () => {
+    await renderChat();
+    // My old, declined offer has no actions; their pending one does.
+    expect(screen.queryByTestId('offer-withdraw-o1')).toBeNull();
+    await fireEvent.press(screen.getByTestId('offer-accept-o2'));
+    expect(mockRespond).toHaveBeenCalledWith({
+      conversationId: 'l1_me',
+      offerId: 'o2',
+      action: 'accept',
+    });
+    await fireEvent.press(screen.getByTestId('offer-counter-o2'));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/offer/[listingId]',
+      params: { listingId: 'l1', conversationId: 'l1_me', counter: 'o2' },
+    });
+    await fireEvent.press(screen.getByTestId('offer-decline-o2'));
+    expect(mockRespond).toHaveBeenLastCalledWith({
+      conversationId: 'l1_me',
+      offerId: 'o2',
+      action: 'decline',
+    });
+  });
+
+  it('lets the sender withdraw their pending offer', async () => {
+    mockConversation = { ...CONVERSATION, currentOfferId: 'o1' };
+    mockOffers.set('o1', offer('o1', 'me'));
+    await renderChat();
+    expect(screen.queryByTestId('offer-accept-o1')).toBeNull();
+    await fireEvent.press(screen.getByTestId('offer-withdraw-o1'));
+    expect(mockRespond).toHaveBeenCalledWith({
+      conversationId: 'l1_me',
+      offerId: 'o1',
+      action: 'withdraw',
+    });
+  });
+
+  it('explains why an answer failed', async () => {
+    const { OfferError } = jest.requireMock('@/features/offers/offersApi') as {
+      OfferError: new (reason: string) => Error;
+    };
+    mockRespond.mockRejectedValue(new OfferError('offerExpired'));
+    await renderChat();
+    await fireEvent.press(screen.getByTestId('offer-accept-o2'));
+    expect(screen.getByText('This offer expired. Send a new one instead.')).toBeTruthy();
+  });
+
+  it('sends a message and opens the offer composer', async () => {
+    await renderChat();
+    expect(screen.getByTestId('chat-send').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+    await fireEvent.changeText(screen.getByTestId('chat-input'), '  See you at 6  ');
+    await fireEvent.press(screen.getByTestId('chat-send'));
+    expect(mockSendMessage).toHaveBeenCalledWith({ conversationId: 'l1_me', text: 'See you at 6' });
+    expect(screen.getByTestId('chat-input').props.value).toBe('');
+    await fireEvent.press(screen.getByTestId('chat-offer'));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/offer/[listingId]',
+      params: { listingId: 'l1', conversationId: 'l1_me' },
+    });
+  });
+
+  it('shows the deal header and the safety tips once a deal is agreed, and no new offers', async () => {
+    mockConversation = {
+      ...CONVERSATION,
+      unread: { me: 0 },
+      deal: {
+        status: 'agreed',
+        offerId: 'o2',
+        itemsOwner: ['l1'],
+        itemsOther: ['mine'],
+        cashAgorot: 0,
+        confirmedBy: [],
+        fulfillmentMethod: 'in_person',
+        agreedAt: at(5),
+      },
+    };
+    mockOffers.set(
+      'o2',
+      offer('o2', 'dana', { status: 'accepted', cashAgorot: 0, cashPayerId: undefined }),
+    );
+    mockMessages = [
+      { id: 'm6', senderId: 'system', type: 'safety_tips', createdAt: at(6) },
+      ...MESSAGES,
+    ];
+    await renderChat();
+    expect(screen.getByText('Deal agreed: meet and swap')).toBeTruthy();
+    expect(screen.getByText('You give: My Game · You get: Elden Ring')).toBeTruthy();
+    expect(screen.getByTestId('safety-tips')).toBeTruthy();
+    expect(screen.getByTestId('chat-offer').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+    expect(screen.queryByTestId('offer-accept-o2')).toBeNull();
+    expect(mockMarkRead).not.toHaveBeenCalled();
+  });
+
+  it('says when a chat isn’t available', async () => {
+    mockConversation = null;
+    await renderChat();
+    expect(screen.getByTestId('chat-not-found')).toBeTruthy();
+  });
+});

@@ -215,3 +215,13 @@ Two accounts: A owns a listing, B browses it.
 - [ ] Cash alone for a trade-only game shows "Cash alone works only for games that are for sale"; for a For Sale game it sends.
 - [ ] A game that just went away (paused by its owner) → "One of these games isn't available anymore."
 - [ ] Hebrew: both pickers scroll from the right; labels and the amount field read correctly.
+
+## Chat (#25)
+Two accounts A (owner) and B, after B made an offer or asked a question.
+- [ ] Messages appear live on both phones; mine on the end side in the accent colour, theirs on the start side. Opening the chat clears the unread count.
+- [ ] Offer cards: "Your offer" / "Offer from <name>", You give / You get with covers, the cash line ("+ ₪50 paid by you") and the note, a status badge.
+- [ ] The recipient of the latest pending offer sees Accept / Counter / Decline; the sender sees Withdraw; older offers have no buttons.
+- [ ] Counter opens the composer prefilled; sending replaces the old offer ("Replaced").
+- [ ] Accept → "Offer accepted. It's a deal!", the safety tips card, a deal header ("Deal agreed", what each side gives, cash), and the offer button is disabled. The games disappear from search.
+- [ ] Decline / Withdraw / an offer left 72 h → the right system line, in each phone's language.
+- [ ] Hebrew: bubbles and offer cards mirror; the send arrow points left.
