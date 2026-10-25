@@ -23,6 +23,8 @@ let mockViewer = {
 let mockMatches: { id: string; data: Record<string, unknown> }[] = [];
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, replace: jest.fn() }) }));
+let mockNewForYou: { id: string; data: Record<string, unknown> }[] = [];
+const mockUpdateDoc = jest.fn();
 jest.mock('@/features/search/useViewer', () => ({ useViewer: () => mockViewer }));
 jest.mock('@/features/auth/authGate', () => ({
   useRequireAuth: () => (reason: string, action: () => void) => mockRequireAuth(reason, action),
@@ -50,10 +52,13 @@ jest.mock('@react-native-firebase/firestore', () => ({
   query: (ref: string) => ref,
   orderBy: () => null,
   limit: () => null,
-  onSnapshot: (_q: unknown, onNext: (s: unknown) => void) => {
-    onNext({ docs: mockMatches.map((m) => ({ id: m.id, data: () => m.data })) });
+  onSnapshot: (q: string, onNext: (s: unknown) => void) => {
+    const source = q.startsWith('newForYou') ? mockNewForYou : mockMatches;
+    onNext({ docs: source.map((m) => ({ id: m.id, data: () => m.data })) });
     return () => undefined;
   },
+  updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
+  serverTimestamp: () => 'SERVER_TIME',
   getDoc: (path: string) => mockGetDoc(path),
 }));
 
@@ -130,6 +135,8 @@ beforeEach(() => {
   jest.useFakeTimers();
   mockViewer = { uid: undefined, excludedUserIds: [], radiusKm: 25, pending: false };
   mockMatches = [];
+  mockNewForYou = [];
+  mockUpdateDoc.mockResolvedValue(undefined);
   useBrowsingLocation.setState({ location: null });
   mockSearch.mockResolvedValue({ results: [{ hits: [RECORD], nbHits: 1, nbPages: 1 }] });
   mockCallable.mockResolvedValue({ data: { games: [] } });
@@ -211,6 +218,34 @@ describe('Home feed', () => {
     await settle();
     expect(mockCallable).toHaveBeenCalledWith({ lat: 32.79, lng: 34.99, radiusKm: 25 });
     expect(screen.getByText('4 near you want Zelda (Switch)')).toBeTruthy();
+  });
+
+  it('shows New for you from alerts, marks it seen, and records an opening', async () => {
+    mockViewer = { uid: 'me', excludedUserIds: ['me'], radiusKm: 25, pending: false };
+    mockNewForYou = [
+      {
+        id: 'p1',
+        data: {
+          listingId: 'p1',
+          igdbGameId: 1,
+          platform: 'ps5',
+          gameTitle: 'Perfect Game',
+          areaName: 'Tel Aviv',
+          alertKey: 'w_1_any',
+          pushed: false,
+          createdAt: at(1),
+        },
+      },
+    ];
+    await renderHome();
+    await settle();
+    expect(screen.getByText('New for you')).toBeTruthy();
+    expect(mockUpdateDoc).toHaveBeenCalledWith('newForYou/me/items/p1', { seenAt: 'SERVER_TIME' });
+    await fireEvent.press(screen.getAllByTestId('listing-tile-p1')[0]!);
+    expect(mockUpdateDoc).toHaveBeenCalledWith('newForYou/me/items/p1', {
+      openedAt: 'SERVER_TIME',
+    });
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/listings/[id]', params: { id: 'p1' } });
   });
 
   it('asks for a location before counting who wants your games nearby', async () => {

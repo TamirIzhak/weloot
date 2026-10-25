@@ -5,6 +5,7 @@ import { ScrollView, View } from 'react-native';
 import { PLATFORMS, type ListingFilters, type PlatformKey } from '@weloot/shared';
 
 import { Button, Chip, EmptyState, Skeleton, Text } from '@/components';
+import { useNotifyMe } from '@/features/alerts/useNotifyMe';
 import { Carousel } from '@/features/home/Carousel';
 import { useWantToggle } from '@/features/wantlist/useWantToggle';
 import { currentLanguage, formatNumber } from '@/i18n';
@@ -13,6 +14,7 @@ import { useTabBarInset } from '@/navigation/TabBarVisibility';
 import { toTile } from './searchFilters';
 import { useEmptySuggestions } from './useEmptySuggestions';
 import type { SearchArea } from './useListingSearch';
+import { useViewer } from './useViewer';
 
 /**
  * A search that found nothing (PRD W4 "never a dead end", #48), in the PRD's order, real data only: the game with
@@ -39,6 +41,8 @@ export function EmptySearch({
   const language = currentLanguage();
   const bottomInset = useTabBarInset();
   const want = useWantToggle();
+  const notify = useNotifyMe();
+  const viewer = useViewer();
   const suggestions = useEmptySuggestions({ query, filters, area });
 
   if (!suggestions) {
@@ -54,6 +58,7 @@ export function EmptySearch({
   const n = (value: number) => formatNumber(value, language);
   const wantPlatform = filters.platform;
   const wanted = game ? want.isWanted(Number(game.objectID), wantPlatform) : false;
+  const notifying = game ? notify.isOn(Number(game.objectID), wantPlatform) : false;
   const hasRelaxed = wider !== null || unfiltered > 0;
   const hasSuggestion =
     game !== null || otherPlatforms.length > 0 || similar.length > 0 || hasRelaxed;
@@ -72,7 +77,25 @@ export function EmptySearch({
         <Text tone="secondary">{t(game ? 'search.empty.noOneHasBody' : 'search.empty.body')}</Text>
         {game ? (
           <Button
-            variant={wanted ? 'secondary' : 'primary'}
+            variant={notifying ? 'secondary' : 'primary'}
+            label={t(notifying ? 'alerts.on' : 'alerts.notifyMe')}
+            onPress={() =>
+              notify.toggle({
+                igdbGameId: Number(game.objectID),
+                ...(wantPlatform ? { platform: wantPlatform } : {}),
+                gameTitle: game.title,
+                radiusKm: area?.radiusKm ?? viewer.radiusKm,
+                ...(area && area.radiusKm !== null
+                  ? { center: { lat: area.lat, lng: area.lng } }
+                  : {}),
+              })
+            }
+            testID="empty-notify"
+          />
+        ) : null}
+        {game ? (
+          <Button
+            variant="secondary"
             label={t(wanted ? 'wantlist.onList' : 'wantlist.addButton')}
             onPress={() =>
               want.toggle({

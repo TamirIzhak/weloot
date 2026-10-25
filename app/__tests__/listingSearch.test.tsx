@@ -39,6 +39,14 @@ jest.mock('@/features/wantlist/useWantToggle', () => ({
     toggle: (...args: unknown[]) => mockToggleWant(...args),
   }),
 }));
+const mockNotifyToggle = jest.fn();
+let mockNotifying = new Set<string>();
+jest.mock('@/features/alerts/useNotifyMe', () => ({
+  useNotifyMe: () => ({
+    isOn: (id: number, platform?: string) => mockNotifying.has(`${id}_${platform ?? 'any'}`),
+    toggle: (...args: unknown[]) => mockNotifyToggle(...args),
+  }),
+}));
 jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuthState }));
 jest.mock('@/features/profile/settingsApi', () => ({ useUserSettings: () => mockSettings }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
@@ -112,6 +120,7 @@ async function type(text: string) {
 beforeEach(() => {
   jest.clearAllMocks();
   mockWanted = new Set();
+  mockNotifying = new Set();
   jest.useFakeTimers();
   mockConfigured = true;
   mockAuthState = { status: 'signedOut' };
@@ -365,10 +374,17 @@ describe('Search tab', () => {
       await act(async () => undefined);
     }
 
-    it('names the game and offers the want list', async () => {
+    it('names the game and offers Notify me and the want list', async () => {
       answer({});
       await searchFor('zelda totk');
       expect(screen.getByText('No one has Zelda: Tears of the Kingdom listed yet')).toBeTruthy();
+      await fireEvent.press(screen.getByTestId('empty-notify'));
+      expect(mockNotifyToggle).toHaveBeenCalledWith({
+        igdbGameId: 119388,
+        gameTitle: 'Zelda: Tears of the Kingdom',
+        radiusKm: 10,
+        center: { lat: 32.79, lng: 34.99 },
+      });
       await fireEvent.press(screen.getByTestId('empty-want'));
       expect(mockToggleWant).toHaveBeenCalledWith({
         igdbGameId: 119388,

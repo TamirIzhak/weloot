@@ -4,12 +4,14 @@ import { onCall, onRequest } from 'firebase-functions/v2/https';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onObjectDeleted, onObjectFinalized } from 'firebase-functions/v2/storage';
+import { getMessaging } from 'firebase-admin/messaging';
 import { getStorage } from 'firebase-admin/storage';
 import { algoliasearch } from 'algoliasearch';
 
 import { FIREBASE_REGION } from '@weloot/shared';
 
 import { firestoreAccountStore, handleDeleteAccount } from './account/deleteAccount';
+import { alertOnListingWrite, type Notifier } from './alerts/alerts';
 import { adminAuth, adminDb } from './admin';
 import { handleConfirmBarcode, handleLookupBarcode, noUpcProvider } from './barcodes/barcodes';
 import { handleDiscordSignIn } from './auth/discordSignIn';
@@ -169,6 +171,26 @@ export const matchOnWant = onDocumentWritten('wantlist/{uid}/items/{itemId}', as
 export const wantedNearYou = onCall((request) =>
   handleWantedNearYou(request.auth, request.data, { db: adminDb() }),
 );
+
+// Alerts (PRD W8, #49): a listing that becomes active reaches matching alerts and want lists (rate-limited pushes).
+const fcmNotifier: Notifier = {
+  async send(push) {
+    await getMessaging().sendEachForMulticast({
+      tokens: push.tokens,
+      notification: { title: push.title, body: push.body },
+      data: { type: 'alert', listingId: push.listingId },
+    });
+  },
+};
+
+export const alertOnListing = onDocumentWritten('listings/{listingId}', async (event) => {
+  await alertOnListingWrite(
+    { db: adminDb(), notifier: fcmNotifier },
+    event.params.listingId,
+    event.data?.before.data(),
+    event.data?.after.data(),
+  );
+});
 
 // Barcodes (PRD §5.1, #14): look a scanned code up, and record users' confirmations.
 export const lookupBarcode = onCall({ secrets: [ALGOLIA_ADMIN_KEY] }, (request) =>

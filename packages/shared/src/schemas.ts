@@ -321,18 +321,46 @@ export function wantKey(igdbGameId: number, platform?: PlatformKey): string {
 /** Most games on one want list (checked in the app; keeps matching cheap). */
 export const MAX_WANTLIST_ITEMS = 100;
 
-export const alertSchema = z
-  .object({
-    igdbGameId: z.number().int().positive().optional(),
-    platform: platform.optional(),
-    query: z.string().min(1).max(80).optional(),
-    radiusKm: z.number().int().min(1).max(200),
-    source: z.enum(ALERT_SOURCES),
-    lastNotifiedAt: timestampSchema.optional(),
-  })
-  .refine((alert) => alert.igdbGameId !== undefined || alert.query !== undefined, {
-    message: 'An alert needs a game or a search query',
-  });
+/**
+ * `alerts/{uid}/items/{igdbGameId_platform|any}` (PRD W8): "Notify me when it's listed" from an empty search.
+ * Always a catalog game (free text would mean scanning every alert on every listing), around the area the user was
+ * browsing (area level) within `radiusKm`. Want list items alert too, without a doc here.
+ */
+export const alertSchema = z.object({
+  igdbGameId: z.number().int().positive(),
+  platform: platform.optional(),
+  gameTitle: z.string().min(1).max(200),
+  radiusKm: z.number().int().min(1).max(200),
+  /** Area-level centre (the browsing location when the alert was made); none = anywhere in Israel. */
+  lat: latitude.optional(),
+  lng: longitude.optional(),
+  source: z.enum(ALERT_SOURCES),
+  createdAt: timestampSchema,
+});
+export type Alert = z.infer<typeof alertSchema>;
+
+/** Most "Notify me" alerts per user (checked in the app). */
+export const MAX_ALERTS = 50;
+
+/**
+ * `newForYou/{uid}/items/{listingId}` 🔒 (PRD W8): listings an alert or want list item found, shown on Home under
+ * "New for you" (pushed or not: pushes are rate-limited). The owner marks them seen/opened, and can dismiss them.
+ */
+export const newForYouSchema = z.object({
+  listingId: id,
+  igdbGameId: z.number().int().positive(),
+  platform,
+  gameTitle: z.string().min(1),
+  areaName: z.string().min(1),
+  cityId: cityIdSchema.optional(),
+  /** Which alert found it: `a_<alertId>` or `w_<wantlistItemId>`. */
+  alertKey: z.string().min(1),
+  pushed: z.boolean(),
+  createdAt: timestampSchema,
+  seenAt: timestampSchema.optional(),
+  openedAt: timestampSchema.optional(),
+});
+export type NewForYou = z.infer<typeof newForYouSchema>;
 
 /**
  * `matches/{userId}/items/{otherUserId}` 🔒 (PRD W3): what the other user has that this user wants, and whether it's

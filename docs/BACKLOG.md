@@ -99,31 +99,31 @@ Status: ✅ merged · 🔄 in progress
 
 ## M3 — Discovery & engagement (`v0.4.0`)
 
-**#57 feat(ui): adaptive listing grid with pinch and a layout toggle (1–3 per row)** · M · deps #4, #6, #16
+**✅ #57 feat(ui): adaptive listing grid with pinch and a layout toggle (1–3 per row)** · M · deps #4, #6, #16
 - Shared `ListingGrid` (virtualized) for Search results and Home feeds; density 1, 2 or 3 per row, **default 2**; pinch to change (one step per gesture, animated, keeps scroll position) plus a visible 1/2/3 layout toggle; choice remembered per user; tile content adapts by density (PRD §3.3).
 - AC: pinch and toggle both switch densities smoothly; density persists across restarts; every density is screen-reader accessible; smooth at 3 columns with 100+ items on a mid-range Android; correct in RTL.
 
-**#18 feat(search): listings index and search tab** · L · deps #16, #57
+**✅ #18 feat(search): listings index and search tab** · L · deps #16, #57
 - Algolia `listings` index (only `active`, `hasPhotos` boost), filters (platform, trade/sale, condition, price, distance from the browsing location), results in the adaptive grid (#57); recent searches and popular games on an empty query; excludes own and blocked users.
 
-**#19 feat(listings): game detail screen** · M · deps #18
+**✅ #19 feat(listings): game detail screen** · M · deps #18
 - Cover/photo gallery, owner card with trust signals (rating, trade count, account age), report listing. Offer/question buttons arrive with #24.
 
-**#20 feat(matching): want list** · M · deps #13
+**✅ #20 feat(matching): want list** · M · deps #13
 - Add/remove from search results and game detail; Profile → Want List; rules + tests; `wantlist_added`.
 
-**#21 feat(matching): match computation** · L · deps #16, #20
+**✅ #21 feat(matching): match computation** · L · deps #16, #20
 - Functions on listing/wantlist writes maintain `matches` (perfect + one-way, score, distance) per PRD W3.
 - AC: tests for add/remove/pause/reserve cases; recomputation is incremental, not full-scan.
 
-**#22 feat(home): home feed carousels** · M · deps #21, #18, #57
+**✅ #22 feat(home): home feed carousels** · M · deps #21, #18, #57
 - Perfect Matches, Has games you want, New near you, Wanted near you (real counts); "See all" opens the full list in the adaptive grid (#57); skeletons; empty states with CTAs to list games or build the want list.
 
-**#48 feat(search): smart empty states and suggestions** · M · deps #18, #20
+**✅ #48 feat(search): smart empty states and suggestions** · M · deps #18, #20
 - Zero-result flow (PRD W4): notify me, add to want list, other platforms, similar listed games, relaxed-filter counts. `search_no_results` event.
 - AC: every empty search shows at least one action; suggestions use real listings only.
 
-**#49 feat(alerts): saved searches and "notify me" alerts** · M · deps #48, #21
+**✅ #49 feat(alerts): saved searches and "notify me" alerts** · M · deps #48, #21
 - `alerts` collection + rules; function on new/reactivated listings → matching alerts → rate-limited push (PRD W8); want-list items act as alerts; Profile → Alerts; "New for you" on Home.
 - AC: rate limits enforced (tests); `alert_created`, `alert_notified`, `alert_opened`.
 

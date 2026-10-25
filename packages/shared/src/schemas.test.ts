@@ -258,10 +258,12 @@ describe('messageSchema, alertSchema, ratingSchema', () => {
     ).toBe(true);
   });
 
-  it('needs a game or a query for an alert', () => {
-    expect(alertSchema.safeParse({ radiusKm: 20, source: 'search' }).success).toBe(false);
-    expect(alertSchema.safeParse({ query: 'zelda', radiusKm: 20, source: 'search' }).success).toBe(
-      true,
+  it('needs a catalog game for an alert (no free-text alerts)', () => {
+    const alert = { gameTitle: 'Zelda', radiusKm: 20, source: 'search', createdAt: ts };
+    expect(alertSchema.safeParse({ ...alert, query: 'zelda' }).success).toBe(false);
+    expect(alertSchema.safeParse({ ...alert, igdbGameId: 119388 }).success).toBe(true);
+    expect(alertSchema.safeParse({ ...alert, igdbGameId: 119388, lat: 51, lng: 0 }).success).toBe(
+      false,
     );
   });
 
