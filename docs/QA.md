@@ -95,3 +95,13 @@ Needs the dev build with the camera (#63), the functions running, a catalog (#12
 - [ ] A game on several consoles needs a console choice before Continue; a single-console game is chosen automatically.
 - [ ] Search mode alone works without scanning.
 - [ ] Leaving the + tab turns the camera off (no camera indicator).
+
+## Location, details and publish (#16)
+Needs the functions running and at least one game in the catalog.
+- [ ] After choosing the game and console: "Your listing" shows the game, then "Where you swap from" with the first saved address pre-selected (or "Add an address" if none).
+- [ ] Publish stays disabled until a condition is chosen and Trade and/or Sale is on.
+- [ ] Sale: a price under ₪10 or over ₪1,000 is explained; letters can't be typed.
+- [ ] Publish → "Your game is listed!" with the photo nudge; "List another game" returns to a fresh Identify step.
+- [ ] Emulator UI → `listings/<id>`: status `active`, game title, cover, condition, the area (rounded lat/lng, area name) and **no** address text or exact coordinates.
+- [ ] Double-tapping Publish creates one listing.
+- [ ] Delete account (#11) afterwards: the listing's status becomes `removed`.

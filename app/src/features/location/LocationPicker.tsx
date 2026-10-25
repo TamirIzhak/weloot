@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -19,14 +20,22 @@ export function LocationPicker({
   uid,
   selectedId,
   onSelect,
+  autoSelectFirst,
 }: {
   uid: string;
   selectedId: string | undefined;
   onSelect: (item: SavedLocationWithId) => void;
+  /** Called with the first address's ID when nothing is selected yet (e.g. the only address, Home). */
+  autoSelectFirst?: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const router = useRouter();
   const saved = useSavedLocations(uid);
+  const firstId = saved.status === 'ready' ? saved.items[0]?.id : undefined;
+
+  useEffect(() => {
+    if (firstId && selectedId === undefined) autoSelectFirst?.(firstId);
+  }, [firstId, selectedId, autoSelectFirst]);
 
   if (saved.status === 'loading') return <ActivityIndicator color={colors.primary} />;
   if (saved.status === 'error') return <ErrorState title={t('location.errors.loadFailed')} />;

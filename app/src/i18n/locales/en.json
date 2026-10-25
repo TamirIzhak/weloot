@@ -381,10 +381,46 @@
         "openSettings": "Open settings"
       }
     },
-    "details": {
+    "condition": {
+      "new_sealed": "New, sealed",
+      "like_new": "Like new",
+      "good": "Good",
+      "acceptable": "Acceptable"
+    },
+    "form": {
       "title": "Your listing",
-      "soonTitle": "Almost there",
-      "soonBody": "Location, condition and publishing come next."
+      "location": "Where you swap from",
+      "locationHint": "Others see only the area and an approximate distance.",
+      "condition": "Condition",
+      "hasCase": "Original case included",
+      "availability": "Available for",
+      "availabilityHint": "Choose one or both.",
+      "forTrade": "Trade",
+      "forSale": "Sale",
+      "price": "Asking price ({{currency}})",
+      "pricePlaceholder": "150",
+      "priceHint": "Whole shekels, ₪10–₪1,000. Paid in person, not in the app.",
+      "priceInvalid": "Enter a price between ₪10 and ₪1,000.",
+      "notes": "Notes (optional)",
+      "notesPlaceholder": "e.g. Disc has light scratches, includes the map",
+      "notesHint": "{{count}}/300",
+      "publish": "Publish"
+    },
+    "done": {
+      "title": "Your game is listed!",
+      "body": "Others nearby can find it now. We’ll let you know when someone makes an offer.",
+      "photoNudgeTitle": "Add a photo of your disc to get more offers",
+      "photoNudgeBody": "Listings with real photos get a badge and show up higher. Photos are coming soon.",
+      "another": "List another game",
+      "finish": "Done"
+    },
+    "errors": {
+      "publishFailed": "Couldn’t publish. Check your connection and try again.",
+      "unknownLocation": "That address is gone. Choose another one.",
+      "wrongPlatform": "This game isn’t on that console. Go back and pick another.",
+      "unknownGame": "We can’t find this game anymore. Go back and pick it again.",
+      "phoneRequired": "Verify your phone first, then publish.",
+      "profileRequired": "Finish setting up your profile first."
     }
   }
 }

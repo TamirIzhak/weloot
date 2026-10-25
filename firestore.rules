@@ -8,6 +8,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Listings (PRD W1, W2): active listings are public (guests too); owners also see their own in any status. Only
+    // Cloud Functions write them (publish, status changes, photos), so status and location can't be forged.
+    match /listings/{listingId} {
+      allow read: if resource.data.status == 'active'
+        || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow write: if false;
+    }
+
     // Game catalog (PRD §5.1): synced from IGDB by a Cloud Function; readable by everyone, guests included.
     match /games/{gameId} {
       allow read: if true;

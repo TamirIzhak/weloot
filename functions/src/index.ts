@@ -14,6 +14,7 @@ import { handleDiscordSignIn } from './auth/discordSignIn';
 import { syncCatalog, type SyncMode } from './catalog/catalogSync';
 import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
+import { handlePublishListing, removeListingsOf } from './listings/publishListing';
 import {
   configureGamesIndex,
   searchGamesIndex,
@@ -50,7 +51,11 @@ export const discordSignIn = onCall({ secrets: [DISCORD_CLIENT_SECRET] }, (reque
 
 // Delete account (PRD W9, #11): deletes personal data, frees the username, leaves a tombstone, deletes the Auth user.
 export const deleteAccount = onCall((request) =>
-  handleDeleteAccount(request.auth, { store: firestoreAccountStore(adminDb()), auth: adminAuth() }),
+  handleDeleteAccount(request.auth, {
+    store: firestoreAccountStore(adminDb()),
+    auth: adminAuth(),
+    cleanups: [removeListingsOf(adminDb())],
+  }),
 );
 
 /** The Algolia admin client, or null until the Algolia app is set up (docs/OWNER-TODO.md 5). */
@@ -134,4 +139,9 @@ export const lookupBarcode = onCall({ secrets: [ALGOLIA_ADMIN_KEY] }, (request) 
 
 export const confirmBarcode = onCall((request) =>
   handleConfirmBarcode(request.auth, request.data, { db: adminDb() }),
+);
+
+// Publish a listing (PRD W2, #16): validated and completed server-side (status, game fields, area-only location).
+export const publishListing = onCall((request) =>
+  handlePublishListing(request.auth, request.data, { db: adminDb() }),
 );

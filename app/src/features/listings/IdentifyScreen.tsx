@@ -1,5 +1,5 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -31,6 +31,13 @@ export function IdentifyScreen() {
   const setIdentified = useAddDraft((s) => s.setIdentified);
   const [step, setStep] = useState<Step>({ kind: 'scan', attempt: 0 });
   const mode = step.kind === 'search' || step.kind === 'platform' ? 'search' : 'scan';
+
+  // Back on + after publishing (the draft was cleared): start over.
+  useFocusEffect(
+    useCallback(() => {
+      if (!useAddDraft.getState().game) setStep({ kind: 'scan', attempt: Date.now() });
+    }, []),
+  );
 
   const scanned = async (ean: string) => {
     setStep({ kind: 'looking', ean });
