@@ -8,6 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components';
 import { useRequireAuth, type SignInReason } from '@/features/auth/authGate';
+import { useInboxBadge } from '@/features/inbox/useInboxBadge';
+import { currentLanguage, formatNumber } from '@/i18n';
 import { colors } from '@/theme/tokens';
 
 import { TAB_BAR_HEIGHT, useTabBarVisibility } from './TabBarVisibility';
@@ -52,6 +54,7 @@ export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   }, [state.index, show]);
 
   const requireAuth = useRequireAuth();
+  const unread = useInboxBadge();
 
   // Same contract as the default tab bar: listeners may prevent the switch; pressing the active tab is a no-op.
   const pressTab = (routeKey: string, focused: boolean, reason: SignInReason | undefined) => {
@@ -103,17 +106,31 @@ export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
           <Pressable
             key={tab.name}
             accessibilityRole="tab"
-            accessibilityLabel={label}
+            accessibilityLabel={
+              tab.name === 'inbox' && unread > 0 ? t('tabs.inboxUnread', { count: unread }) : label
+            }
             accessibilityState={{ selected: focused }}
             onPress={onPress}
             testID={`tab-${tab.name}`}
             className="flex-1 items-center justify-center gap-0.5 py-2"
           >
-            <Ionicons
-              name={focused ? tab.activeIcon : tab.icon}
-              size={24}
-              color={focused ? colors.accent : colors['text-secondary']}
-            />
+            <View>
+              <Ionicons
+                name={focused ? tab.activeIcon : tab.icon}
+                size={24}
+                color={focused ? colors.accent : colors['text-secondary']}
+              />
+              {tab.name === 'inbox' && unread > 0 ? (
+                <View
+                  className="absolute -end-2 -top-1 min-w-4 items-center rounded-chip bg-danger px-1"
+                  testID="inbox-badge"
+                >
+                  <Text variant="caption" className="text-[10px] font-semibold text-on-primary">
+                    {unread > 99 ? t('tabs.manyUnread') : formatNumber(unread, currentLanguage())}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
             <Text
               variant="caption"
               className={focused ? 'text-accent text-[11px]' : 'text-text-secondary text-[11px]'}

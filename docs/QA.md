@@ -236,3 +236,10 @@ Two accounts after an accepted offer.
 - [ ] My listings → Swapped → "Who with?" lists the deal partner first ("your deal"), then people you chatted with about it in the last 30 days, then "Someone outside WeLoot". Choosing a person does the same as Swapped in the chat.
 - [ ] Agreed in chat without an accepted offer: My listings → Swapped → pick the chat partner → they get "Did you swap…?".
 - [ ] After 2 days with the deal still agreed: "Did the swap happen?" in the chat. Waiting for a confirmation: reminders after 1 and 3 days, and after 7 days "wasn't confirmed… doesn't count".
+
+## Inbox (#26)
+- [ ] Inbox tab (signed in): groups "Needs action" (offers waiting for your answer, swaps to confirm), "Active deals", "Chats", "Completed"; empty groups are hidden.
+- [ ] Each row: the other person's username, the game (also after it's reserved or closed), a line (last message, or what's needed), and an unread count; tap opens the chat and the count clears.
+- [ ] The Inbox tab icon shows the total unread (99+ above 99) and updates live; TalkBack reads "Inbox, 3 unread".
+- [ ] No conversations → "No conversations yet" with Find games.
+- [ ] Hebrew: rows and badges mirror.
