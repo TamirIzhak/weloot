@@ -121,3 +121,13 @@ Needs the new dev build (camera, image picker) and the Storage emulator/bucket.
 - [ ] Pause → badge Paused and the listing is hidden from others (Emulator UI status); Resume brings it back.
 - [ ] Swapped → "Who with?" → "Someone outside WeLoot" → badge Swapped; no actions left on it.
 - [ ] Remove asks first, then shows Removed.
+
+## Adaptive listing grid (#57)
+Dev build: Home → "Listing grid preview (dev)" (150 sample tiles; development only). Real feeds use it from #18/#22.
+- [ ] Starts at 2 per row. The toggle (list / grid / apps icons) switches 1 ↔ 2 ↔ 3.
+- [ ] Pinch out → bigger tiles (fewer per row); pinch in → more per row; one step per pinch.
+- [ ] After switching, the list stays near the same games (doesn't jump to the top).
+- [ ] 1 per row: full card with condition, area and distance; 2: cover, title, platform, price/Trade, "Real photos"; 3: cover with a color strip and price/Trade.
+- [ ] Scrolling at 3 per row stays smooth to the end.
+- [ ] Close and reopen the app: the chosen density is kept.
+- [ ] Hebrew: columns start from the right; TalkBack reads title, console, condition, price/trade and distance on every density.
