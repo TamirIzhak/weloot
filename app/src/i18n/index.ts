@@ -5,7 +5,7 @@ import { currentLanguage } from './language';
 import en from './locales/en.json';
 import he from './locales/he.json';
 
-export { formatNumber, formatPrice, isolate } from './format';
+export { formatDate, formatMonthYear, formatNumber, formatPrice, isolate } from './format';
 export { currentLanguage, isRTLLanguage, LANGUAGES, setLanguage, type Language } from './language';
 
 export const resources = { en: { translation: en }, he: { translation: he } } as const;

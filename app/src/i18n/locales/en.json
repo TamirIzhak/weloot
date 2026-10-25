@@ -160,7 +160,8 @@
       "add": "Sign in to list your game",
       "inbox": "Sign in to see your offers and chats",
       "profile": "Join WeLoot",
-      "message": "Sign in to send messages"
+      "message": "Sign in to send messages",
+      "report": "Sign in to report it"
     },
     "methods": {
       "title": "Welcome to WeLoot",
@@ -470,6 +471,30 @@
     },
     "tile": {
       "distance": "~{{km}} km"
+    },
+    "detail": {
+      "title": "Game",
+      "loadFailed": "Couldn’t load this listing. Check your connection.",
+      "goneTitle": "This listing isn’t available anymore",
+      "goneBody": "The owner paused, closed or removed it.",
+      "searchOthers": "Search for other copies",
+      "case": "Case",
+      "caseYes": "Original case included",
+      "caseNo": "No case",
+      "area": "Area",
+      "areaDistance": "{{area}} · ~{{distance}} km away",
+      "listed": "Listed",
+      "listedOn": "{{date}}",
+      "notes": "From the owner",
+      "rating": "★ {{avg}} ({{count}} ratings)",
+      "noRatings": "No ratings yet",
+      "trustLine": "Completed trades: {{trades}} · Member since {{since}}",
+      "yours": "This is your listing.",
+      "manage": "Manage my listings",
+      "report": "Report listing",
+      "coverLabel": "Cover of {{title}}",
+      "photoLabel": "Photo {{n}} of {{total}}",
+      "photoCount": "{{n}}/{{total}}"
     }
   },
   "search": {
@@ -519,5 +544,31 @@
     },
     "error": "Search isn’t working right now. Try again.",
     "notConfigured": "Listing search isn’t set up yet (Algolia keys missing)."
+  },
+  "safety": {
+    "report": {
+      "title": "Report",
+      "intro": "Tell us what’s wrong. Reports are private: the other person doesn’t see who sent them.",
+      "reason": "What’s the problem?",
+      "reasons": {
+        "scam": "Scam or fraud",
+        "fake_or_damaged": "Fake or not as described",
+        "no_show": "Didn’t show up",
+        "offensive": "Offensive",
+        "spam": "Spam",
+        "swap_didnt_happen": "The swap didn’t happen",
+        "other": "Something else"
+      },
+      "details": "Details (optional)",
+      "detailsPlaceholder": "What happened?",
+      "send": "Send report",
+      "sent": "Thanks. We’ll look into it.",
+      "errors": {
+        "failed": "Couldn’t send the report. Try again.",
+        "rateLimited": "You’ve sent a lot of reports today. Try again tomorrow, or contact support.",
+        "notFound": "This listing doesn’t exist anymore.",
+        "ownTarget": "You can’t report your own listing."
+      }
+    }
   }
 }

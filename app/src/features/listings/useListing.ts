@@ -11,7 +11,10 @@ export type ListingState =
   | { status: 'missing' }
   | { status: 'error' };
 
-/** Follows `listings/{id}` (Security Rules: active listings for everyone, any status for the owner). */
+/**
+ * Follows `listings/{id}` (Security Rules: active listings for everyone, any status for the owner). A listing
+ * someone else paused or closed can't be read, so a permission error means `missing` ("not available anymore").
+ */
 export function useListing(listingId: string | undefined): ListingState {
   const [state, setState] = useState<{ id: string; value: ListingState } | null>(null);
 
@@ -32,7 +35,11 @@ export function useListing(listingId: string | undefined): ListingState {
             : { status: 'error' },
         });
       },
-      () => setState({ id: listingId, value: { status: 'error' } }),
+      (error: unknown) => {
+        const code = (error as { code?: unknown } | null)?.code;
+        const denied = code === 'firestore/permission-denied' || code === 'permission-denied';
+        setState({ id: listingId, value: { status: denied ? 'missing' : 'error' } });
+      },
     );
   }, [listingId]);
 

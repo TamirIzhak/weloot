@@ -19,6 +19,7 @@ import { healthPayload } from './health';
 import { deletePhotosOf, syncListingPhotos, type PhotoDeps } from './listings/listingPhotos';
 import { handleManageListing } from './listings/manageListing';
 import { handlePublishListing, removeListingsOf } from './listings/publishListing';
+import { handleSubmitReport } from './reports/submitReport';
 import {
   configureGamesIndex,
   searchGamesIndex,
@@ -187,4 +188,9 @@ export const onListingPhotoDeleted = onObjectDeleted(async (event) => {
 // Owner actions on a listing (PRD W6, #17): pause, resume, remove, Swapped/Sold.
 export const manageListing = onCall((request) =>
   handleManageListing(request.auth, request.data, { db: adminDb() }),
+);
+
+// Reports (PRD W9, #19): listings for now; users, messages and deals with #37.
+export const submitReport = onCall((request) =>
+  handleSubmitReport(request.auth, request.data, { db: adminDb() }),
 );

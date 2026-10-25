@@ -33,5 +33,15 @@ describe('firestore default deny', () => {
   it('denies access to server-only collections', async () => {
     const db = env.authenticatedContext('alice').firestore();
     await assertFails(getDoc(doc(db, 'system/doneToken')));
+    // Reports go through submitReport only: nobody reads them, and nobody writes them directly (#19).
+    await assertFails(getDoc(doc(db, 'reports/alice_listing_l1')));
+    await assertFails(
+      setDoc(doc(db, 'reports/alice_listing_l1'), {
+        reporterId: 'alice',
+        targetType: 'listing',
+        targetId: 'l1',
+        reason: 'scam',
+      }),
+    );
   });
 });
