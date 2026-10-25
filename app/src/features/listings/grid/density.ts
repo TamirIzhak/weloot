@@ -22,9 +22,13 @@ export function nextDensity(current: Density, scale: number): Density {
 type DensityStore = {
   density: Density;
   setDensity: (density: Density) => void;
-  /** Index of the first visible item, so a grid reopened at a new density starts at the same place (not saved). */
-  anchor: number;
-  setAnchor: (index: number) => void;
+  /**
+   * First visible item per mounted grid (by grid id), so a grid reopened at a new density starts at the same place.
+   * Per grid, so one feed's position never moves another; not saved.
+   */
+  anchors: Record<string, number>;
+  setAnchor: (gridId: string, index: number) => void;
+  forgetAnchor: (gridId: string) => void;
 };
 
 export const useGridDensity = create<DensityStore>()(
@@ -32,8 +36,13 @@ export const useGridDensity = create<DensityStore>()(
     (set) => ({
       density: DEFAULT_DENSITY,
       setDensity: (density) => set({ density }),
-      anchor: 0,
-      setAnchor: (anchor) => set({ anchor }),
+      anchors: {},
+      setAnchor: (gridId, index) => set((s) => ({ anchors: { ...s.anchors, [gridId]: index } })),
+      forgetAnchor: (gridId) =>
+        set((s) => {
+          const { [gridId]: _gone, ...anchors } = s.anchors;
+          return { anchors };
+        }),
     }),
     {
       name: 'weloot.gridDensity',

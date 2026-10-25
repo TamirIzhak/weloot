@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { type ComponentProps, type ReactElement } from 'react';
+import { useEffect, useId, useState, type ComponentProps, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   FlatList,
@@ -28,12 +28,14 @@ const DENSITY_ICONS: Record<Density, ComponentProps<typeof Ionicons>['name']> = 
 };
 
 /**
- * Remembers the first visible item. FlatList reports items (not rows) even with several columns. Module-level so it
- * never changes (FlatList doesn't allow a new callback on the fly).
+ * Remembers a grid's first visible item. FlatList reports items (not rows) even with several columns. Created once
+ * per grid (FlatList doesn't allow a new callback on the fly).
  */
-function onViewableItemsChanged({ viewableItems }: { viewableItems: ListViewToken[] }) {
-  const first = viewableItems[0]?.index;
-  if (typeof first === 'number') useGridDensity.getState().setAnchor(first);
+function anchorTracker(gridId: string) {
+  return ({ viewableItems }: { viewableItems: ListViewToken[] }) => {
+    const first = viewableItems[0]?.index;
+    if (typeof first === 'number') useGridDensity.getState().setAnchor(gridId, first);
+  };
 }
 
 /** The 1/2/3 layout toggle shown above each feed (pinch alone isn't discoverable or accessible). */
@@ -93,11 +95,14 @@ export function ListingGrid({
   const { width } = useWindowDimensions();
   const density = useGridDensity((s) => s.density);
   const setDensity = useGridDensity((s) => s.setDensity);
+  const gridId = useId();
+  const [onViewableItemsChanged] = useState(() => anchorTracker(gridId));
+  useEffect(() => () => useGridDensity.getState().forgetAnchor(gridId), [gridId]);
   const layout = gridLayout(width - SIDE_PADDING * 2, density, GAP);
-  // Read once per mount (the list remounts on every density change): start at the row of the last first-visible item.
+  // Used once per FlatList mount (it remounts on every density change): start at this grid's last first-visible row.
   const rows = Math.ceil(items.length / density);
   const startRow = Math.min(
-    Math.floor(useGridDensity.getState().anchor / density),
+    Math.floor((useGridDensity.getState().anchors[gridId] ?? 0) / density),
     Math.max(0, rows - 1),
   );
 

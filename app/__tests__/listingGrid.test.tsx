@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import {
   DEFAULT_DENSITY,
@@ -33,7 +33,7 @@ const ITEM: ListingTileData = {
 };
 
 beforeEach(() => {
-  useGridDensity.setState({ density: DEFAULT_DENSITY, anchor: 0 });
+  useGridDensity.setState({ density: DEFAULT_DENSITY, anchors: {} });
 });
 
 describe('density', () => {
@@ -116,15 +116,40 @@ describe('DensityToggle and ListingGrid', () => {
       }
     ).persist;
     expect(
-      persist.getOptions().partialize({ density: 3, anchor: 40, setDensity: jest.fn() }),
+      persist.getOptions().partialize({ density: 3, anchors: { a: 40 }, setDensity: jest.fn() }),
     ).toEqual({
       density: 3,
     });
   });
 
   it('reopens near the same item after a density change', async () => {
-    useGridDensity.setState({ density: 3, anchor: 7 });
-    await render(<ListingGrid items={items} />);
+    await render(
+      <>
+        <DensityToggle />
+        <ListingGrid items={items} />
+      </>,
+    );
+    // Scrolled so item 7 is the first visible one (row 3 at 2 per row).
+    await act(() =>
+      screen
+        .getByTestId('listing-grid')
+        .props.onViewableItemsChanged({ viewableItems: [{ index: 7 }] }),
+    );
+    await fireEvent.press(screen.getByTestId('density-3'));
     expect(screen.getByTestId('listing-grid').props.initialScrollIndex).toBe(2);
+  });
+
+  it("does not start a new grid at another grid's position, and forgets a closed grid", async () => {
+    useGridDensity.setState({ anchors: { other: 9 } });
+    const { unmount } = await render(<ListingGrid items={items} />);
+    expect(screen.getByTestId('listing-grid').props.initialScrollIndex).toBe(0);
+    await act(() =>
+      screen
+        .getByTestId('listing-grid')
+        .props.onViewableItemsChanged({ viewableItems: [{ index: 4 }] }),
+    );
+    expect(Object.keys(useGridDensity.getState().anchors)).toHaveLength(2);
+    await unmount();
+    expect(useGridDensity.getState().anchors).toEqual({ other: 9 });
   });
 });
