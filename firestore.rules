@@ -95,6 +95,28 @@ service cloud.firestore {
       allow delete: if signedInAs(uid);
     }
 
+    // Conversations, messages and offers (PRD W5, #23): only the two participants read them; nobody writes them
+    // directly (status, deal and offer fields go through the callables and their state machines).
+    function isParticipant(conversationId) {
+      return request.auth != null
+        && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
+    match /conversations/{conversationId} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.participants;
+      allow write: if false;
+
+      match /messages/{messageId} {
+        allow read: if isParticipant(conversationId);
+        allow write: if false;
+      }
+
+      match /offers/{offerId} {
+        allow read: if isParticipant(conversationId);
+        allow write: if false;
+      }
+    }
+
     // "Notify me" alerts (PRD W8, #49): the owner only. A real catalog game on one of its consoles (or any), with its
     // catalog title, keyed like want list items so one game alerts once; an optional area-level centre in Israel.
     match /alerts/{uid}/items/{alertId} {
