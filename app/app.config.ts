@@ -108,6 +108,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     '@react-native-firebase/auth',
     '@react-native-firebase/analytics',
     '@react-native-firebase/crashlytics',
+    '@react-native-firebase/app-check',
     '@react-native-firebase/messaging',
     // RTL: Hebrew layouts mirror via I18nManager (PRD §3.5, ADR 0002).
     ['expo-localization', { supportsRTL: true }],
