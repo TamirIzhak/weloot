@@ -42,6 +42,12 @@ jest.mock('@/features/wantlist/useWantToggle', () => ({
 jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuthState }));
 jest.mock('@/features/profile/settingsApi', () => ({ useUserSettings: () => mockSettings }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
+const mockGameDoc = jest.fn();
+jest.mock('@react-native-firebase/firestore', () => ({
+  getFirestore: () => ({}),
+  doc: (_db: unknown, ...segments: string[]) => segments.join('/'),
+  getDoc: (path: string) => mockGameDoc(path),
+}));
 jest.mock('react-native-gesture-handler', () => {
   const chain = { runOnJS: () => chain, onEnd: () => chain };
   return {
@@ -90,7 +96,7 @@ const facets = (counts: Record<string, number>) => ({
 const listingRequests = () =>
   mockSearch.mock.calls
     .map(([arg]) => (arg as { requests: Record<string, unknown>[] }).requests[0]!)
-    .filter((request) => request.hitsPerPage !== 0);
+    .filter((request) => request.indexName === 'listings' && request.hitsPerPage !== 0);
 
 async function settle() {
   await act(async () => {
@@ -116,6 +122,7 @@ beforeEach(() => {
   mockSearch.mockImplementation(async ({ requests }: { requests: { hitsPerPage: number }[] }) =>
     requests[0]!.hitsPerPage === 0 ? facets({}) : page([RECORD]),
   );
+  mockGameDoc.mockResolvedValue({ data: () => ({ similarGameIds: [] }) });
 });
 
 afterEach(() => {
@@ -303,6 +310,110 @@ describe('Search tab', () => {
     await fireEvent.press(screen.getByText('Search all of Israel'));
     await settle();
     expect(listingRequests().at(-1)).not.toHaveProperty('aroundRadius');
+  });
+
+  describe('when nothing matches (#48)', () => {
+    const GAME = {
+      objectID: '119388',
+      title: 'Zelda: Tears of the Kingdom',
+      slug: 'zelda-totk',
+      platforms: ['switch'],
+      genres: [],
+      altNames: [],
+    };
+    type Req = {
+      indexName: string;
+      hitsPerPage: number;
+      facets?: string[];
+      filters?: string;
+      aroundRadius?: number;
+      query: string;
+    };
+    /** Answers each query of the empty-state round trips like the indexes would. */
+    function answer(opts: {
+      otherPlatforms?: Record<string, number>;
+      similar?: unknown[];
+      wider?: number;
+      unfiltered?: number;
+    }) {
+      mockSearch.mockImplementation(async ({ requests }: { requests: Req[] }) => ({
+        results: requests.map((r) => {
+          if (r.indexName === 'games') return { hits: [GAME] };
+          if (r.facets?.includes('platform'))
+            return { hits: [], facets: { platform: opts.otherPlatforms ?? {} } };
+          if (r.facets?.includes('gameTitle')) return { hits: [], facets: { gameTitle: {} } };
+          if (r.filters?.includes('igdbGameId:1'))
+            return { hits: opts.similar ?? [], nbHits: (opts.similar ?? []).length };
+          if (r.hitsPerPage === 0 && r.aroundRadius !== 10_000)
+            return { hits: [], nbHits: opts.wider ?? 0 };
+          if (r.hitsPerPage === 0) return { hits: [], nbHits: opts.unfiltered ?? 0 };
+          return { hits: [], nbHits: 0, nbPages: 0 };
+        }),
+      }));
+    }
+
+    beforeEach(() => {
+      useBrowsingLocation.setState({ location: HAIFA });
+      mockAuthState = { status: 'signedIn', user: { uid: 'me' } };
+      mockSettings = { status: 'ready', settings: { blockedUserIds: [], searchRadiusKm: 10 } };
+    });
+
+    async function searchFor(text: string) {
+      await render(<ListingSearchScreen />);
+      await type(text);
+      await act(async () => undefined);
+      await act(async () => undefined);
+    }
+
+    it('names the game and offers the want list', async () => {
+      answer({});
+      await searchFor('zelda totk');
+      expect(screen.getByText('No one has Zelda: Tears of the Kingdom listed yet')).toBeTruthy();
+      await fireEvent.press(screen.getByTestId('empty-want'));
+      expect(mockToggleWant).toHaveBeenCalledWith({
+        igdbGameId: 119388,
+        gameTitle: 'Zelda: Tears of the Kingdom',
+      });
+    });
+
+    it('shows the same game on other consoles, and switches to one', async () => {
+      answer({ otherPlatforms: { switch: 0, ps5: 3 } });
+      await searchFor('zelda');
+      expect(screen.getByText('PS5 · 3')).toBeTruthy();
+      expect(screen.queryByText(/^Switch · /)).toBeNull();
+      await fireEvent.press(screen.getByTestId('empty-platform-ps5'));
+      await settle();
+      expect(listingRequests().at(-1)).toMatchObject({
+        filters: expect.stringContaining('platform:ps5'),
+      });
+    });
+
+    it('shows similar games that are really listed', async () => {
+      mockGameDoc.mockResolvedValue({ data: () => ({ similarGameIds: [1, 2] }) });
+      answer({
+        similar: [{ ...RECORD, objectID: 's1', igdbGameId: 1, gameTitle: 'Breath of the Wild' }],
+      });
+      await searchFor('zelda');
+      expect(mockGameDoc).toHaveBeenCalledWith('games/119388');
+      expect(screen.getByText('Similar games that are listed')).toBeTruthy();
+      expect(screen.getByText('Breath of the Wild')).toBeTruthy();
+    });
+
+    it('counts results with a wider radius and without filters', async () => {
+      answer({ wider: 12, unfiltered: 5 });
+      await render(<ListingSearchScreen />);
+      await fireEvent.press(screen.getByTestId('search-filters-toggle'));
+      await fireEvent.press(screen.getByTestId('filter-condition-new_sealed'));
+      await fireEvent.press(screen.getByTestId('filters-done'));
+      await type('zelda');
+      await act(async () => undefined);
+      await act(async () => undefined);
+      expect(screen.getByText('12 results if you widen to 50 km')).toBeTruthy();
+      expect(screen.getByText('5 results without filters')).toBeTruthy();
+      await fireEvent.press(screen.getByTestId('empty-wider'));
+      await settle();
+      expect(listingRequests().at(-1)).toMatchObject({ aroundRadius: 50_000 });
+    });
   });
 
   it('loads more pages as you scroll, without showing a listing twice', async () => {

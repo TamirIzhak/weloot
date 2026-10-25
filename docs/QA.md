@@ -183,3 +183,12 @@ Needs Algolia, and two accounts with listings and want lists for the match carou
 - [ ] "Wanted near you": without a location it asks for one; with one, it shows "N near you want <game> (<console>)" for your listed games (count real wanters with an address or listing within your radius, at least 5 km), or a nudge to list games.
 - [ ] Pause a listing that's in someone's match → it disappears from their carousels after a refresh.
 - [ ] Loading shows card-sized skeletons; Hebrew: carousels scroll from the right; titles and "See all" sit correctly.
+
+## Smart empty search (#48)
+Run the catalog sync once after this deploys (index settings changed: console counts).
+- [ ] Search a game nobody listed: "No one has <game> listed yet" with Add to my want list (adds on the chosen console filter, or any).
+- [ ] Filter by a console where the game isn't listed but it is on another: "Listed on other consoles: PS4 · 3" → tapping switches the filter and shows them.
+- [ ] Similar games that are listed appear as cards (only real listings; none → the row is hidden).
+- [ ] With a small radius: "12 results if you widen to 50 km" (or "anywhere in Israel" past 50 km) → tapping widens it. With filters on: "5 results without filters" → clears them.
+- [ ] Gibberish search with nothing anywhere: "Nothing like it is listed yet" with Search all of Israel / Choose your location, and List a game.
+- [ ] Every empty search shows at least one action.

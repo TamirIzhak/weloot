@@ -568,7 +568,16 @@
       "title": "No listings match",
       "body": "Try another spelling, fewer filters or a wider distance.",
       "everywhere": "Search all of Israel",
-      "chooseLocation": "Choose your location"
+      "chooseLocation": "Choose your location",
+      "noOneHas": "No one has {{title}} listed yet",
+      "noOneHasBody": "Put it on your want list: we’ll match you as soon as someone lists it.",
+      "otherPlatforms": "Listed on other consoles",
+      "platformCount": "{{platform}} · {{count}}",
+      "similar": "Similar games that are listed",
+      "wider": "{{count}} results if you widen to {{km}} km",
+      "widerAnywhere": "{{count}} results anywhere in Israel",
+      "unfiltered": "{{count}} results without filters",
+      "nothingYet": "Nothing like it is listed yet"
     },
     "error": "Search isn’t working right now. Try again.",
     "notConfigured": "Listing search isn’t set up yet (Algolia keys missing)."
