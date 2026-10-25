@@ -138,11 +138,12 @@
     "search": "Search",
     "add": "Add a game",
     "inbox": "Inbox",
-    "profile": "Profile"
+    "profile": "Profile",
+    "manyUnread": "99+",
+    "inboxUnread": "Inbox, {{count}} unread"
   },
   "placeholders": {
     "search": "Search games near you. Coming soon.",
-    "inbox": "Your offers and chats will appear here. Coming soon.",
     "profile": "Your games, want list and settings. Coming soon.",
     "gameTitle": "Game",
     "game": "Game details. Coming soon."
@@ -768,6 +769,27 @@
     "errors": {
       "offerExpired": "This offer expired. Send a new one instead.",
       "offerNotPending": "This offer was already answered or replaced."
+    }
+  },
+  "inbox": {
+    "emptyTitle": "No conversations yet",
+    "emptyBody": "Make an offer or ask a question on a game page, and your chats show up here.",
+    "findGames": "Find games",
+    "aGame": "A game",
+    "rowLabel": "{{name}}, {{game}}, {{unread}} unread",
+    "groups": {
+      "needsAction": "Needs action",
+      "activeDeals": "Active deals",
+      "chats": "Chats",
+      "completed": "Completed"
+    },
+    "line": {
+      "answerOffer": "An offer is waiting for your answer",
+      "confirmSwap": "Confirm the swap",
+      "activeDeals": "Deal agreed: meet and swap",
+      "chats": "Chat",
+      "completed": "Done",
+      "needsAction": "Needs your answer"
     }
   }
 }

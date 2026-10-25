@@ -437,6 +437,11 @@ export const conversationSchema = z
     lastMessagePreview: z.string().max(140).optional(),
     unread: z.record(z.string(), z.number().int().min(0)),
     currentOfferId: id.optional(),
+    /** 🔒 Who has to answer the current pending offer (the inbox's "Needs action"). */
+    pendingOfferTo: uid.optional(),
+    /** 🔒 The listing as it was when the conversation started (inbox rows). */
+    listingTitle: z.string().min(1).optional(),
+    listingCoverImageId: z.string().optional(),
     deal: dealSchema.optional(),
     ...timestamps,
   })

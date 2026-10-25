@@ -233,7 +233,7 @@ function writeOffer(
     createdAt: now,
     updatedAt: now,
   });
-  tx.update(conversationRef, { currentOfferId: ref.id });
+  tx.update(conversationRef, { currentOfferId: ref.id, pendingOfferTo: args.toUid });
   writeMessage(
     tx,
     conversationRef,
@@ -291,6 +291,11 @@ export async function handleStartConversation(
         otherId: uid,
         participants: [ownerId, uid],
         openedWith: input.opener,
+        // What the inbox shows, even once the listing is reserved or closed (others can't read it then).
+        listingTitle: listing.get('gameTitle') as string,
+        ...(listing.get('coverImageId')
+          ? { listingCoverImageId: listing.get('coverImageId') as string }
+          : {}),
         unread: { [ownerId]: 0, [uid]: 0 },
         createdAt: now,
         updatedAt: now,
@@ -409,6 +414,9 @@ export async function handleRespondToOffer(
       if (offer.fromUid !== uid) fail('permission-denied', 'notSender');
       const status = offerMachine.transition('pending', 'withdraw');
       tx.update(offerRef, { status, updatedAt: now });
+      // The inbox's "needs action" marker goes with the offer.
+      if (conversation.currentOfferId === offerId)
+        tx.update(ref, { pendingOfferTo: FieldValue.delete() });
       writeMessage(
         tx,
         ref,
@@ -422,6 +430,9 @@ export async function handleRespondToOffer(
     if (action === 'decline') {
       const status = offerMachine.transition('pending', 'decline');
       tx.update(offerRef, { status, updatedAt: now });
+      // The inbox's "needs action" marker goes with the offer.
+      if (conversation.currentOfferId === offerId)
+        tx.update(ref, { pendingOfferTo: FieldValue.delete() });
       writeMessage(
         tx,
         ref,
@@ -445,6 +456,8 @@ export async function handleRespondToOffer(
     }
     const status = offerMachine.transition('pending', 'accept');
     tx.update(offerRef, { status, updatedAt: now });
+    if (conversation.currentOfferId === offerId)
+      tx.update(ref, { pendingOfferTo: FieldValue.delete() });
     listings.forEach((listing, i) => {
       tx.update(listingRefs[i] as DocumentReference, {
         status: listingMachine.transition(listing.get('status') as ListingStatus, 'reserve'),
@@ -515,6 +528,9 @@ async function closeOffer(
     const [offer, conversation] = await Promise.all([tx.get(offerRef), tx.get(conversationRef)]);
     if (offer.get('status') !== 'pending' || !conversation.exists) return false;
     tx.update(offerRef, { status: offerMachine.transition('pending', event), updatedAt: now });
+    if (conversation.get('currentOfferId') === offerRef.id) {
+      tx.update(conversationRef, { pendingOfferTo: FieldValue.delete() });
+    }
     const participants = (conversation.get('participants') as string[] | undefined) ?? [];
     writeMessage(
       tx,

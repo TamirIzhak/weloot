@@ -128,7 +128,12 @@ describe('startConversation', () => {
       NOW,
     );
     const c = await conv();
-    expect(c).toMatchObject({ openedWith: 'offer' });
+    expect(c).toMatchObject({
+      openedWith: 'offer',
+      pendingOfferTo: 'owner',
+      listingTitle: 'Game of owner',
+      listingCoverImageId: 'co1',
+    });
     const sent = await offerDoc(c?.currentOfferId as string);
     expect(sent).toMatchObject({
       fromUid: 'buyer',
@@ -256,6 +261,8 @@ describe('offers', () => {
     });
     expect(await offerDoc(first)).toMatchObject({ status: 'superseded' });
     expect(await offerDoc(counter)).toMatchObject({ status: 'pending', supersedesOfferId: first });
+    // Now the buyer has to answer.
+    expect(await conv()).toMatchObject({ pendingOfferTo: 'buyer' });
     await expect(respond('owner', CONV, first, 'accept')).rejects.toMatchObject({
       details: { reason: 'offerNotPending' },
     });
@@ -323,6 +330,7 @@ describe('offers', () => {
       details: { reason: 'notRecipient' },
     });
     await expect(respond('owner', CONV, a, 'decline')).resolves.toEqual({ status: 'declined' });
+    expect(await conv()).not.toHaveProperty('pendingOfferTo');
     const { offerId: b } = await send('buyer', CONV, {});
     await expect(respond('owner', CONV, b, 'withdraw')).rejects.toMatchObject({
       details: { reason: 'notSender' },
@@ -390,6 +398,7 @@ describe('system changes to pending offers', () => {
     await expect(expireOffers(db, new Date(NOW.getTime() + 71 * HOUR))).resolves.toBe(0);
     await expect(expireOffers(db, new Date(NOW.getTime() + 72 * HOUR))).resolves.toBe(1);
     expect(await offerDoc(id)).toMatchObject({ status: 'expired' });
+    expect(await conv()).not.toHaveProperty('pendingOfferTo');
     expect((await messages()).at(-1)).toMatchObject({ event: 'offer_expired' });
   });
 

@@ -21,6 +21,8 @@ jest.mock('@/features/auth/AuthProvider', () => ({
   useAuth: () => mockAuthState,
 }));
 jest.mock('@/features/profile/profileApi', () => ({}));
+let mockUnread = 0;
+jest.mock('@/features/inbox/useInboxBadge', () => ({ useInboxBadge: () => mockUnread }));
 jest.mock('@react-native-firebase/auth', () => ({}));
 jest.mock('@react-native-firebase/analytics', () => ({
   getAnalytics: jest.fn(() => ({})),
@@ -28,6 +30,7 @@ jest.mock('@react-native-firebase/analytics', () => ({
 }));
 
 beforeEach(() => {
+  mockUnread = 0;
   jest.clearAllMocks();
   mockAuthState = SIGNED_IN;
   useAuthGate.getState().cancel();
@@ -69,6 +72,19 @@ describe('TabBar', () => {
     for (const name of ['Home', 'Search', 'Add a game', 'Inbox', 'Profile']) {
       expect(screen.getByRole('tab', { name })).toBeTruthy();
     }
+  });
+
+  it('shows the unread count on Inbox, and reads it out', async () => {
+    mockUnread = 3;
+    await renderTabBar();
+    expect(screen.getByTestId('inbox-badge')).toBeTruthy();
+    expect(screen.getByLabelText('Inbox, 3 unread')).toBeTruthy();
+    mockUnread = 120;
+    await renderTabBar();
+    expect(screen.getByText('99+')).toBeTruthy();
+    mockUnread = 0;
+    await renderTabBar();
+    expect(screen.queryByTestId('inbox-badge')).toBeNull();
   });
 
   it('marks the focused tab as selected', async () => {
