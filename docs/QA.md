@@ -131,3 +131,17 @@ Dev build: Home → "Listing grid preview (dev)" (150 sample tiles; development 
 - [ ] Scrolling at 3 per row stays smooth to the end.
 - [ ] Close and reopen the app: the chosen density is kept.
 - [ ] Hebrew: columns start from the right; TalkBack reads title, console, condition, price/trade and distance on every density.
+
+## Search tab (#18)
+Needs Algolia set up (docs/OWNER-TODO.md 5) and a few published listings (ideally from a second account).
+- [ ] With nothing typed: recent searches (tap one to search again, × removes it, Clear empties the list), "Popular near you" games with real counts, and "See all listings near you".
+- [ ] Typing shows skeleton tiles, then results in the grid (1/2/3 toggle and pinch work); "Results: N" matches.
+- [ ] Your own listings never show; neither do listings of a user you blocked (once blocking exists, #38).
+- [ ] Filters: console, trade/sale, condition (several), price from/to (only listings for sale), distance (5–100 km or anywhere). The Filters button shows how many are set; Clear filters resets them.
+- [ ] Without a browsing location the distance filter asks you to choose one, and tiles show no distance.
+- [ ] Distances on tiles look right from the browsing location; nearer listings come first, with real-photo ones first among similar distances.
+- [ ] Pause a listing in My listings → it disappears from search within ~10 s; resume → it comes back. Closing (Swapped/Sold) or removing does the same.
+- [ ] A new listing shows up in search within ~10 s of publishing; adding photos moves it up.
+- [ ] Nothing matches → "No listings match" with Search all of Israel / Clear filters / Choose your location.
+- [ ] Scroll a long result list: more results load at the end, with no duplicates.
+- [ ] Hebrew: filters, chips and results read right to left; area names show in Hebrew.

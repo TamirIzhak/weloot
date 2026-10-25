@@ -471,5 +471,53 @@
     "tile": {
       "distance": "~{{km}} ק״מ"
     }
+  },
+  "search": {
+    "input": {
+      "label": "חיפוש מודעות",
+      "placeholder": "שם המשחק, למשל זלדה"
+    },
+    "filters": {
+      "button": "סינון",
+      "buttonCount": "סינון ({{count}})",
+      "platform": "קונסולה",
+      "any": "הכול",
+      "mode": "החלפה או מכירה",
+      "trade": "להחלפה",
+      "sale": "למכירה",
+      "condition": "מצב",
+      "price": "מחיר (₪)",
+      "min": "מ־",
+      "max": "עד",
+      "priceHint": "סינון לפי מחיר מציג רק מודעות למכירה.",
+      "distance": "מרחק",
+      "anywhere": "בכל הארץ",
+      "distanceNeedsLocation": "כדי לסנן לפי מרחק, בחרו מיקום (בראש המסך).",
+      "show": "הצגת תוצאות",
+      "reset": "ניקוי הסינון"
+    },
+    "recent": {
+      "title": "חיפושים אחרונים",
+      "clear": "ניקוי",
+      "remove": "הסרת „{{query}}”"
+    },
+    "popular": {
+      "title": "פופולרי ב־WeLoot",
+      "nearYou": "פופולרי לידך",
+      "game": "{{title}} · {{count}}"
+    },
+    "browseAll": "לכל המודעות",
+    "browseNearYou": "לכל המודעות לידך",
+    "results": {
+      "count": "תוצאות: {{count}}"
+    },
+    "empty": {
+      "title": "אין מודעות שמתאימות",
+      "body": "נסו כתיב אחר, פחות סינונים או מרחק גדול יותר.",
+      "everywhere": "חיפוש בכל הארץ",
+      "chooseLocation": "בחירת מיקום"
+    },
+    "error": "החיפוש לא עובד כרגע. נסו שוב.",
+    "notConfigured": "חיפוש המודעות עוד לא הוגדר (חסרים מפתחות Algolia)."
   }
 }
