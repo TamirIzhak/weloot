@@ -97,8 +97,14 @@ function Chat({ conversation, me }: { conversation: Conversation; me: string }) 
       await sendMessage({ conversationId: conversation.id, text: body });
       setText('');
     } catch (error) {
-      const blocked = error instanceof OfferError && error.reason === 'blocked';
-      toast.show(t(blocked ? 'offers.errors.blocked' : 'offers.errors.failed'), 'error');
+      const reason = error instanceof OfferError ? error.reason : 'unknown';
+      const key =
+        reason === 'blocked'
+          ? 'offers.errors.blocked'
+          : reason === 'rateLimited'
+            ? 'offers.errors.rateLimited'
+            : 'offers.errors.failed';
+      toast.show(t(key), 'error');
     } finally {
       setSending(false);
     }

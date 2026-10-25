@@ -104,7 +104,8 @@ export type ConversationError =
   | 'alreadyConfirmed'
   | 'notInDeal'
   | 'notCompleted'
-  | 'alreadyRated';
+  | 'alreadyRated'
+  | 'rateLimited';
 
 /**
  * System messages carry an event code, not text, so each participant reads them in their own language (PRD §3.5).

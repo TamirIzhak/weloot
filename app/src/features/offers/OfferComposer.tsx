@@ -41,6 +41,7 @@ const ERROR_KEY: Partial<Record<OfferError['reason'], string>> = {
   dealExists: 'offers.errors.dealExists',
   blocked: 'offers.errors.blocked',
   ownListing: 'offers.errors.ownListing',
+  rateLimited: 'offers.errors.rateLimited',
 };
 
 const MAX_SHEKELS = CASH_TOP_UP_MAX_AGOROT / 100;

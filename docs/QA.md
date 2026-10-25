@@ -273,3 +273,7 @@ Needs a new dev build (link config changed) and Hosting deployed (`npx firebase 
 - [ ] Open the link on a phone with the app: it goes straight to the game page (after OWNER-TODO §10; before that, the landing page's "Open in WeLoot").
 - [ ] Open it in a desktop browser: cover, title, console, condition, "Listed by <username> · <area>", in Hebrew for a Hebrew browser; no notes, phone, address or photos.
 - [ ] Pause or close the listing → the link shows "This listing isn't available anymore".
+
+## Rate limits (#38)
+- [ ] A brand-new account can start 5 conversations a day (config/limits.newAccountConversationsPerDay); the 6th shows "You're doing that a lot. Take a short break…". Accounts older than 7 days get 30.
+- [ ] Sending ~60 messages within 10 minutes, or 40 offers in an hour, hits the same message.

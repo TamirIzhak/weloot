@@ -713,7 +713,8 @@
       "notForSale": "Cash alone works only for games that are for sale. Add a game in return.",
       "dealExists": "You already have a deal here. Finish or cancel it first.",
       "blocked": "You can’t message this person.",
-      "ownListing": "This is your own listing."
+      "ownListing": "This is your own listing.",
+      "rateLimited": "You’re doing that a lot. Take a short break and try again."
     }
   },
   "chat": {
