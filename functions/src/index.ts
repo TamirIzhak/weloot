@@ -18,6 +18,7 @@ import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
 import { deletePhotosOf, syncListingPhotos, type PhotoDeps } from './listings/listingPhotos';
 import { handleManageListing } from './listings/manageListing';
+import { matchOnListingWrite, matchOnWantWrite } from './matching/matches';
 import { handlePublishListing, removeListingsOf } from './listings/publishListing';
 import { handleSubmitReport } from './reports/submitReport';
 import {
@@ -148,6 +149,20 @@ export const indexListing = onDocumentWritten(
     await syncListingRecord(algolia, listingId, current.data(), event.data?.before.data());
   },
 );
+
+// Matches (PRD W3, #21): recomputed for the affected pairs of users on listing and want list changes.
+export const matchOnListing = onDocumentWritten('listings/{listingId}', async (event) => {
+  await matchOnListingWrite(adminDb(), event.data?.before.data(), event.data?.after.data());
+});
+
+export const matchOnWant = onDocumentWritten('wantlist/{uid}/items/{itemId}', async (event) => {
+  await matchOnWantWrite(
+    adminDb(),
+    event.params.uid,
+    event.data?.before.data(),
+    event.data?.after.data(),
+  );
+});
 
 // Barcodes (PRD §5.1, #14): look a scanned code up, and record users' confirmations.
 export const lookupBarcode = onCall({ secrets: [ALGOLIA_ADMIN_KEY] }, (request) =>

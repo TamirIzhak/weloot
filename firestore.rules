@@ -95,6 +95,12 @@ service cloud.firestore {
       allow delete: if signedInAs(uid);
     }
 
+    // Matches (PRD W3, #21): written only by the matching functions; each user reads their own.
+    match /matches/{uid}/items/{otherUid} {
+      allow read: if signedInAs(uid);
+      allow write: if false;
+    }
+
     // Public profile: readable by everyone, guests included (listings show their owner).
     match /users/{uid} {
       allow read: if true;

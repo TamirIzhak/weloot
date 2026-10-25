@@ -334,13 +334,20 @@ export const alertSchema = z
     message: 'An alert needs a game or a search query',
   });
 
+/**
+ * `matches/{userId}/items/{otherUserId}` 🔒 (PRD W3): what the other user has that this user wants, and whether it's
+ * mutual. Written only by the matching functions (`computeMatch`); the owner reads it.
+ */
 export const matchSchema = z.object({
-  theirListingIds: z.array(id),
+  theirListingIds: z.array(id).min(1),
   myListingIds: z.array(id),
   perfect: z.boolean(),
   score: z.number(),
-  distanceKm: z.number().min(0),
+  /** Closest pair of listings between the two; unknown while this user has no active listing. */
+  distanceKm: z.number().min(0).optional(),
+  updatedAt: timestampSchema,
 });
+export type MatchDoc = z.infer<typeof matchSchema>;
 
 /** Who pays a recorded cash top-up, if any (PRD W5). The amount is whole shekels, at most ₪2,000. */
 const cashTopUp = {

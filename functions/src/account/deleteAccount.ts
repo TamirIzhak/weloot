@@ -78,6 +78,7 @@ export function firestoreAccountStore(db: Firestore): AccountStore {
     async deletePrivateData(uid) {
       await db.recursiveDelete(userDoc(uid).collection('locations'));
       await db.recursiveDelete(db.collection('wantlist').doc(uid));
+      await db.recursiveDelete(db.collection('matches').doc(uid));
       await userDoc(uid).collection('private').doc('settings').delete();
     },
     async tombstoneProfile(uid) {
