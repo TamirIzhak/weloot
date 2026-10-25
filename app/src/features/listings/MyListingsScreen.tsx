@@ -23,6 +23,8 @@ import {
   type BadgeTone,
 } from '@/components';
 import { coverUrl } from '@/features/catalog/igdbImages';
+import { useMyConversations } from '@/features/offers/offersApi';
+import { usePublicProfile } from '@/features/profile/usePublicProfile';
 import { currentLanguage, formatPrice } from '@/i18n';
 import { colors } from '@/theme/tokens';
 
@@ -155,14 +157,22 @@ function ListingActions({ listing }: { listing: Listing }) {
   };
   const open = listing.status === 'active' || listing.status === 'paused';
 
-  const run = async (action: ManageListingAction) => {
+  const run = async (action: ManageListingAction, partner?: WhoWith) => {
     setBusy(action);
     try {
       await manageListing({
         listingId: listing.id,
         action,
         ...(action === 'closeTraded' || action === 'closeSold'
-          ? { closedWith: { kind: 'outside' as const } }
+          ? {
+              closedWith: partner
+                ? {
+                    kind: 'deal' as const,
+                    userId: partner.uid,
+                    conversationId: partner.conversationId,
+                  }
+                : { kind: 'outside' as const },
+            }
           : {}),
       });
       setConfirming(null);
@@ -185,8 +195,15 @@ function ListingActions({ listing }: { listing: Listing }) {
             {t('listings.mine.whoWithHint')}
           </Text>
         ) : null}
+        {closing ? (
+          <WhoWithChoices
+            listing={listing}
+            disabled={busy !== null}
+            onPick={(partner) => void run(confirming, partner)}
+          />
+        ) : null}
         <Button
-          variant={closing ? 'primary' : 'danger'}
+          variant={closing ? 'secondary' : 'danger'}
           label={t(closing ? 'listings.mine.outside' : 'listings.mine.remove')}
           loading={busy === confirming}
           onPress={() => void run(confirming)}
@@ -264,5 +281,80 @@ function ListingActions({ listing }: { listing: Listing }) {
         />
       ) : null}
     </View>
+  );
+}
+
+type WhoWith = { uid: string; conversationId: string };
+const RECENT_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * "Who with?" (PRD W6): the counterpart of an open deal on this listing first, then people the owner chatted with
+ * about it in the last 30 days. Picking one also confirms the swap on their deal (trade counts need both).
+ */
+function WhoWithChoices({
+  listing,
+  disabled,
+  onPick,
+}: {
+  listing: Listing;
+  disabled: boolean;
+  onPick: (partner: WhoWith) => void;
+}) {
+  const conversations = useMyConversations(listing.userId);
+  // Fixed per mount: "the last 30 days" as of opening this panel.
+  const [since] = useState(() => Date.now() - RECENT_MS);
+  if (!conversations) return null;
+  const about = conversations.filter(
+    (c) =>
+      c.listingId === listing.id ||
+      (c.deal?.itemsOwner ?? []).includes(listing.id) ||
+      (c.deal?.itemsOther ?? []).includes(listing.id),
+  );
+  const openDeal = (c: (typeof about)[number]) =>
+    c.deal?.status === 'agreed' || c.deal?.status === 'awaiting_confirmation';
+  const choices = [
+    ...about.filter(openDeal),
+    ...about.filter((c) => !openDeal(c) && c.updatedAt.toMillis() >= since),
+  ];
+  return (
+    <View className="gap-2" testID="who-with">
+      {choices.map((c) => {
+        const uid = c.participants.find((p) => p !== listing.userId) ?? '';
+        return (
+          <Partner
+            key={c.id}
+            uid={uid}
+            dealOn={openDeal(c)}
+            disabled={disabled}
+            onPress={() => onPick({ uid, conversationId: c.id })}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+function Partner({
+  uid,
+  dealOn,
+  disabled,
+  onPress,
+}: {
+  uid: string;
+  dealOn: boolean;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  const { t } = useTranslation();
+  const profile = usePublicProfile(uid);
+  const name = profile.status === 'ready' ? profile.profile.username : t('chat.someone');
+  return (
+    <Button
+      variant={dealOn ? 'primary' : 'secondary'}
+      label={t(dealOn ? 'listings.mine.withDeal' : 'listings.mine.withChat', { name })}
+      disabled={disabled}
+      onPress={onPress}
+      testID={`who-${uid}`}
+    />
   );
 }

@@ -493,7 +493,9 @@
       "outside": "Someone outside WeLoot",
       "removeConfirm": "Remove this listing? It can’t be undone; you can list the game again.",
       "closed": "This listing is closed. To offer the game again, list it again.",
-      "changeFailed": "Couldn’t update the listing. Try again."
+      "changeFailed": "Couldn’t update the listing. Try again.",
+      "withDeal": "With {{name}} (your deal)",
+      "withChat": "With {{name}}"
     },
     "grid": {
       "perRow": "{{n}} per row",
@@ -722,7 +724,14 @@
       "offer_withdrawn": "The offer was withdrawn.",
       "offer_expired": "The offer expired after 72 hours without an answer.",
       "offer_invalidated": "The offer was declined automatically: a game in it is no longer available.",
-      "unknown": "Something changed in this chat."
+      "unknown": "Something changed in this chat.",
+      "deal_confirmed": "One of you confirmed the swap. Waiting for the other.",
+      "deal_completed": "Swap completed! It counts for both of you.",
+      "deal_cancelled": "The deal was cancelled. The games are available again.",
+      "deal_disputed": "The swap was reported as not happening. Support will look into it.",
+      "deal_unconfirmed": "The swap wasn’t confirmed within 7 days, so it doesn’t count.",
+      "deal_swap_reminder": "Did the swap happen? Tap Swapped once it did, or cancel the deal.",
+      "deal_confirm_reminder": "Reminder: confirm the swap so it counts for both of you."
     },
     "safety": {
       "title": "Before you meet",
@@ -741,7 +750,20 @@
         "unconfirmed": "Swap not confirmed",
         "disputed": "Under review by support"
       },
-      "summary": "You give: {{give}} · You get: {{get}}"
+      "summary": "You give: {{give}} · You get: {{get}}",
+      "theGames": "the games",
+      "swapped": "Swapped",
+      "cancel": "Cancel deal",
+      "cancelReason": "Why are you cancelling?",
+      "cancelConfirm": "Cancel the deal",
+      "keep": "Keep the deal",
+      "didYouSwap": "Did you swap {{games}} with {{name}}?",
+      "yes": "Yes, we swapped",
+      "no": "No, it didn’t happen",
+      "waitingFor": "Waiting for {{name}} to confirm. Trades count once you both confirm.",
+      "errors": {
+        "changed": "The deal changed meanwhile. Check the chat."
+      }
     },
     "errors": {
       "offerExpired": "This offer expired. Send a new one instead.",

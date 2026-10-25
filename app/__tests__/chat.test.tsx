@@ -9,6 +9,7 @@ const mockPush = jest.fn();
 const mockSendMessage = jest.fn();
 const mockMarkRead = jest.fn();
 const mockRespond = jest.fn();
+const mockDealAction = jest.fn();
 let mockConversation: unknown = 'loading';
 let mockMessages: unknown[] | null = [];
 let mockOffers = new Map<string, unknown>();
@@ -35,6 +36,7 @@ jest.mock('@/features/offers/offersApi', () => {
     sendMessage: (...args: unknown[]) => mockSendMessage(...args),
     markConversationRead: (...args: unknown[]) => mockMarkRead(...args),
     respondToOffer: (...args: unknown[]) => mockRespond(...args),
+    dealAction: (...args: unknown[]) => mockDealAction(...args),
   };
 });
 
@@ -210,6 +212,70 @@ describe('ConversationScreen', () => {
     });
     expect(screen.queryByTestId('offer-accept-o2')).toBeNull();
     expect(mockMarkRead).not.toHaveBeenCalled();
+  });
+
+  describe('deal actions (#47)', () => {
+    const withDeal = (deal: Record<string, unknown>) => {
+      mockConversation = {
+        ...CONVERSATION,
+        unread: { me: 0 },
+        deal: {
+          status: 'agreed',
+          offerId: 'o2',
+          itemsOwner: ['l1'],
+          itemsOther: ['mine'],
+          cashAgorot: 0,
+          confirmedBy: [],
+          fulfillmentMethod: 'in_person',
+          agreedAt: at(5),
+          ...deal,
+        },
+      };
+      mockOffers.set(
+        'o2',
+        offer('o2', 'dana', { status: 'accepted', cashAgorot: 0, cashPayerId: undefined }),
+      );
+    };
+    beforeEach(() => mockDealAction.mockResolvedValue({ status: 'awaiting_confirmation' }));
+
+    it('agreed: Swapped confirms; Cancel asks for a reason first', async () => {
+      withDeal({});
+      await renderChat();
+      await fireEvent.press(screen.getByTestId('deal-swapped'));
+      expect(mockDealAction).toHaveBeenCalledWith({ conversationId: 'l1_me', action: 'confirm' });
+      await fireEvent.press(screen.getByTestId('deal-cancel'));
+      expect(screen.getByTestId('deal-cancel-confirm').props.accessibilityState).toMatchObject({
+        disabled: true,
+      });
+      await fireEvent.changeText(screen.getByTestId('deal-cancel-reason'), ' Found another copy ');
+      await fireEvent.press(screen.getByTestId('deal-cancel-confirm'));
+      expect(mockDealAction).toHaveBeenLastCalledWith({
+        conversationId: 'l1_me',
+        action: 'cancel',
+        reason: 'Found another copy',
+      });
+    });
+
+    it('awaiting my confirmation: "Did you swap…?" Yes / No', async () => {
+      withDeal({ status: 'awaiting_confirmation', confirmedBy: ['dana'] });
+      await renderChat();
+      expect(screen.getByText('Did you swap My Game, Elden Ring with dana_games?')).toBeTruthy();
+      expect(screen.queryByTestId('deal-swapped')).toBeNull();
+      await fireEvent.press(screen.getByTestId('deal-no'));
+      expect(mockDealAction).toHaveBeenCalledWith({ conversationId: 'l1_me', action: 'dispute' });
+      await fireEvent.press(screen.getByTestId('deal-yes'));
+      expect(mockDealAction).toHaveBeenLastCalledWith({
+        conversationId: 'l1_me',
+        action: 'confirm',
+      });
+    });
+
+    it('after my confirmation: waits for the other side, no buttons', async () => {
+      withDeal({ status: 'awaiting_confirmation', confirmedBy: ['me'] });
+      await renderChat();
+      expect(screen.getByTestId('deal-waiting')).toBeTruthy();
+      expect(screen.queryByTestId('deal-yes')).toBeNull();
+    });
   });
 
   it('says when a chat isn’t available', async () => {

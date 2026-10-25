@@ -24,10 +24,11 @@ import {
   type Offer,
 } from '@/features/offers/offersApi';
 import { usePublicProfile } from '@/features/profile/usePublicProfile';
-import { currentLanguage, formatPrice, isolate } from '@/i18n';
+import { currentLanguage } from '@/i18n';
 import { colors } from '@/theme/tokens';
 
 import { useMessages, useOffers, type Message } from './chatApi';
+import { DealPanel } from './DealPanel';
 import { OfferCard } from './OfferCard';
 
 /**
@@ -108,7 +109,7 @@ function Chat({ conversation, me }: { conversation: Conversation; me: string }) 
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       {conversation.deal ? (
-        <DealHeader conversation={conversation} offers={offers} me={me} names={names} />
+        <DealPanel conversation={conversation} offers={offers} me={me} names={names} />
       ) : null}
       {messages === null ? (
         <ActivityIndicator color={colors.primary} style={{ marginTop: 48 }} />
@@ -251,53 +252,6 @@ function MessageRow({
       )}
     >
       <Text className={mine ? 'text-on-primary' : undefined}>{message.text}</Text>
-    </View>
-  );
-}
-
-/** What was agreed (PRD W6): the games each side brings and the cash line. Swapped / Cancel arrive with #47. */
-function DealHeader({
-  conversation,
-  offers,
-  me,
-  names,
-}: {
-  conversation: Conversation;
-  offers: ReadonlyMap<string, Offer>;
-  me: string;
-  names: { me: string; them: string };
-}) {
-  const { t } = useTranslation();
-  const language = currentLanguage();
-  const deal = conversation.deal;
-  if (!deal) return null;
-  const offer = deal.offerId ? offers.get(deal.offerId) : undefined;
-  const title = (ids: string[]) =>
-    ids
-      .map((id) => offer?.items[id]?.gameTitle)
-      .filter(Boolean)
-      .join(', ');
-  const mineIds = conversation.ownerId === me ? deal.itemsOwner : deal.itemsOther;
-  const theirIds = conversation.ownerId === me ? deal.itemsOther : deal.itemsOwner;
-  return (
-    <View className="gap-1 border-b border-border bg-surface px-4 py-3" testID="deal-header">
-      <Text className="font-medium">{t(`chat.deal.status.${deal.status}`)}</Text>
-      {offer ? (
-        <Text variant="caption" tone="secondary">
-          {t('chat.deal.summary', {
-            give: title(mineIds) || t('chat.offer.noGames'),
-            get: title(theirIds) || t('chat.offer.noGames'),
-          })}
-        </Text>
-      ) : null}
-      {deal.cashAgorot > 0 ? (
-        <Text variant="caption" tone="secondary">
-          {t('chat.offer.cash', {
-            amount: isolate(formatPrice(deal.cashAgorot, language)),
-            payer: deal.cashPayerId === me ? names.me : names.them,
-          })}
-        </Text>
-      ) : null}
     </View>
   );
 }
