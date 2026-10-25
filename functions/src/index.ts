@@ -3,6 +3,8 @@ import { logger } from 'firebase-functions';
 import { onCall, onRequest } from 'firebase-functions/v2/https';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { onObjectDeleted, onObjectFinalized } from 'firebase-functions/v2/storage';
+import { getStorage } from 'firebase-admin/storage';
 import { algoliasearch } from 'algoliasearch';
 
 import { FIREBASE_REGION } from '@weloot/shared';
@@ -14,6 +16,7 @@ import { handleDiscordSignIn } from './auth/discordSignIn';
 import { syncCatalog, type SyncMode } from './catalog/catalogSync';
 import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
+import { deletePhotosOf, syncListingPhotos, type PhotoDeps } from './listings/listingPhotos';
 import { handlePublishListing, removeListingsOf } from './listings/publishListing';
 import {
   configureGamesIndex,
@@ -54,7 +57,10 @@ export const deleteAccount = onCall((request) =>
   handleDeleteAccount(request.auth, {
     store: firestoreAccountStore(adminDb()),
     auth: adminAuth(),
-    cleanups: [removeListingsOf(adminDb())],
+    cleanups: [
+      removeListingsOf(adminDb()),
+      deletePhotosOf(adminDb(), (prefix) => getStorage().bucket().deleteFiles({ prefix })),
+    ],
   }),
 );
 
@@ -145,3 +151,18 @@ export const confirmBarcode = onCall((request) =>
 export const publishListing = onCall((request) =>
   handlePublishListing(request.auth, request.data, { db: adminDb() }),
 );
+
+// Listing photos (PRD W2, #15): keep photoPaths/hasPhotos in step with Storage.
+const photoDeps = (): PhotoDeps => ({
+  db: adminDb(),
+  listFiles: async (prefix) => {
+    const [files] = await getStorage().bucket().getFiles({ prefix });
+    return files.map((file) => file.name);
+  },
+});
+export const onListingPhotoUploaded = onObjectFinalized(async (event) => {
+  await syncListingPhotos(photoDeps(), event.data.name);
+});
+export const onListingPhotoDeleted = onObjectDeleted(async (event) => {
+  await syncListingPhotos(photoDeps(), event.data.name);
+});

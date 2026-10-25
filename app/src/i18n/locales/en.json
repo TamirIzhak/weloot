@@ -410,9 +410,10 @@
       "title": "Your game is listed!",
       "body": "Others nearby can find it now. We’ll let you know when someone makes an offer.",
       "photoNudgeTitle": "Add a photo of your disc to get more offers",
-      "photoNudgeBody": "Listings with real photos get a badge and show up higher. Photos are coming soon.",
+      "photoNudgeBody": "Listings with real photos get a badge and show up higher in search.",
       "another": "List another game",
-      "finish": "Done"
+      "finish": "Done",
+      "addPhotos": "Add photos"
     },
     "errors": {
       "publishFailed": "Couldn’t publish. Check your connection and try again.",
@@ -421,6 +422,20 @@
       "unknownGame": "We can’t find this game anymore. Go back and pick it again.",
       "phoneRequired": "Verify your phone first, then publish.",
       "profileRequired": "Finish setting up your profile first."
+    },
+    "photos": {
+      "title": "Photos",
+      "body": "Up to 6 photos of your actual copy: the disc, the case, anything worth showing. Location data is removed.",
+      "badge": "Real photos",
+      "camera": "Take a photo",
+      "library": "Choose from gallery",
+      "done": "Done",
+      "retry": "Retry upload",
+      "remove": "Remove photo",
+      "permissionDenied": "WeLoot needs access to add photos. Allow it in your phone’s settings.",
+      "prepareFailed": "Couldn’t process that photo. Try another one.",
+      "deleteFailed": "Couldn’t remove the photo. Try again.",
+      "loadFailed": "Couldn’t load this listing."
     }
   }
 }
