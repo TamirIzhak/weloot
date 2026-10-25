@@ -47,6 +47,9 @@
       "emptyTitle": "Nothing here right now",
       "emptyBody": "Listings come and go. Search for a game, or check back later.",
       "search": "Search games"
+    },
+    "newForYou": {
+      "title": "New for you"
     }
   },
   "kitchenSink": {
@@ -252,8 +255,7 @@
       "title": "Your games",
       "listings": "My listings",
       "wantlist": "Want list",
-      "alerts": "Alerts",
-      "alertsSoon": "Your saved searches and “notify me” alerts will show up here."
+      "alerts": "Alerts"
     }
   },
   "location": {
@@ -623,6 +625,24 @@
     "errors": {
       "saveFailed": "Couldn’t update your want list. Try again.",
       "full": "Your want list is full ({{max}} games). Remove one to add another."
+    }
+  },
+  "alerts": {
+    "notifyMe": "Notify me when it’s listed",
+    "on": "We’ll let you know ✓",
+    "created": "We’ll tell you when {{title}} is listed",
+    "wantlistNote": "Games on your want list alert you too: when someone nearby lists one, it shows up under New for you on Home.",
+    "limitsNote": "At most one push per alert every 6 hours and 5 a day; everything else waits in New for you.",
+    "openWantlist": "Open my want list",
+    "emptyTitle": "No alerts yet",
+    "emptyBody": "Search for a game no one has listed yet and tap “Notify me”.",
+    "anywhere": "Anywhere in Israel",
+    "within": "Within {{km}} km",
+    "remove": "Remove",
+    "loadFailed": "Couldn’t load your alerts. Check your connection.",
+    "errors": {
+      "saveFailed": "Couldn’t update your alerts. Try again.",
+      "full": "You have the maximum of {{max}} alerts. Remove one to add another."
     }
   }
 }

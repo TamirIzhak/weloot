@@ -79,6 +79,9 @@ export function firestoreAccountStore(db: Firestore): AccountStore {
       await db.recursiveDelete(userDoc(uid).collection('locations'));
       await db.recursiveDelete(db.collection('wantlist').doc(uid));
       await db.recursiveDelete(db.collection('matches').doc(uid));
+      await db.recursiveDelete(db.collection('alerts').doc(uid));
+      await db.recursiveDelete(db.collection('newForYou').doc(uid));
+      await db.collection('alertState').doc(uid).delete();
       await userDoc(uid).collection('private').doc('settings').delete();
     },
     async tombstoneProfile(uid) {

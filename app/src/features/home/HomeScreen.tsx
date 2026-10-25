@@ -1,14 +1,22 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { useEffect, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
 import { PLATFORMS, type ListingRecord } from '@weloot/shared';
 
 import { Button, Card, Text } from '@/components';
+import {
+  markOpened,
+  markSeen,
+  useNewForYou,
+  type NewForYouItem,
+} from '@/features/alerts/alertsApi';
 import { useRequireAuth } from '@/features/auth/authGate';
 import { useBrowsingLocation } from '@/features/location/browsingLocation';
 import type { ListingTileData } from '@/features/listings/grid/ListingTile';
+import { listingToTile } from '@/features/listings/tileData';
 import { toTile } from '@/features/search/searchFilters';
 import { useViewer } from '@/features/search/useViewer';
 import { useWantToggle } from '@/features/wantlist/useWantToggle';
@@ -18,7 +26,7 @@ import { colors } from '@/theme/tokens';
 
 import { Carousel } from './Carousel';
 import { useMatchFeed, useNewNearYou, type FeedKind } from './feeds';
-import { useWantedNearYou } from './homeData';
+import { useListingsByIds, useWantedNearYou } from './homeData';
 
 /** Cards per carousel; "See all" has the rest. */
 export const CAROUSEL_SIZE = 10;
@@ -70,8 +78,9 @@ export function HomeScreen() {
 
   return (
     <View className="gap-7" testID="home-feed">
-      {signedIn ? (
+      {signedIn && viewer.uid ? (
         <>
+          <NewForYou uid={viewer.uid} renderAccessory={heart} />
           <Carousel
             title={t('home.perfect.title')}
             items={perfect}
@@ -131,6 +140,49 @@ export function HomeScreen() {
       />
       {signedIn ? <WantedNearYou /> : null}
     </View>
+  );
+}
+
+const NONE: NewForYouItem[] = [];
+
+/** "New for you" (PRD W8): listings the user's alerts and want list found, newest first; hidden when there are none. */
+function NewForYou({
+  uid,
+  renderAccessory,
+}: {
+  uid: string;
+  renderAccessory: (item: ListingTileData) => ReactNode;
+}) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const language = currentLanguage();
+  const browsing = useBrowsingLocation((s) => s.location);
+  const found = useNewForYou(uid);
+  const items = found.status === 'ready' ? found.items : NONE;
+  const listings = useListingsByIds(items.map((item) => item.listingId));
+
+  useEffect(() => {
+    if (items.length > 0) markSeen(uid, items);
+  }, [uid, items]);
+
+  const tiles =
+    found.status === 'loading' || listings.status === 'loading'
+      ? null
+      : listings.status === 'ready'
+        ? listings.value.map((l) => listingToTile(l, browsing, language))
+        : [];
+  return (
+    <Carousel
+      title={t('home.newForYou.title')}
+      items={tiles}
+      onPressItem={(tile) => {
+        const item = items.find((i) => i.listingId === tile.id);
+        if (item) markOpened(uid, item);
+        router.push({ pathname: '/listings/[id]', params: { id: tile.id } });
+      }}
+      renderAccessory={renderAccessory}
+      testID="home-new-for-you"
+    />
   );
 }
 

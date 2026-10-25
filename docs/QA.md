@@ -192,3 +192,13 @@ Run the catalog sync once after this deploys (index settings changed: console co
 - [ ] With a small radius: "12 results if you widen to 50 km" (or "anywhere in Israel" past 50 km) → tapping widens it. With filters on: "5 results without filters" → clears them.
 - [ ] Gibberish search with nothing anywhere: "Nothing like it is listed yet" with Search all of Israel / Choose your location, and List a game.
 - [ ] Every empty search shows at least one action.
+
+## Alerts and New for you (#49) — v0.4.0 (M3 complete)
+Pushes need the device registration from #27; until then alerts land in New for you only (check `pushed: false` in Firestore).
+- [ ] Empty search for a game → "Notify me when it's listed" → "We'll let you know ✓"; as a guest it asks you to sign in first (no phone step). Tap again turns it off.
+- [ ] Profile → Alerts lists it with its console and "Within N km" (or "Anywhere in Israel" without a location); Remove works. The note explains that want list games alert too and the push limits.
+- [ ] From a second account, list that game nearby → within seconds Home shows "New for you" with it (also for want list games within your radius). Tapping opens the game page.
+- [ ] Not delivered: your own listings, another console than the alert's, outside the radius, blocked users either way.
+- [ ] Pausing and resuming a listing counts as "new" again for people who haven't got it yet; it never shows twice.
+- [ ] (After #27) at most one push per alert per 6 hours and 5 a day; the rest only in New for you. Push text is in your app language.
+- [ ] Delete account → alerts and New for you are gone.

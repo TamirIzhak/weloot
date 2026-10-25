@@ -95,6 +95,45 @@ service cloud.firestore {
       allow delete: if signedInAs(uid);
     }
 
+    // "Notify me" alerts (PRD W8, #49): the owner only. A real catalog game on one of its consoles (or any), with its
+    // catalog title, keyed like want list items so one game alerts once; an optional area-level centre in Israel.
+    match /alerts/{uid}/items/{alertId} {
+      function catalogGame(d) {
+        return get(/databases/$(database)/documents/games/$(string(d.igdbGameId))).data;
+      }
+
+      function isAlert(d) {
+        return d.keys().hasAll(['igdbGameId', 'gameTitle', 'radiusKm', 'source', 'createdAt'])
+          && d.keys().hasOnly(['igdbGameId', 'platform', 'gameTitle', 'radiusKm', 'lat', 'lng', 'source', 'createdAt'])
+          && d.igdbGameId is int && d.igdbGameId > 0
+          && ((!('platform' in d) && alertId == string(d.igdbGameId) + '_any')
+            || ('platform' in d && alertId == string(d.igdbGameId) + '_' + d.platform
+              && d.platform in catalogGame(d).platforms))
+          && d.gameTitle == catalogGame(d).title
+          && d.radiusKm is int && d.radiusKm >= 1 && d.radiusKm <= 200
+          && (('lat' in d) == ('lng' in d))
+          && (!('lat' in d) || (d.lat is number && d.lat >= 29 && d.lat <= 34
+            && d.lng is number && d.lng >= 34 && d.lng <= 36))
+          && d.source == 'search'
+          && d.createdAt == request.time;
+      }
+
+      allow read, delete: if signedInAs(uid);
+      allow create, update: if signedInAs(uid) && isAlert(request.resource.data);
+    }
+
+    // "New for you" (PRD W8, #49): written by the alert function; the owner reads them, marks them seen or opened
+    // (the server time), and can dismiss them.
+    match /newForYou/{uid}/items/{listingId} {
+      allow read, delete: if signedInAs(uid);
+      allow update: if signedInAs(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seenAt', 'openedAt'])
+        && (!('seenAt' in request.resource.data.diff(resource.data).affectedKeys())
+          || request.resource.data.seenAt == request.time)
+        && (!('openedAt' in request.resource.data.diff(resource.data).affectedKeys())
+          || request.resource.data.openedAt == request.time);
+    }
+
     // Matches (PRD W3, #21): written only by the matching functions; each user reads their own.
     match /matches/{uid}/items/{otherUid} {
       allow read: if signedInAs(uid);
