@@ -70,6 +70,7 @@ function RootNavigator() {
       <Stack.Screen name="me/[section]" options={withHeader} />
       <Stack.Screen name="add/details" options={withHeader} />
       <Stack.Screen name="add/done" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="feed/[kind]" options={withHeader} />
       <Stack.Screen name="listings/[id]/index" options={withHeader} />
       <Stack.Screen name="listings/[id]/photos" options={withHeader} />
       <Stack.Screen name="listings/[id]/report" options={withHeader} />

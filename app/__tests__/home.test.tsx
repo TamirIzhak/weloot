@@ -17,6 +17,13 @@ jest.mock('@react-native-firebase/firestore', () => ({
 }));
 
 jest.mock('@/lib/firebase', () => ({ initFirebase: jest.fn(() => '192.168.1.10') }));
+// The feed itself is tested in homeFeed.test.tsx.
+jest.mock('@/features/home/HomeScreen', () => ({
+  HomeScreen: () => {
+    const { Text } = jest.requireActual('react-native') as typeof import('react-native');
+    return <Text testID="home-feed">feed</Text>;
+  },
+}));
 
 const SAFE_AREA = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -37,10 +44,11 @@ describe('Home tab', () => {
     mockGetDoc.mockResolvedValue({ exists: () => false });
   });
 
-  it('shows the wordmark and a welcome state', async () => {
+  it('shows the wordmark, the location chip and the feed', async () => {
     await renderHome();
     expect(screen.getByText('WeLoot')).toBeTruthy();
-    expect(screen.getByText('Welcome to WeLoot')).toBeTruthy();
+    expect(screen.getByTestId('location-chip')).toBeTruthy();
+    expect(screen.getByTestId('home-feed')).toBeTruthy();
   });
 
   it('shows a successful Firestore read in development', async () => {

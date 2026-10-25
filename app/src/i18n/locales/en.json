@@ -17,8 +17,37 @@
   },
   "home": {
     "kitchenSink": "Component kitchen sink",
-    "welcomeTitle": "Welcome to WeLoot",
-    "welcomeBody": "Swap the games you’ve finished for the ones you want. Your matches will show up here."
+    "seeAll": "See all",
+    "listGame": "List a game",
+    "perfect": {
+      "title": "Perfect matches"
+    },
+    "wanted": {
+      "title": "Has games you want",
+      "empty": "Add games to your want list and we’ll show who has them.",
+      "buildWantlist": "Find games to want"
+    },
+    "new": {
+      "title": "New near you",
+      "titleAnywhere": "New on WeLoot",
+      "empty": "Nothing new nearby yet. Be the first: list a game you’ve finished."
+    },
+    "wantedNear": {
+      "title": "Wanted near you",
+      "line": "{{count}} near you want {{title}} ({{platform}})",
+      "empty": "No one nearby wants your listed games yet. More listings, more chances.",
+      "needsLocation": "Choose your location to see who nearby wants your games."
+    },
+    "join": {
+      "title": "Find your matches",
+      "body": "Join to build a want list and see who has the games you want, and who wants yours.",
+      "cta": "Join WeLoot"
+    },
+    "feed": {
+      "emptyTitle": "Nothing here right now",
+      "emptyBody": "Listings come and go. Search for a game, or check back later.",
+      "search": "Search games"
+    }
   },
   "kitchenSink": {
     "title": "Kitchen sink",

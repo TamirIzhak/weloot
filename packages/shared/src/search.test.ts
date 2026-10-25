@@ -89,6 +89,12 @@ describe('listingFilters', () => {
     );
   });
 
+  it('limits to recently listed', () => {
+    expect(listingFilters({ listedAfterMs: 1_700_000_000_000.5, excludeUserIds: ['me'] })).toBe(
+      'createdAtMs > 1700000000000 AND NOT userId:"me"',
+    );
+  });
+
   it('excludes users by quoted ID, capped', () => {
     expect(listingFilters({ excludeUserIds: ['me', 'bad"id'] })).toBe(
       'NOT userId:"me" AND NOT userId:"badid"',
