@@ -31,6 +31,14 @@ jest.mock('@react-native-firebase/analytics', () => ({
   getAnalytics: () => ({}),
   logEvent: (...args: unknown[]) => mockLogEvent(...args),
 }));
+const mockToggleWant = jest.fn();
+let mockWanted = new Set<string>();
+jest.mock('@/features/wantlist/useWantToggle', () => ({
+  useWantToggle: () => ({
+    isWanted: (id: number, platform?: string) => mockWanted.has(`${id}_${platform ?? 'any'}`),
+    toggle: (...args: unknown[]) => mockToggleWant(...args),
+  }),
+}));
 jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuthState }));
 jest.mock('@/features/profile/settingsApi', () => ({ useUserSettings: () => mockSettings }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
@@ -97,6 +105,7 @@ async function type(text: string) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockWanted = new Set();
   jest.useFakeTimers();
   mockConfigured = true;
   mockAuthState = { status: 'signedOut' };
@@ -200,6 +209,21 @@ describe('Search tab', () => {
       filtered: false,
       results: 1,
     });
+  });
+
+  it('opens a result, and toggles it on the want list from its heart', async () => {
+    mockWanted = new Set(['119133_ps5']);
+    await render(<ListingSearchScreen />);
+    await type('elden');
+    expect(screen.getByLabelText('Remove Elden Ring from my want list')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('want-l1'));
+    expect(mockToggleWant).toHaveBeenCalledWith({
+      igdbGameId: 119133,
+      platform: 'ps5',
+      gameTitle: 'Elden Ring',
+    });
+    await fireEvent.press(screen.getByTestId('listing-tile-l1'));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/listings/[id]', params: { id: 'l1' } });
   });
 
   it('never shows your own or blocked users’ listings, not even while settings load', async () => {

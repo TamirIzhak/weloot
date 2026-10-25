@@ -301,11 +301,25 @@ export const listingSchema = z.object({
 });
 export type ListingDoc = z.infer<typeof listingSchema>;
 
+/**
+ * `wantlist/{uid}/items/{wantKey}` (PRD W3): a catalog game the user wants, on one console or any (no `platform`).
+ * Owner only; the matching functions read it server-side.
+ */
 export const wantlistItemSchema = z.object({
   igdbGameId: z.number().int().positive(),
   platform: platform.optional(),
-  gameTitle: z.string().min(1),
+  gameTitle: z.string().min(1).max(200),
+  createdAt: timestampSchema,
 });
+export type WantlistItem = z.infer<typeof wantlistItemSchema>;
+
+/** A want list item's doc ID: one per game and console ("any" when no console is chosen), so it can't be doubled. */
+export function wantKey(igdbGameId: number, platform?: PlatformKey): string {
+  return `${igdbGameId}_${platform ?? 'any'}`;
+}
+
+/** Most games on one want list (checked in the app; keeps matching cheap). */
+export const MAX_WANTLIST_ITEMS = 100;
 
 export const alertSchema = z
   .object({

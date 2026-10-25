@@ -20,6 +20,7 @@ jest.mock('react-native-gesture-handler', () => {
 
 const ITEM: ListingTileData = {
   id: 'l1',
+  igdbGameId: 119133,
   gameTitle: 'Elden Ring',
   platform: 'ps5',
   coverImageId: 'co4jni',

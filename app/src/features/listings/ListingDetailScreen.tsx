@@ -13,6 +13,7 @@ import { useRequireAuth } from '@/features/auth/authGate';
 import { coverUrl } from '@/features/catalog/igdbImages';
 import { useBrowsingLocation } from '@/features/location/browsingLocation';
 import { usePublicProfile } from '@/features/profile/usePublicProfile';
+import { useWantToggle } from '@/features/wantlist/useWantToggle';
 import {
   currentLanguage,
   formatDate,
@@ -79,6 +80,8 @@ function ListingDetail({ listing }: { listing: Listing }) {
   const requireAuth = useRequireAuth();
   const browsing = useBrowsingLocation((s) => s.location);
   const own = auth.status === 'signedIn' && auth.user.uid === listing.userId;
+  const want = useWantToggle();
+  const wanted = want.isWanted(listing.igdbGameId, listing.platform);
 
   const city = listing.location.cityId ? findCity(listing.location.cityId) : undefined;
   const area = city?.[language] ?? listing.location.areaName;
@@ -143,6 +146,21 @@ function ListingDetail({ listing }: { listing: Listing }) {
             <Text testID="listing-notes">{listing.notes}</Text>
           </View>
         ) : null}
+
+        {own ? null : (
+          <Button
+            variant="secondary"
+            label={t(wanted ? 'wantlist.onList' : 'wantlist.addButton')}
+            onPress={() =>
+              want.toggle({
+                igdbGameId: listing.igdbGameId,
+                platform: listing.platform,
+                gameTitle: listing.gameTitle,
+              })
+            }
+            testID="listing-want"
+          />
+        )}
 
         <OwnerCard uid={listing.userId} />
 

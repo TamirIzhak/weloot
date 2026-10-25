@@ -1,22 +1,33 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Redirect, Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { ScrollView } from 'react-native';
 
+import { useAuth } from '@/features/auth/AuthProvider';
+import { WantlistScreen } from '@/features/wantlist/WantlistScreen';
 import { PlaceholderScreen } from '@/navigation/PlaceholderScreen';
 
-/** The user's lists from the Profile tab, until their issues land: Want list (#20), Alerts (#49). */
-const SECTIONS = {
-  wantlist: { title: 'profile.games.wantlist', body: 'profile.games.wantlistSoon' },
-  alerts: { title: 'profile.games.alerts', body: 'profile.games.alertsSoon' },
-} as const;
-
+/** The user's lists from the Profile tab: Want list (#20), and Alerts until #49 lands. */
 export default function MySection() {
   const { t } = useTranslation();
+  const auth = useAuth();
   const { section } = useLocalSearchParams<{ section: string }>();
-  const keys = SECTIONS[section as keyof typeof SECTIONS] ?? SECTIONS.wantlist;
+  if (auth.status !== 'signedIn') return <Redirect href="/" />;
+  if (section === 'alerts') {
+    return (
+      <>
+        <Stack.Screen options={{ title: t('profile.games.alerts') }} />
+        <PlaceholderScreen
+          testID="me-alerts"
+          title={t('profile.games.alerts')}
+          body={t('profile.games.alertsSoon')}
+        />
+      </>
+    );
+  }
   return (
-    <>
-      <Stack.Screen options={{ title: t(keys.title) }} />
-      <PlaceholderScreen testID={`me-${section}`} title={t(keys.title)} body={t(keys.body)} />
-    </>
+    <ScrollView className="flex-1 bg-bg" contentContainerClassName="px-4 py-4 pb-12">
+      <Stack.Screen options={{ title: t('profile.games.wantlist') }} />
+      <WantlistScreen uid={auth.user.uid} />
+    </ScrollView>
   );
 }

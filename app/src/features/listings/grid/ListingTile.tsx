@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
@@ -15,6 +16,7 @@ import { FULL_CARD_HEIGHT, TILE_INFO_HEIGHT, type Density } from './density';
 /** What a listing tile shows (from the listings search index, #18, or Firestore). */
 export type ListingTileData = {
   id: string;
+  igdbGameId: number;
   gameTitle: string;
   platform: PlatformKey;
   coverImageId?: string;
@@ -58,11 +60,14 @@ export function ListingTile({
   density,
   width,
   onPress,
+  accessory,
 }: {
   item: ListingTileData;
   density: Density;
   width: number;
   onPress?: (item: ListingTileData) => void;
+  /** A control on the tile's top-end corner (e.g. the want list heart), reachable on its own by screen readers. */
+  accessory?: ReactNode;
 }) {
   const { t } = useTranslation();
   const language = currentLanguage();
@@ -187,16 +192,18 @@ export function ListingTile({
   }
 
   return (
-    <Pressable
-      accessible
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={onPress ? () => onPress(item) : undefined}
-      disabled={!onPress}
-      style={{ width }}
-      testID={`listing-tile-${item.id}`}
-    >
-      {content}
-    </Pressable>
+    <View style={{ width }}>
+      <Pressable
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        onPress={onPress ? () => onPress(item) : undefined}
+        disabled={!onPress}
+        testID={`listing-tile-${item.id}`}
+      >
+        {content}
+      </Pressable>
+      {accessory ? <View className="absolute end-1.5 top-1.5">{accessory}</View> : null}
+    </View>
   );
 }

@@ -1,5 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useId, useState, type ComponentProps, type ReactElement } from 'react';
+import {
+  useEffect,
+  useId,
+  useState,
+  type ComponentProps,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, useWindowDimensions, View, type ListViewToken } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -71,6 +78,7 @@ export function DensityToggle() {
 export function ListingGrid({
   items,
   onPressItem,
+  renderAccessory,
   onScroll,
   onEndReached,
   ListEmptyComponent,
@@ -80,6 +88,8 @@ export function ListingGrid({
 }: {
   items: ListingTileData[];
   onPressItem?: (item: ListingTileData) => void;
+  /** A control on each tile (e.g. the want list heart). */
+  renderAccessory?: (item: ListingTileData) => ReactNode;
   /** E.g. `useHideOnScroll()` (the list is an `Animated.FlatList`). */
   onScroll?: ComponentProps<typeof Animated.FlatList>['onScroll'];
   onEndReached?: () => void;
@@ -121,6 +131,7 @@ export function ListingGrid({
             density={density}
             width={layout.tileWidth}
             onPress={onPressItem}
+            accessory={renderAccessory?.(item)}
           />
         )}
         columnWrapperStyle={density > 1 ? { gap: GAP } : undefined}

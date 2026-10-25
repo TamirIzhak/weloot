@@ -224,7 +224,6 @@
       "listings": "My listings",
       "wantlist": "Want list",
       "alerts": "Alerts",
-      "wantlistSoon": "Games you want will show up here, and we’ll tell you when someone lists one.",
       "alertsSoon": "Your saved searches and “notify me” alerts will show up here."
     }
   },
@@ -569,6 +568,23 @@
         "notFound": "This listing doesn’t exist anymore.",
         "ownTarget": "You can’t report your own listing."
       }
+    }
+  },
+  "wantlist": {
+    "add": "Add {{title}} to my want list",
+    "remove": "Remove {{title}} from my want list",
+    "addButton": "Add to my want list",
+    "onList": "On my want list ✓",
+    "added": "{{title}} is on your want list",
+    "anyConsole": "Any console",
+    "count": "{{count}} of {{max}} games",
+    "emptyTitle": "Your want list is empty",
+    "emptyBody": "Tap ♡ on a game in search or on a game page. We’ll match you with people who have it.",
+    "findGames": "Find games",
+    "loadFailed": "Couldn’t load your want list. Check your connection.",
+    "errors": {
+      "saveFailed": "Couldn’t update your want list. Try again.",
+      "full": "Your want list is full ({{max}} games). Remove one to add another."
     }
   }
 }
