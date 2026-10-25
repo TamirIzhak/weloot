@@ -73,28 +73,28 @@ Status: ✅ merged · 🔄 in progress
 
 ## M2 — Catalog & Listing (`v0.3.0`)
 
-**#12 feat(catalog): IGDB token and catalog sync** · L · deps #2, #7
+**✅ #12 feat(catalog): IGDB token and catalog sync** · L · deps #2, #7
 - Twitch token cache, rate-limited IGDB client, scheduled + manual sync into `games` for target platforms (PRD §5.1), including similar games.
 - AC: sync of the dev project populates games; re-runs are idempotent; tests with mocked IGDB.
 
-**#13 feat(search): Algolia games index** · M · deps #12
+**✅ #13 feat(search): Algolia games index** · M · deps #12
 - Function that pushes `games` changes to Algolia; client search hook with search-only key; platform filter.
 - AC: typo-tolerant search returns expected games in < 300ms on dev.
 
-**#14 feat(listings): barcode scan and game search** · L · deps #13
+**✅ #14 feat(listings): barcode scan and game search** · L · deps #13
 - `Identify` screen: `expo-camera` EAN-13/UPC-A scanning, `barcodes` lookup, UPC-provider fallback behind an interface (mock in dev, TODO(OPEN-6)), confirm-match UI, mapping write-back; search fallback; platform selection.
 - AC: known barcode → instant match; unknown → suggestions → confirm → mapping saved; camera permission denial handled.
 
-**#16 feat(listings): location, details, publish and Quick-Add-ready flow** · M · deps #14, #66
+**✅ #16 feat(listings): location, details, publish and Quick-Add-ready flow** · M · deps #14, #66
 - Location step (saved addresses via `LocationPicker`, #66), details form (condition, case, notes, trade/sale, asking price) with zod; publish via callable function (server sets `status`, area-level `location` snapped from the saved address, denormalized fields); the whole Add flow is reusable as a modal returning the new listing ID (for Quick Add).
 - `listings` rules + tests; `game_listed` event.
 - AC: invalid combinations rejected client- and server-side; publishing with barcode and no photos takes under ~15 seconds.
 
-**#15 feat(listings): optional photos with upload** · M · deps #16
+**✅ #15 feat(listings): optional photos with upload** · M · deps #16
 - Up to 6 photos, camera/gallery, compression, EXIF strip, upload with progress/retry; storage rules + tests; `hasPhotos` set by a function; "Real photos" badge; post-publish nudge when no photos.
 - AC: a listing can be published without photos; uploaded images have no GPS metadata.
 
-**#17 feat(listings): my listings management** · S · deps #16
+**✅ #17 feat(listings): my listings management** · S · deps #16
 - Profile → My Listings: pause/resume/remove; **"Swapped" / "Sold"** with the "Who with?" picker (accepted-deal counterpart first, recent chats on that listing, "Someone outside WeLoot"), which closes the listing immediately (PRD W6). Closed listings are final; listing again creates a new listing.
 
 ## M3 — Discovery & engagement (`v0.4.0`)

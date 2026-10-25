@@ -17,6 +17,7 @@ import { syncCatalog, type SyncMode } from './catalog/catalogSync';
 import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
 import { deletePhotosOf, syncListingPhotos, type PhotoDeps } from './listings/listingPhotos';
+import { handleManageListing } from './listings/manageListing';
 import { handlePublishListing, removeListingsOf } from './listings/publishListing';
 import {
   configureGamesIndex,
@@ -166,3 +167,8 @@ export const onListingPhotoUploaded = onObjectFinalized(async (event) => {
 export const onListingPhotoDeleted = onObjectDeleted(async (event) => {
   await syncListingPhotos(photoDeps(), event.data.name);
 });
+
+// Owner actions on a listing (PRD W6, #17): pause, resume, remove, Swapped/Sold.
+export const manageListing = onCall((request) =>
+  handleManageListing(request.auth, request.data, { db: adminDb() }),
+);

@@ -143,7 +143,7 @@ describe('Profile tab', () => {
     await fireEvent.press(screen.getByTestId('my-alerts'));
     await fireEvent.press(screen.getByTestId('open-settings'));
     expect(mockPush.mock.calls).toEqual([
-      [{ pathname: '/me/[section]', params: { section: 'listings' } }],
+      ['/me/listings'],
       [{ pathname: '/me/[section]', params: { section: 'wantlist' } }],
       [{ pathname: '/me/[section]', params: { section: 'alerts' } }],
       ['/settings'],

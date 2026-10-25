@@ -237,6 +237,44 @@ export const publishListingInputSchema = z.object({
 export type PublishListingInput = z.input<typeof publishListingInputSchema>;
 export type PublishListingResult = { listingId: string };
 
+/** Owner actions on a listing (PRD W6, #17), applied through the listing state machine by `manageListing`. */
+export const MANAGE_LISTING_ACTIONS = [
+  'pause',
+  'resume',
+  'remove',
+  'closeTraded',
+  'closeSold',
+] as const;
+export type ManageListingAction = (typeof MANAGE_LISTING_ACTIONS)[number];
+
+export const manageListingInputSchema = z
+  .object({
+    listingId: id,
+    action: z.enum(MANAGE_LISTING_ACTIONS),
+    /** "Who with?" for Swapped/Sold. */
+    closedWith: listingClosedWithSchema.optional(),
+  })
+  .refine(
+    (input) =>
+      (input.action === 'closeTraded' || input.action === 'closeSold') ===
+      (input.closedWith !== undefined),
+    {
+      message: 'Swapped/Sold need "who with", other actions must not have it',
+      path: ['closedWith'],
+    },
+  );
+export type ManageListingInput = z.infer<typeof manageListingInputSchema>;
+
+/** Stable `details.reason` values of `manageListing`. */
+export type ManageListingError =
+  | 'invalidInput'
+  | 'notFound'
+  | 'notOwner'
+  | 'invalidTransition'
+  | 'notForTrade'
+  | 'notForSale'
+  | 'dealNotAvailable';
+
 /** Stable `details.reason` values of `publishListing`. */
 export type PublishListingError =
   'invalidInput' | 'unknownGame' | 'wrongPlatform' | 'unknownLocation' | 'profileRequired';

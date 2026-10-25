@@ -114,3 +114,10 @@ Needs the new dev build (camera, image picker) and the Storage emulator/bucket.
 - [ ] Airplane mode during an upload → the tile shows a retry icon; retry after reconnecting works.
 - [ ] Download a stored photo from the Storage emulator and check its metadata: no GPS/EXIF, long edge ≤ 1600 px.
 - [ ] Refuse gallery permission → a message explains it.
+
+## My listings (#17)
+- [ ] Profile → My listings: every listing with its status badge (Active, Paused, Swapped, Sold, Removed), price/trade and "Real photos" when it has photos. No listings → "List a game".
+- [ ] Tap a listing: Photos, Pause, Swapped (trade listings), Sold (sale listings), Remove.
+- [ ] Pause → badge Paused and the listing is hidden from others (Emulator UI status); Resume brings it back.
+- [ ] Swapped → "Who with?" → "Someone outside WeLoot" → badge Swapped; no actions left on it.
+- [ ] Remove asks first, then shows Removed.
