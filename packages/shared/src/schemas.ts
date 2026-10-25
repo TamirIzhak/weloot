@@ -103,6 +103,8 @@ export const userSettingsSchema = z.object({
     .record(z.enum(['offers', 'messages', 'deals', 'alerts']), z.boolean())
     .optional(),
   blockedUserIds: z.array(uid).max(500),
+  /** 🔒 Who blocked this user (set by the block function): their listings stay out of this user's feeds too. */
+  blockedByUserIds: z.array(uid).optional(),
   searchRadiusKm: z.number().int().min(1).max(200),
   ...timestamps,
 });
@@ -562,12 +564,28 @@ export const reportInputSchema = z.object({
 });
 export type ReportInput = z.infer<typeof reportInputSchema>;
 
+/** A reported message's target ID (doc IDs can't contain "/"). */
+export const messageTargetId = (conversationId: string, messageId: string) =>
+  `${conversationId}~${messageId}`;
+export function parseMessageTargetId(targetId: string): {
+  conversationId: string;
+  messageId: string | null;
+} {
+  const [conversationId = '', messageId] = targetId.split('~');
+  return { conversationId, messageId: messageId ?? null };
+}
+
+/** Block or unblock a user (PRD W9, #37). */
+export const setBlockedInputSchema = z.object({ userId: id, blocked: z.boolean() });
+export type SetBlockedInput = z.infer<typeof setBlockedInputSchema>;
+export const MAX_BLOCKED_USERS = 500;
+
 /** Most reports one user can send in 24 hours (PRD §12: callables are rate-limited per user). */
 export const REPORTS_PER_DAY = 10;
 
 /** Stable `details.reason` values of `submitReport`. */
 export type SubmitReportError =
-  'signInRequired' | 'invalidInput' | 'notFound' | 'ownTarget' | 'rateLimited' | 'notSupported';
+  'signInRequired' | 'invalidInput' | 'notFound' | 'ownTarget' | 'rateLimited';
 
 /** `config/app`: public app settings. */
 export const appConfigSchema = z.object({

@@ -112,6 +112,12 @@ function AccountSection({ auth }: { auth: Extract<AuthState, { status: 'signedIn
         testID="settings-addresses"
       />
       <SettingsRow
+        icon="ban-outline"
+        label={t('safety.blocked.title')}
+        onPress={() => router.push('/settings/blocked')}
+        testID="settings-blocked"
+      />
+      <SettingsRow
         icon="trash-outline"
         label={t('settings.delete.title')}
         onPress={() => router.push('/settings/delete-account')}

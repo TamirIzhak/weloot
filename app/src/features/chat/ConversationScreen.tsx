@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -12,7 +13,7 @@ import {
   View,
 } from 'react-native';
 
-import { MESSAGE_TEXT_MAX } from '@weloot/shared';
+import { MESSAGE_TEXT_MAX, messageTargetId } from '@weloot/shared';
 
 import { Card, cn, EmptyState, Text, useToast } from '@/components';
 import {
@@ -23,7 +24,9 @@ import {
   type Conversation,
   type Offer,
 } from '@/features/offers/offersApi';
+import { useUserSettings } from '@/features/profile/settingsApi';
 import { usePublicProfile } from '@/features/profile/usePublicProfile';
+import { setBlocked } from '@/features/safety/blockApi';
 import { currentLanguage } from '@/i18n';
 import { colors } from '@/theme/tokens';
 
@@ -67,6 +70,8 @@ function Chat({ conversation, me }: { conversation: Conversation; me: string }) 
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const unread = conversation.unread[me] ?? 0;
+  const mySettings = useUserSettings(me);
+  const blockedByMe = mySettings.status === 'ready' ? mySettings.settings.blockedUserIds : [];
 
   // Reading the chat clears my unread count (and again when new messages arrive while it's open).
   useEffect(() => {
@@ -101,6 +106,46 @@ function Chat({ conversation, me }: { conversation: Conversation; me: string }) 
 
   const dealOn =
     conversation.deal?.status === 'agreed' || conversation.deal?.status === 'awaiting_confirmation';
+  const iBlocked = blockedByMe.includes(them);
+
+  const report = (targetType: 'user' | 'message', targetId: string) =>
+    router.push({ pathname: '/report', params: { targetType, targetId } });
+  const toggleBlock = () =>
+    setBlocked(them, !iBlocked).then(
+      () =>
+        toast.show(
+          t(iBlocked ? 'safety.block.unblocked' : 'safety.block.blocked', { name: theirName }),
+          'success',
+        ),
+      () => toast.show(t('offers.errors.failed'), 'error'),
+    );
+  const openMenu = () =>
+    Alert.alert(theirName, undefined, [
+      { text: t('safety.report.user'), onPress: () => report('user', them) },
+      {
+        text: t(iBlocked ? 'safety.block.unblock' : 'safety.block.block'),
+        style: iBlocked ? 'default' : 'destructive',
+        onPress: () => {
+          if (iBlocked) {
+            void toggleBlock();
+            return;
+          }
+          Alert.alert(
+            t('safety.block.confirmTitle', { name: theirName }),
+            t('safety.block.confirmBody'),
+            [
+              { text: t('safety.block.cancel'), style: 'cancel' },
+              {
+                text: t('safety.block.block'),
+                style: 'destructive',
+                onPress: () => void toggleBlock(),
+              },
+            ],
+          );
+        },
+      },
+      { text: t('safety.block.cancel'), style: 'cancel' },
+    ]);
 
   return (
     <KeyboardAvoidingView
@@ -108,6 +153,20 @@ function Chat({ conversation, me }: { conversation: Conversation; me: string }) 
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
+      <View className="flex-row items-center justify-between border-b border-border px-4 py-2">
+        <Text className="font-medium" numberOfLines={1}>
+          {theirName}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('chat.more')}
+          onPress={openMenu}
+          hitSlop={8}
+          testID="chat-menu"
+        >
+          <Ionicons name="ellipsis-horizontal" size={20} color={colors['text-secondary']} />
+        </Pressable>
+      </View>
       {conversation.deal ? (
         <DealPanel conversation={conversation} offers={offers} me={me} names={names} />
       ) : null}
@@ -128,59 +187,82 @@ function Chat({ conversation, me }: { conversation: Conversation; me: string }) 
               conversationId={conversation.id}
               names={names}
               onCounter={openComposer}
+              onReport={(messageId) =>
+                report('message', messageTargetId(conversation.id, messageId))
+              }
             />
           )}
           testID="chat-messages"
         />
       )}
-      <View className="flex-row items-end gap-2 border-t border-border bg-surface px-3 py-2">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('chat.makeOffer')}
-          onPress={() => openComposer()}
-          disabled={dealOn}
-          hitSlop={6}
-          className={cn(
-            'h-10 w-10 items-center justify-center rounded-chip bg-surface-raised',
-            dealOn && 'opacity-40',
-          )}
-          testID="chat-offer"
+      {iBlocked ? (
+        <View
+          className="flex-row items-center gap-3 border-t border-border bg-surface px-4 py-3"
+          testID="chat-blocked"
         >
-          <Ionicons name="swap-horizontal" size={20} color={colors.accent} />
-        </Pressable>
-        <TextInput
-          value={text}
-          onChangeText={setText}
-          placeholder={t('chat.placeholder')}
-          placeholderTextColor={colors['text-muted']}
-          selectionColor={colors.primary}
-          multiline
-          maxLength={MESSAGE_TEXT_MAX}
-          accessibilityLabel={t('chat.placeholder')}
-          className="max-h-32 min-h-10 flex-1 rounded-button bg-surface-raised px-3 py-2 font-sans text-[16px] text-text-primary"
-          testID="chat-input"
-        />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('chat.send')}
-          onPress={() => void send()}
-          disabled={sending || text.trim() === ''}
-          hitSlop={6}
-          className={cn(
-            'h-10 w-10 items-center justify-center rounded-chip bg-primary',
-            (sending || text.trim() === '') && 'opacity-40',
-          )}
-          testID="chat-send"
-        >
-          {/* The send arrow points the reading direction. */}
-          <Ionicons
-            name="send"
-            size={18}
-            color={colors['text-primary']}
-            style={{ transform: [{ scaleX: currentLanguage() === 'he' ? -1 : 1 }] }}
+          <Text tone="secondary" className="flex-1">
+            {t('safety.block.youBlocked', { name: theirName })}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void toggleBlock()}
+            testID="chat-unblock"
+          >
+            <Text tone="accent" className="font-medium">
+              {t('safety.block.unblock')}
+            </Text>
+          </Pressable>
+        </View>
+      ) : (
+        <View className="flex-row items-end gap-2 border-t border-border bg-surface px-3 py-2">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('chat.makeOffer')}
+            onPress={() => openComposer()}
+            disabled={dealOn}
+            hitSlop={6}
+            className={cn(
+              'h-10 w-10 items-center justify-center rounded-chip bg-surface-raised',
+              dealOn && 'opacity-40',
+            )}
+            testID="chat-offer"
+          >
+            <Ionicons name="swap-horizontal" size={20} color={colors.accent} />
+          </Pressable>
+          <TextInput
+            value={text}
+            onChangeText={setText}
+            placeholder={t('chat.placeholder')}
+            placeholderTextColor={colors['text-muted']}
+            selectionColor={colors.primary}
+            multiline
+            maxLength={MESSAGE_TEXT_MAX}
+            accessibilityLabel={t('chat.placeholder')}
+            className="max-h-32 min-h-10 flex-1 rounded-button bg-surface-raised px-3 py-2 font-sans text-[16px] text-text-primary"
+            testID="chat-input"
           />
-        </Pressable>
-      </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('chat.send')}
+            onPress={() => void send()}
+            disabled={sending || text.trim() === ''}
+            hitSlop={6}
+            className={cn(
+              'h-10 w-10 items-center justify-center rounded-chip bg-primary',
+              (sending || text.trim() === '') && 'opacity-40',
+            )}
+            testID="chat-send"
+          >
+            {/* The send arrow points the reading direction. */}
+            <Ionicons
+              name="send"
+              size={18}
+              color={colors['text-primary']}
+              style={{ transform: [{ scaleX: currentLanguage() === 'he' ? -1 : 1 }] }}
+            />
+          </Pressable>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -196,6 +278,7 @@ function MessageRow({
   conversationId,
   names,
   onCounter,
+  onReport,
 }: {
   message: Message;
   me: string;
@@ -204,6 +287,7 @@ function MessageRow({
   conversationId: string;
   names: { me: string; them: string };
   onCounter: (offer: Offer) => void;
+  onReport: (messageId: string) => void;
 }) {
   const { t } = useTranslation();
   if (message.type === 'offer') {
@@ -245,13 +329,29 @@ function MessageRow({
   }
   const mine = message.senderId === me;
   return (
-    <View
+    <Pressable
+      // Long-press someone else's message to report it (PRD W9).
+      onLongPress={
+        mine
+          ? undefined
+          : () =>
+              Alert.alert(t('safety.report.messageTitle'), message.text, [
+                { text: t('safety.block.cancel'), style: 'cancel' },
+                {
+                  text: t('safety.report.message'),
+                  style: 'destructive',
+                  onPress: () => onReport(message.id),
+                },
+              ])
+      }
+      accessibilityHint={mine ? undefined : t('safety.report.messageHint')}
       className={cn(
         'max-w-[80%] rounded-card px-3 py-2',
         mine ? 'self-end bg-primary' : 'self-start bg-surface-raised',
       )}
+      testID={`message-${message.id}`}
     >
       <Text className={mine ? 'text-on-primary' : undefined}>{message.text}</Text>
-    </View>
+    </Pressable>
   );
 }

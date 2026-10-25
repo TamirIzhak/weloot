@@ -100,7 +100,7 @@ function sortKeys(value: Record<string, unknown>): Record<string, unknown> {
 /**
  * Recomputes the match between two users, both sides. Blocking either way (PRD W3: blocked users are excluded
  * everywhere) means no match.
- * TODO(#37): blocking and unblocking must call this for the pair once Settings → Blocked users exists.
+ * Blocking and unblocking call this for the pair (safety/block.ts).
  */
 export async function recomputePair(db: Firestore, a: string, b: string): Promise<void> {
   if (a === b) return;

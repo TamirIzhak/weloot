@@ -41,6 +41,7 @@ import { matchOnListingWrite, matchOnWantWrite } from './matching/matches';
 import { handleWantedNearYou } from './matching/wantedNearYou';
 import { handlePublishListing, removeListingsOf } from './listings/publishListing';
 import { handleSubmitReport } from './reports/submitReport';
+import { handleSetBlocked } from './safety/block';
 import {
   configureGamesIndex,
   searchGamesIndex,
@@ -319,7 +320,12 @@ export const manageListing = onCall((request) =>
   handleManageListing(request.auth, request.data, { db: adminDb() }),
 );
 
-// Reports (PRD W9, #19): listings for now; users, messages and deals with #37.
+// Reports (PRD W9, #19, #37): listings, users, messages and deals.
 export const submitReport = onCall((request) =>
   handleSubmitReport(request.auth, request.data, { db: adminDb() }),
+);
+
+// Blocking (PRD W9, #37).
+export const setBlocked = onCall((request) =>
+  handleSetBlocked(request.auth, request.data, { db: adminDb() }),
 );

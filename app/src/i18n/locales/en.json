@@ -617,7 +617,27 @@
         "rateLimited": "You’ve sent a lot of reports today. Try again tomorrow, or contact support.",
         "notFound": "This listing doesn’t exist anymore.",
         "ownTarget": "You can’t report your own listing."
-      }
+      },
+      "user": "Report this person",
+      "message": "Report message",
+      "messageTitle": "Report this message?",
+      "messageHint": "Long-press to report this message"
+    },
+    "block": {
+      "block": "Block",
+      "unblock": "Unblock",
+      "cancel": "Cancel",
+      "confirmTitle": "Block {{name}}?",
+      "confirmBody": "You won’t see each other’s listings, and neither of you can message the other. You can unblock later in Settings.",
+      "blocked": "{{name}} is blocked.",
+      "unblocked": "{{name}} is unblocked.",
+      "youBlocked": "You blocked {{name}}. Neither of you can send messages here."
+    },
+    "blocked": {
+      "title": "Blocked users",
+      "hint": "You don’t see their listings, they don’t see yours, and you can’t message each other.",
+      "emptyTitle": "Nobody blocked",
+      "emptyBody": "You can block someone from the menu in a chat."
     }
   },
   "wantlist": {
@@ -783,7 +803,8 @@
       "comment": "A few words (optional)",
       "send": "Send rating",
       "thanks": "Thanks for rating. It helps everyone trade safely."
-    }
+    },
+    "more": "More"
   },
   "inbox": {
     "emptyTitle": "No conversations yet",

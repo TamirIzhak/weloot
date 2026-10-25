@@ -15,7 +15,12 @@ export function useViewer() {
   const ready = settings.status === 'ready' ? settings.settings : null;
   return {
     uid,
-    excludedUserIds: [...(uid ? [uid] : []), ...(ready?.blockedUserIds ?? [])],
+    // Blocking hides both ways (PRD W9): people I blocked, and people who blocked me.
+    excludedUserIds: [
+      ...(uid ? [uid] : []),
+      ...(ready?.blockedUserIds ?? []),
+      ...(ready?.blockedByUserIds ?? []),
+    ],
     radiusKm: ready?.searchRadiusKm ?? DEFAULT_SEARCH_RADIUS_KM,
     pending: uid !== undefined && settings.status === 'loading',
   };
