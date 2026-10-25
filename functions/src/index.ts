@@ -1,7 +1,7 @@
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { logger } from 'firebase-functions';
 import { onCall, onRequest } from 'firebase-functions/v2/https';
-import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onObjectDeleted, onObjectFinalized } from 'firebase-functions/v2/storage';
 import { getMessaging } from 'firebase-admin/messaging';
@@ -30,6 +30,12 @@ import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
 import { deletePhotosOf, syncListingPhotos, type PhotoDeps } from './listings/listingPhotos';
 import { handleManageListing } from './listings/manageListing';
+import {
+  fcmSender,
+  handleRegisterPushToken,
+  handleUnregisterPushToken,
+  notifyForMessage,
+} from './notifications/notifications';
 import { matchOnListingWrite, matchOnWantWrite } from './matching/matches';
 import { handleWantedNearYou } from './matching/wantedNearYou';
 import { handlePublishListing, removeListingsOf } from './listings/publishListing';
@@ -183,12 +189,13 @@ export const wantedNearYou = onCall((request) =>
 );
 
 // Alerts (PRD W8, #49): a listing that becomes active reaches matching alerts and want lists (rate-limited pushes).
+const pushSender = () => fcmSender(getMessaging());
 const fcmNotifier: Notifier = {
   async send(push) {
-    await getMessaging().sendEachForMulticast({
-      tokens: push.tokens,
-      notification: { title: push.title, body: push.body },
-      data: { type: 'alert', listingId: push.listingId },
+    await pushSender().send(push.tokens, {
+      title: push.title,
+      body: push.body,
+      data: { type: 'listing', listingId: push.listingId, source: 'alert' },
     });
   },
 };
@@ -242,6 +249,26 @@ export const invalidateOffersOnListing = onDocumentWritten(
       event.params.listingId,
       event.data?.before.data(),
       event.data?.after.data(),
+    );
+  },
+);
+
+// Push notifications (PRD §10, #27): devices register themselves; chat events notify whoever they concern.
+export const registerPushToken = onCall((request) =>
+  handleRegisterPushToken(request.auth, request.data, { db: adminDb() }),
+);
+export const unregisterPushToken = onCall((request) =>
+  handleUnregisterPushToken(request.auth, request.data, { db: adminDb() }),
+);
+export const notifyOnMessage = onDocumentCreated(
+  'conversations/{conversationId}/messages/{messageId}',
+  async (event) => {
+    const message = event.data?.data();
+    if (!message) return;
+    await notifyForMessage(
+      { db: adminDb(), sender: pushSender() },
+      event.params.conversationId,
+      message as Parameters<typeof notifyForMessage>[2],
     );
   },
 );

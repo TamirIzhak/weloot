@@ -372,6 +372,13 @@
       "button": "Delete my account",
       "done": "Your account was deleted.",
       "failed": "Couldn’t delete your account. Check your connection and try again."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "offers": "Offers",
+      "messages": "Messages",
+      "deals": "Deals and reminders",
+      "alerts": "Alerts for games you want"
     }
   },
   "catalog": {

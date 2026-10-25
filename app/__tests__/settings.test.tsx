@@ -242,6 +242,31 @@ describe('Settings', () => {
     expect(mockUpdateSettings).toHaveBeenCalledWith('u1', { marketingOptIn: true });
   });
 
+  it('switches notification kinds, all on by default', async () => {
+    mockAuthState = signedIn();
+    mockSettings = {
+      status: 'ready',
+      settings: { ...SETTINGS, notificationPrefs: { messages: false } },
+    };
+    await render(withSafeArea(<SettingsScreen />));
+    expect(screen.getByTestId('notify-offers').props.value).toBe(true);
+    expect(screen.getByTestId('notify-messages').props.value).toBe(false);
+    await fireEvent(screen.getByTestId('notify-alerts'), 'valueChange', false);
+    expect(mockUpdateSettings).toHaveBeenCalledWith('u1', {
+      notificationPrefs: { messages: false, alerts: false },
+    });
+  });
+
+  it('forgets this device for pushes when signing out', async () => {
+    const { unregisterPush } = jest.requireMock('@/features/notifications/push') as {
+      unregisterPush: jest.Mock;
+    };
+    mockAuthState = signedIn();
+    await render(withSafeArea(<SettingsScreen />));
+    await fireEvent.press(screen.getByTestId('sign-out'));
+    expect(unregisterPush).toHaveBeenCalled();
+  });
+
   it('signs out and goes back', async () => {
     mockAuthState = signedIn();
     await render(withSafeArea(<SettingsScreen />));

@@ -4,13 +4,14 @@ import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Linking, ScrollView, Switch, View } from 'react-native';
 
-import type { UserSettings } from '@weloot/shared';
+import { NOTIFICATION_KINDS, wantsNotification, type UserSettings } from '@weloot/shared';
 
 import { Button, Chip, Text, useToast } from '@/components';
 import { useAuth, type AuthState } from '@/features/auth/AuthProvider';
 import { useRequireAuth } from '@/features/auth/authGate';
 import { browsingLocationName, useBrowsingLocation } from '@/features/location/browsingLocation';
 import { useSavedLocations } from '@/features/location/savedLocations';
+import { unregisterPush } from '@/features/notifications/push';
 import { legalUrl, supportEmailUrl, supportWhatsAppUrl } from '@/features/profile/links';
 import { updateSettings, useUserSettings } from '@/features/profile/settingsApi';
 import { SettingsRow, SettingsSection } from '@/features/profile/SettingsRow';
@@ -41,6 +42,7 @@ export default function SettingsScreen() {
       <Stack.Screen options={{ title: t('settings.title') }} />
       {signedIn && auth.status === 'signedIn' ? <AccountSection auth={auth} /> : null}
       <PreferencesSection uid={signedIn ? uid : undefined} settings={ready} />
+      {signedIn && uid && ready ? <NotificationsSection uid={uid} settings={ready} /> : null}
       {signedIn && uid && ready ? <EmailSection uid={uid} settings={ready} /> : null}
       <SupportSection uid={uid} />
       <LegalSection />
@@ -194,6 +196,45 @@ function PreferencesSection({ uid, settings }: { uid?: string; settings: UserSet
   );
 }
 
+const NOTIFICATION_ICONS = {
+  offers: 'swap-horizontal-outline',
+  messages: 'chatbubble-outline',
+  deals: 'checkmark-done-outline',
+  alerts: 'notifications-outline',
+} as const;
+
+/** Settings → Notifications (PRD §9-D, #27): which pushes to get; each kind is on unless switched off. */
+function NotificationsSection({ uid, settings }: { uid: string; settings: UserSettings }) {
+  const { t } = useTranslation();
+  const toast = useToast();
+  return (
+    <SettingsSection title={t('settings.notifications.title')} testID="settings-notifications">
+      {NOTIFICATION_KINDS.map((kind, i) => (
+        <SettingsRow
+          key={kind}
+          first={i === 0}
+          icon={NOTIFICATION_ICONS[kind]}
+          label={t(`settings.notifications.${kind}`)}
+          right={
+            <Switch
+              value={wantsNotification(settings.notificationPrefs, kind)}
+              onValueChange={(on) =>
+                updateSettings(uid, {
+                  notificationPrefs: { ...settings.notificationPrefs, [kind]: on },
+                }).catch(() => toast.show(t('settings.errors.saveFailed'), 'error'))
+              }
+              trackColor={{ true: colors.primary, false: colors.border }}
+              thumbColor={colors['text-primary']}
+              accessibilityLabel={t(`settings.notifications.${kind}`)}
+              testID={`notify-${kind}`}
+            />
+          }
+        />
+      ))}
+    </SettingsSection>
+  );
+}
+
 function EmailSection({ uid, settings }: { uid: string; settings: UserSettings }) {
   const { t } = useTranslation();
   const toast = useToast();
@@ -309,7 +350,8 @@ function SignOutButton() {
       fullWidth
       label={t('auth.signOut')}
       onPress={() => {
-        signOut(getAuth())
+        unregisterPush()
+          .then(() => signOut(getAuth()))
           .then(() => router.back())
           .catch(() => toast.show(t('auth.errors.generic'), 'error'));
       }}

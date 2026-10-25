@@ -52,3 +52,6 @@ Terms of Service and Privacy Policy in Hebrew and English (they must cover name,
 
 ### 8. Support contacts
 Set `EXPO_PUBLIC_SUPPORT_WHATSAPP` (international format without +) and `EXPO_PUBLIC_SUPPORT_EMAIL` in `app/.env` (and the EAS environments) so Settings → Support works.
+
+### 9. Push notifications on iPhone
+Android pushes work with the existing Firebase setup. For iOS: Apple Developer → Keys → create an **APNs** key (download the `.p8`, note the Key ID and Team ID) → Firebase console → Project settings → Cloud Messaging → Apple app configuration → upload it, for each project (dev, staging, prod). Only needed once the iOS app is built.

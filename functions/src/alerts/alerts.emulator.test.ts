@@ -174,6 +174,14 @@ describe('alertOnListing', () => {
     expect(await forYou('fan', 'l4')).toMatchObject({ pushed: false });
   });
 
+  it('lists it without a push when alert notifications are switched off (#27)', async () => {
+    await alert('fan');
+    await settings('fan', { notificationPrefs: { alerts: false } });
+    await alertOnListingWrite(deps(), 'l1', undefined, listing());
+    expect(await forYou('fan')).toMatchObject({ pushed: false });
+    expect(sent).toHaveLength(0);
+  });
+
   it('lists it without a push when the user has no device registered yet', async () => {
     await alert('fan');
     await settings('fan', { fcmTokens: [] });

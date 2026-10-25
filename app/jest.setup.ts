@@ -18,3 +18,13 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
+
+// Push notifications talk to the native messaging module; tests of other features don't care (push.test.ts
+// unmocks it).
+jest.mock('@/features/notifications/push', () => ({
+  registerForPush: jest.fn(async () => false),
+  unregisterPush: jest.fn(async () => undefined),
+  watchTokenRefresh: jest.fn(() => () => undefined),
+  watchPushes: jest.fn(() => () => undefined),
+  targetOf: jest.fn(() => null),
+}));
