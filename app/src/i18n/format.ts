@@ -29,3 +29,17 @@ export function formatPrice(agorot: Agorot, language: Language): string {
 export function formatNumber(value: number, language: Language): string {
   return new Intl.NumberFormat(LOCALE[language]).format(value);
 }
+
+/** A month and year, e.g. "October 2026" / "אוקטובר 2026" (account age, PRD W9). */
+export function formatMonthYear(millis: number, language: Language): string {
+  return new Intl.DateTimeFormat(LOCALE[language], { month: 'long', year: 'numeric' }).format(
+    new Date(millis),
+  );
+}
+
+/** A short date, e.g. "25 Oct 2026". */
+export function formatDate(millis: number, language: Language): string {
+  return new Intl.DateTimeFormat(LOCALE[language], { dateStyle: 'medium' }).format(
+    new Date(millis),
+  );
+}

@@ -442,6 +442,22 @@ export const reportSchema = z.object({
   createdAt: timestampSchema,
 });
 
+/** What the app sends to `submitReport` (PRD W9): a reason, and details when the reporter adds them. */
+export const reportInputSchema = z.object({
+  targetType: z.enum(REPORT_TARGETS),
+  targetId: id,
+  reason: z.enum(REPORT_REASONS),
+  details: z.string().trim().max(1000).optional(),
+});
+export type ReportInput = z.infer<typeof reportInputSchema>;
+
+/** Most reports one user can send in 24 hours (PRD §12: callables are rate-limited per user). */
+export const REPORTS_PER_DAY = 10;
+
+/** Stable `details.reason` values of `submitReport`. */
+export type SubmitReportError =
+  'signInRequired' | 'invalidInput' | 'notFound' | 'ownTarget' | 'rateLimited' | 'notSupported';
+
 /** `config/app`: public app settings. */
 export const appConfigSchema = z.object({
   minAppVersion: z.string().regex(/^\d+\.\d+\.\d+$/),

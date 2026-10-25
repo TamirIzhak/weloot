@@ -145,3 +145,13 @@ Needs Algolia set up (docs/OWNER-TODO.md 5) and a few published listings (ideall
 - [ ] Nothing matches → "No listings match" with Search all of Israel / Clear filters / Choose your location.
 - [ ] Scroll a long result list: more results load at the end, with no duplicates.
 - [ ] Hebrew: filters, chips and results read right to left; area names show in Hebrew.
+
+## Game page and reporting (#19)
+- [ ] Search → tap a result: the game page opens with photos (swipe; "2/3" counter) or the cover, title, console, Real photos badge, Trade/price, condition, case, area with distance, listed date and the owner's notes.
+- [ ] Signed out, the page shows everything (nothing hidden for guests).
+- [ ] Owner card: username, ★ rating (or "No ratings yet"), completed trades, member since (month and year).
+- [ ] Your own listing: "This is your listing" with Manage my listings, and no Report button. Paused listings still open for you, with a Paused badge.
+- [ ] Another user pauses or closes a listing while you have it open → "This listing isn't available anymore" → Search for other copies.
+- [ ] Report listing as a guest → sign-in sheet ("Sign in to report it"), then the report screen. No phone verification is asked.
+- [ ] Report: Send stays disabled until a reason is picked; sending shows "Thanks. We'll look into it." and closes. The report appears in Firestore `reports` (console). Reporting the same listing again updates that report.
+- [ ] Hebrew: the page and the report screen read right to left; the username and numbers stay readable.

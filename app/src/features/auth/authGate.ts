@@ -15,6 +15,7 @@ export const SIGN_IN_REASONS = [
   'add',
   'inbox',
   'profile',
+  'report',
   'phone',
 ] as const;
 export type SignInReason = (typeof SIGN_IN_REASONS)[number];

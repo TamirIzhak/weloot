@@ -37,6 +37,7 @@ const REASON_TITLE_KEY: Record<SignInReason, string> = {
   add: 'auth.reasons.add',
   inbox: 'auth.reasons.inbox',
   profile: 'auth.reasons.profile',
+  report: 'auth.reasons.report',
   phone: 'auth.verifyPhone.title',
 };
 

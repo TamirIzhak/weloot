@@ -70,7 +70,9 @@ function RootNavigator() {
       <Stack.Screen name="me/[section]" options={withHeader} />
       <Stack.Screen name="add/details" options={withHeader} />
       <Stack.Screen name="add/done" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="listings/[id]/index" options={withHeader} />
       <Stack.Screen name="listings/[id]/photos" options={withHeader} />
+      <Stack.Screen name="listings/[id]/report" options={withHeader} />
       <Stack.Screen name="addresses/new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="addresses/[id]" options={{ presentation: 'modal' }} />
       {/* OAuth redirects land here for a moment and step back (OAuthRedirect). */}

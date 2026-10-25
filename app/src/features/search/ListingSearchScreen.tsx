@@ -197,6 +197,7 @@ function Results({
       </Text>
       <ListingGrid
         items={tiles}
+        onPressItem={(item) => router.push({ pathname: '/listings/[id]', params: { id: item.id } })}
         onScroll={onScroll}
         onEndReached={state.hasMore ? state.loadMore : undefined}
         bottomInset={bottomInset}
