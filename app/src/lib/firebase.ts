@@ -7,6 +7,8 @@ import Constants from 'expo-constants';
 
 import { FIREBASE_REGION } from '@weloot/shared';
 
+import { initAppCheck } from './appCheck';
+
 /** Ports from firebase.json "emulators". */
 const EMULATOR_PORTS = { auth: 9099, firestore: 8080, functions: 5001, storage: 9199 } as const;
 
@@ -36,6 +38,8 @@ let emulatorHostInUse: string | null | undefined;
 export function initFirebase(): string | null {
   if (emulatorHostInUse !== undefined) return emulatorHostInUse;
   emulatorHostInUse = null;
+  // First, so every later call carries an App Check token (the emulators accept calls without one).
+  initAppCheck();
   if (!shouldUseEmulators()) return null;
 
   const host = emulatorHost(Constants.expoConfig?.hostUri);

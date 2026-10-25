@@ -62,3 +62,16 @@ Shared links are `https://<project>.web.app/l/{id}` until a WeLoot domain is cho
 2. iOS (once there's an Apple developer account): replace `TEAMID` in `hosting/public/.well-known/apple-app-site-association` with the Team ID.
 3. Deploy Hosting with the functions: `npx firebase deploy --only hosting,functions -P dev` (and staging / prod).
 Until then links open the landing page, whose "Open in WeLoot" button still opens the app.
+
+### 11. App Check (#38)
+App Check proves calls come from the real WeLoot app. The app already sends tokens; nothing is enforced until you switch it on.
+1. Firebase console → App Check → Apps, for each project:
+   - **Android (staging, prod):** register with **Play Integrity**. It needs the app's SHA-256 fingerprint (`npx eas-cli@latest credentials -p android` from `app/`), and for Play Integrity to pass, the app must be installed from Google Play (an internal testing track is fine). Sideloaded APKs fail it.
+   - **Android dev builds** use the **debug provider**: open the dev build once, find the line `Enter this debug secret into the allow list in the Firebase Console…` in `adb logcat` (or the Metro log), and add that token under App Check → Apps → ⋮ → Manage debug tokens. Never commit it.
+   - **iOS (later):** register with App Attest.
+2. Check the App Check metrics page: requests should show as **verified**.
+3. Then enforce:
+   - Callables: add `ENFORCE_APP_CHECK=true` to `functions/.env.<projectId>` and redeploy functions.
+   - Firestore and Storage: App Check → APIs → Enforce.
+
+   Start with dev, then prod once the Play build is live. Leave staging unenforced while its test builds are sideloaded.

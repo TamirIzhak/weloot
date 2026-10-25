@@ -2,6 +2,8 @@
 import { emulatorHost } from '@/lib/firebase';
 
 jest.mock('@react-native-firebase/app', () => ({ getApp: jest.fn(() => ({})) }));
+const mockInitAppCheck = jest.fn();
+jest.mock('@/lib/appCheck', () => ({ initAppCheck: () => mockInitAppCheck() }));
 jest.mock('@react-native-firebase/auth', () => ({
   getAuth: jest.fn(),
   connectAuthEmulator: jest.fn(),

@@ -55,6 +55,7 @@ import { configureListingsIndex, syncListingRecord } from './search/listingsInde
 import {
   ALGOLIA_ADMIN_KEY,
   ALGOLIA_APP_ID,
+  ENFORCE_APP_CHECK,
   DISCORD_CLIENT_ID,
   DISCORD_CLIENT_SECRET,
   TWITCH_CLIENT_ID,
@@ -66,6 +67,9 @@ async function limited(auth: { uid: string } | undefined, action: LimitedAction)
   if (auth) await rateLimit(adminDb(), auth.uid, action);
 }
 
+/** Every callable checks App Check when ENFORCE_APP_CHECK is on (PRD §12, #38). */
+const appCheck = { enforceAppCheck: ENFORCE_APP_CHECK };
+
 // Region per ADR 0001.
 setGlobalOptions({ region: FIREBASE_REGION, maxInstances: 10 });
 
@@ -75,7 +79,7 @@ export const health = onRequest({ invoker: 'private' }, (_req, res) => {
 });
 
 // Sign in with Discord (PRD W1, #64): exchanges the OAuth code for a Firebase custom token.
-export const discordSignIn = onCall({ secrets: [DISCORD_CLIENT_SECRET] }, (request) =>
+export const discordSignIn = onCall({ ...appCheck, secrets: [DISCORD_CLIENT_SECRET] }, (request) =>
   handleDiscordSignIn(request.data, {
     fetch,
     auth: adminAuth(),
@@ -85,7 +89,7 @@ export const discordSignIn = onCall({ secrets: [DISCORD_CLIENT_SECRET] }, (reque
 );
 
 // Delete account (PRD W9, #11): deletes personal data, frees the username, leaves a tombstone, deletes the Auth user.
-export const deleteAccount = onCall((request) =>
+export const deleteAccount = onCall(appCheck, (request) =>
   handleDeleteAccount(request.auth, {
     store: firestoreAccountStore(adminDb()),
     auth: adminAuth(),
@@ -193,7 +197,7 @@ export const matchOnWant = onDocumentWritten('wantlist/{uid}/items/{itemId}', as
 });
 
 // Home "Wanted near you" (PRD W3, #22): counts only, never who.
-export const wantedNearYou = onCall((request) =>
+export const wantedNearYou = onCall(appCheck, (request) =>
   handleWantedNearYou(request.auth, request.data, { db: adminDb() }),
 );
 
@@ -219,30 +223,30 @@ export const alertOnListing = onDocumentWritten('listings/{listingId}', async (e
 });
 
 // Conversations and offers (PRD W5, #23): clients never write them; every change goes through these.
-export const startConversation = onCall(async (request) => {
+export const startConversation = onCall(appCheck, async (request) => {
   await limited(request.auth, 'startConversation');
   return handleStartConversation(request.auth, request.data, { db: adminDb() });
 });
-export const sendMessage = onCall(async (request) => {
+export const sendMessage = onCall(appCheck, async (request) => {
   await limited(request.auth, 'sendMessage');
   return handleSendMessage(request.auth, request.data, { db: adminDb() });
 });
-export const sendOffer = onCall(async (request) => {
+export const sendOffer = onCall(appCheck, async (request) => {
   await limited(request.auth, 'sendOffer');
   return handleSendOffer(request.auth, request.data, { db: adminDb() });
 });
-export const respondToOffer = onCall((request) =>
+export const respondToOffer = onCall(appCheck, (request) =>
   handleRespondToOffer(request.auth, request.data, { db: adminDb() }),
 );
-export const markConversationRead = onCall((request) =>
+export const markConversationRead = onCall(appCheck, (request) =>
   handleMarkRead(request.auth, request.data, { db: adminDb() }),
 );
 // Deals (PRD W6, #47): confirm / dispute / cancel, and the reminders and 7-day expiry.
-export const dealAction = onCall((request) =>
+export const dealAction = onCall(appCheck, (request) =>
   handleDealAction(request.auth, request.data, { db: adminDb() }),
 );
 // Ratings (PRD W9, #36): after a completed deal, once per person.
-export const rateUser = onCall((request) =>
+export const rateUser = onCall(appCheck, (request) =>
   handleRateUser(request.auth, request.data, { db: adminDb() }),
 );
 export const dealRemindersScheduled = onSchedule(
@@ -270,10 +274,10 @@ export const invalidateOffersOnListing = onDocumentWritten(
 );
 
 // Push notifications (PRD §10, #27): devices register themselves; chat events notify whoever they concern.
-export const registerPushToken = onCall((request) =>
+export const registerPushToken = onCall(appCheck, (request) =>
   handleRegisterPushToken(request.auth, request.data, { db: adminDb() }),
 );
-export const unregisterPushToken = onCall((request) =>
+export const unregisterPushToken = onCall(appCheck, (request) =>
   handleUnregisterPushToken(request.auth, request.data, { db: adminDb() }),
 );
 export const notifyOnMessage = onDocumentCreated(
@@ -290,24 +294,27 @@ export const notifyOnMessage = onDocumentCreated(
 );
 
 // Barcodes (PRD §5.1, #14): look a scanned code up, and record users' confirmations.
-export const lookupBarcode = onCall({ secrets: [ALGOLIA_ADMIN_KEY] }, async (request) => {
-  await limited(request.auth, 'lookupBarcode');
-  return handleLookupBarcode(request.auth, request.data, {
-    db: adminDb(),
-    upc: noUpcProvider, // TODO(OPEN-6): the UPC/EAN provider isn't chosen yet.
-    searchGames: async (query) => {
-      const algolia = algoliaAdmin();
-      return algolia ? searchGamesIndex(algolia, query) : [];
-    },
-  });
-});
+export const lookupBarcode = onCall(
+  { ...appCheck, secrets: [ALGOLIA_ADMIN_KEY] },
+  async (request) => {
+    await limited(request.auth, 'lookupBarcode');
+    return handleLookupBarcode(request.auth, request.data, {
+      db: adminDb(),
+      upc: noUpcProvider, // TODO(OPEN-6): the UPC/EAN provider isn't chosen yet.
+      searchGames: async (query) => {
+        const algolia = algoliaAdmin();
+        return algolia ? searchGamesIndex(algolia, query) : [];
+      },
+    });
+  },
+);
 
-export const confirmBarcode = onCall((request) =>
+export const confirmBarcode = onCall(appCheck, (request) =>
   handleConfirmBarcode(request.auth, request.data, { db: adminDb() }),
 );
 
 // Publish a listing (PRD W2, #16): validated and completed server-side (status, game fields, area-only location).
-export const publishListing = onCall((request) =>
+export const publishListing = onCall(appCheck, (request) =>
   handlePublishListing(request.auth, request.data, { db: adminDb() }),
 );
 
@@ -327,17 +334,17 @@ export const onListingPhotoDeleted = onObjectDeleted(async (event) => {
 });
 
 // Owner actions on a listing (PRD W6, #17): pause, resume, remove, Swapped/Sold.
-export const manageListing = onCall((request) =>
+export const manageListing = onCall(appCheck, (request) =>
   handleManageListing(request.auth, request.data, { db: adminDb() }),
 );
 
 // Reports (PRD W9, #19, #37): listings, users, messages and deals.
-export const submitReport = onCall((request) =>
+export const submitReport = onCall(appCheck, (request) =>
   handleSubmitReport(request.auth, request.data, { db: adminDb() }),
 );
 
 // Blocking (PRD W9, #37).
-export const setBlocked = onCall((request) =>
+export const setBlocked = onCall(appCheck, (request) =>
   handleSetBlocked(request.auth, request.data, { db: adminDb() }),
 );
 

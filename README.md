@@ -142,6 +142,8 @@ Server credentials live in Google Secret Manager and are declared in [`functions
 
 Tranzila and DONE secrets are Phase 2 (not used in the MVP). Non-secret server config (for example `DONE_BASE_URL`) is a `defineString` parameter, set per project in `functions/.env.<projectId>`.
 
+`ENFORCE_APP_CHECK` (boolean parameter, default `false`) makes every callable reject requests without a valid App Check token. Turn it on per project in `functions/.env.<projectId>` once App Check is registered (docs/OWNER-TODO.md §11).
+
 - **Set in a project:** `npx firebase functions:secrets:set TWITCH_CLIENT_ID -P dev`
 - **Emulator:** put `NAME=value` lines in `functions/.secret.local` (git-ignored)
 

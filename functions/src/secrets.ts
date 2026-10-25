@@ -1,4 +1,4 @@
-import { defineSecret, defineString } from 'firebase-functions/params';
+import { defineBoolean, defineSecret, defineString } from 'firebase-functions/params';
 
 // Every server credential WeLoot uses, stored in Google Secret Manager (PRD §13).
 // A secret only has to exist in a project once a deployed function binds it via `secrets: [...]`.
@@ -9,6 +9,11 @@ import { defineSecret, defineString } from 'firebase-functions/params';
 // until the Discord application exists (docs/OWNER-TODO.md), and the function then answers "notConfigured".
 export const DISCORD_CLIENT_ID = defineString('DISCORD_CLIENT_ID', { default: '' });
 export const DISCORD_CLIENT_SECRET = defineSecret('DISCORD_CLIENT_SECRET');
+
+// App Check (#38): when true, callables reject requests without a valid App Check token. Off by default so dev
+// builds and sideloaded test APKs keep working; turn it on per project in functions/.env.<project> once the app's
+// attestation is registered (docs/OWNER-TODO.md §11).
+export const ENFORCE_APP_CHECK = defineBoolean('ENFORCE_APP_CHECK', { default: false });
 
 // IGDB / Twitch (#12)
 export const TWITCH_CLIENT_ID = defineSecret('TWITCH_CLIENT_ID');
