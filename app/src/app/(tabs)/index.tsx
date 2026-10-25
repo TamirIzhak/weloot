@@ -44,6 +44,11 @@ export default function Home() {
               label={t('home.kitchenSink')}
               onPress={() => router.push('/dev/kitchen-sink')}
             />
+            <Button
+              variant="secondary"
+              label={t('listings.grid.devTitle')}
+              onPress={() => router.push('/dev/grid')}
+            />
             <SampleFeed />
           </View>
         )}

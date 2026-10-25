@@ -463,6 +463,13 @@
       "removeConfirm": "Remove this listing? It can’t be undone; you can list the game again.",
       "closed": "This listing is closed. To offer the game again, list it again.",
       "changeFailed": "Couldn’t update the listing. Try again."
+    },
+    "grid": {
+      "perRow": "{{n}} per row",
+      "devTitle": "Listing grid preview (dev)"
+    },
+    "tile": {
+      "distance": "~{{km}} km"
     }
   }
 }
