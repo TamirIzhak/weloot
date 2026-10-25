@@ -19,6 +19,14 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
+// Crash reporting talks to native Crashlytics (crash.test.ts unmocks it).
+jest.mock('@/features/monitoring/crash', () => ({
+  initMonitoring: jest.fn(),
+  setMonitoringUser: jest.fn(),
+  reportError: jest.fn(),
+  trackAlertOpened: jest.fn(),
+}));
+
 // Push notifications talk to the native messaging module; tests of other features don't care (push.test.ts
 // unmocks it).
 jest.mock('@/features/notifications/push', () => ({

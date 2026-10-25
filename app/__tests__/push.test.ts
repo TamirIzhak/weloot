@@ -87,12 +87,15 @@ describe('push taps', () => {
     push.watchPushes(open, foreground);
     await Promise.resolve();
     await Promise.resolve();
-    expect(open).toHaveBeenCalledWith({ pathname: '/listings/[id]', params: { id: 'l1' } });
+    expect(open).toHaveBeenCalledWith(
+      { pathname: '/listings/[id]', params: { id: 'l1' } },
+      { type: 'listing', listingId: 'l1' },
+    );
     mockOpened?.({ data: { type: 'conversation', conversationId: 'c1' } });
-    expect(open).toHaveBeenLastCalledWith({
-      pathname: '/conversations/[id]',
-      params: { id: 'c1' },
-    });
+    expect(open).toHaveBeenLastCalledWith(
+      { pathname: '/conversations/[id]', params: { id: 'c1' } },
+      { type: 'conversation', conversationId: 'c1' },
+    );
     mockForeground?.({ notification: { title: 'dana', body: 'Hi' } });
     expect(foreground).toHaveBeenCalledWith({ notification: { title: 'dana', body: 'Hi' } });
   });

@@ -24,7 +24,7 @@ export async function publishListing(input: PublishListingInput): Promise<string
   try {
     logEvent(getAnalytics(), 'game_listed', {
       platform: input.listing.platform,
-      hasPhotos: false,
+      has_photos: false,
     });
   } catch {
     // Analytics must never block publishing.

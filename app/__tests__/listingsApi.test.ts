@@ -49,7 +49,7 @@ describe('listings API', () => {
     expect(mockCallable).toHaveBeenCalledWith({ region: 'me-west1' }, 'publishListing', INPUT);
     expect(mockLogEvent).toHaveBeenCalledWith({}, 'game_listed', {
       platform: 'ps5',
-      hasPhotos: false,
+      has_photos: false,
     });
   });
 
