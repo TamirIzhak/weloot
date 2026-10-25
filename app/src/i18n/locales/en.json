@@ -677,10 +677,6 @@
       "placeholder": "e.g. Does it come with the case?",
       "send": "Send"
     },
-    "chat": {
-      "title": "Chat",
-      "soon": "The chat opens here."
-    },
     "errors": {
       "failed": "Couldn’t send. Check your connection and try again.",
       "listingUnavailable": "One of these games isn’t available anymore.",
@@ -688,6 +684,68 @@
       "dealExists": "You already have a deal here. Finish or cancel it first.",
       "blocked": "You can’t message this person.",
       "ownListing": "This is your own listing."
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "you": "you",
+    "someone": "the other trader",
+    "placeholder": "Message",
+    "send": "Send",
+    "makeOffer": "Make an offer",
+    "notFound": "This chat isn’t available",
+    "notFoundBody": "It may have been removed, or you’re not part of it.",
+    "offer": {
+      "fromMe": "Your offer",
+      "fromThem": "Offer from {{name}}",
+      "youGive": "You give",
+      "youGet": "You get",
+      "noGames": "No games",
+      "cash": "+ {{amount}} paid by {{payer}}",
+      "accept": "Accept",
+      "counter": "Counter",
+      "decline": "Decline",
+      "withdraw": "Withdraw offer",
+      "status": {
+        "pending": "Waiting",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "superseded": "Replaced",
+        "withdrawn": "Withdrawn",
+        "expired": "Expired"
+      }
+    },
+    "system": {
+      "offer_countered": "A counter-offer replaced the previous offer.",
+      "offer_accepted": "Offer accepted. It’s a deal! The games are reserved for you two.",
+      "offer_declined": "The offer was declined.",
+      "offer_withdrawn": "The offer was withdrawn.",
+      "offer_expired": "The offer expired after 72 hours without an answer.",
+      "offer_invalidated": "The offer was declined automatically: a game in it is no longer available.",
+      "unknown": "Something changed in this chat."
+    },
+    "safety": {
+      "title": "Before you meet",
+      "public": "• Meet in a public place, in daylight if you can.",
+      "check": "• Check the disc or cartridge before you swap.",
+      "bit": "• Prefer Bit to carrying cash.",
+      "prepay": "• Never pay in advance to someone you haven’t met.",
+      "report": "• Anything feels off? Report it in the app."
+    },
+    "deal": {
+      "status": {
+        "agreed": "Deal agreed: meet and swap",
+        "awaiting_confirmation": "Waiting for the swap to be confirmed",
+        "completed": "Swap completed",
+        "cancelled": "Deal cancelled",
+        "unconfirmed": "Swap not confirmed",
+        "disputed": "Under review by support"
+      },
+      "summary": "You give: {{give}} · You get: {{get}}"
+    },
+    "errors": {
+      "offerExpired": "This offer expired. Send a new one instead.",
+      "offerNotPending": "This offer was already answered or replaced."
     }
   }
 }
