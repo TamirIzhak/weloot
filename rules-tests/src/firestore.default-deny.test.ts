@@ -35,6 +35,9 @@ describe('firestore default deny', () => {
     await assertFails(getDoc(doc(db, 'system/doneToken')));
     // Alert push counts and cool-downs (#49).
     await assertFails(getDoc(doc(db, 'alertState/alice')));
+    // Rate-limit counters (#38): never readable or resettable by clients.
+    await assertFails(getDoc(doc(db, 'rateLimits/alice_sendOffer')));
+    await assertFails(setDoc(doc(db, 'rateLimits/alice_sendOffer'), { hits: [] }));
     // Reports go through submitReport only: nobody reads them, and nobody writes them directly (#19).
     await assertFails(getDoc(doc(db, 'reports/alice_listing_l1')));
     await assertFails(

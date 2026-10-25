@@ -37,7 +37,9 @@ export function QuestionComposer({ listingId }: { listingId: string }) {
             ? 'offers.errors.listingUnavailable'
             : reason === 'blocked'
               ? 'offers.errors.blocked'
-              : 'offers.errors.failed',
+              : reason === 'rateLimited'
+                ? 'offers.errors.rateLimited'
+                : 'offers.errors.failed',
         ),
         'error',
       );

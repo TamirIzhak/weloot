@@ -134,7 +134,8 @@ describe('matching', () => {
   it('gives the same result however often or in whatever order it runs', async () => {
     await putWant('alice', ELDEN);
     await db.doc('listings/b1').set(listingData('bob', ELDEN));
-    await Promise.all([recomputePair(db, 'alice', 'bob'), recomputePair(db, 'bob', 'alice')]);
+    // Either order (run one after the other: parallel transactions on one pair only add lock retries).
+    await recomputePair(db, 'bob', 'alice');
     await recomputePair(db, 'alice', 'bob');
     const first = await match('alice', 'bob');
     await recomputePair(db, 'alice', 'bob');

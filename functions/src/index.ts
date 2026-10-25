@@ -29,6 +29,7 @@ import { handleRateUser } from './conversations/ratings';
 import { syncCatalog, type SyncMode } from './catalog/catalogSync';
 import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
+import { rateLimit, type LimitedAction } from './limits/rateLimit';
 import { deletePhotosOf, syncListingPhotos, type PhotoDeps } from './listings/listingPhotos';
 import { handleManageListing } from './listings/manageListing';
 import {
@@ -59,6 +60,11 @@ import {
   TWITCH_CLIENT_ID,
   TWITCH_CLIENT_SECRET,
 } from './secrets';
+
+/** Per-user rate limit before a callable runs (PRD §12, #38); guests are refused by the handlers themselves. */
+async function limited(auth: { uid: string } | undefined, action: LimitedAction) {
+  if (auth) await rateLimit(adminDb(), auth.uid, action);
+}
 
 // Region per ADR 0001.
 setGlobalOptions({ region: FIREBASE_REGION, maxInstances: 10 });
@@ -213,15 +219,18 @@ export const alertOnListing = onDocumentWritten('listings/{listingId}', async (e
 });
 
 // Conversations and offers (PRD W5, #23): clients never write them; every change goes through these.
-export const startConversation = onCall((request) =>
-  handleStartConversation(request.auth, request.data, { db: adminDb() }),
-);
-export const sendMessage = onCall((request) =>
-  handleSendMessage(request.auth, request.data, { db: adminDb() }),
-);
-export const sendOffer = onCall((request) =>
-  handleSendOffer(request.auth, request.data, { db: adminDb() }),
-);
+export const startConversation = onCall(async (request) => {
+  await limited(request.auth, 'startConversation');
+  return handleStartConversation(request.auth, request.data, { db: adminDb() });
+});
+export const sendMessage = onCall(async (request) => {
+  await limited(request.auth, 'sendMessage');
+  return handleSendMessage(request.auth, request.data, { db: adminDb() });
+});
+export const sendOffer = onCall(async (request) => {
+  await limited(request.auth, 'sendOffer');
+  return handleSendOffer(request.auth, request.data, { db: adminDb() });
+});
 export const respondToOffer = onCall((request) =>
   handleRespondToOffer(request.auth, request.data, { db: adminDb() }),
 );
@@ -281,16 +290,17 @@ export const notifyOnMessage = onDocumentCreated(
 );
 
 // Barcodes (PRD §5.1, #14): look a scanned code up, and record users' confirmations.
-export const lookupBarcode = onCall({ secrets: [ALGOLIA_ADMIN_KEY] }, (request) =>
-  handleLookupBarcode(request.auth, request.data, {
+export const lookupBarcode = onCall({ secrets: [ALGOLIA_ADMIN_KEY] }, async (request) => {
+  await limited(request.auth, 'lookupBarcode');
+  return handleLookupBarcode(request.auth, request.data, {
     db: adminDb(),
     upc: noUpcProvider, // TODO(OPEN-6): the UPC/EAN provider isn't chosen yet.
     searchGames: async (query) => {
       const algolia = algoliaAdmin();
       return algolia ? searchGamesIndex(algolia, query) : [];
     },
-  }),
-);
+  });
+});
 
 export const confirmBarcode = onCall((request) =>
   handleConfirmBarcode(request.auth, request.data, { db: adminDb() }),

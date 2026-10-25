@@ -364,6 +364,17 @@ describe('ConversationScreen', () => {
     });
   });
 
+  it('says to slow down when messages hit the rate limit (#38)', async () => {
+    const { OfferError } = jest.requireMock('@/features/offers/offersApi') as {
+      OfferError: new (reason: string) => Error;
+    };
+    mockSendMessage.mockRejectedValue(new OfferError('rateLimited'));
+    await renderChat();
+    await fireEvent.changeText(screen.getByTestId('chat-input'), 'hi');
+    await fireEvent.press(screen.getByTestId('chat-send'));
+    expect(screen.getByText(/Take a short break/)).toBeTruthy();
+  });
+
   it('says when a chat isn’t available', async () => {
     mockConversation = null;
     await renderChat();
