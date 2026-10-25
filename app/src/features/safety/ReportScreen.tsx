@@ -9,8 +9,11 @@ import { Button, Chip, Input, Text, useToast } from '@/components';
 import { ReportError, submitReport } from './reportApi';
 
 /** Reasons that fit each kind of target (the rest, like "the swap didn't happen", belong to deals). */
-const REASONS: Partial<Record<ReportTarget, readonly ReportReason[]>> = {
+const REASONS: Record<ReportTarget, readonly ReportReason[]> = {
   listing: ['scam', 'fake_or_damaged', 'offensive', 'spam', 'other'],
+  user: ['scam', 'offensive', 'spam', 'no_show', 'other'],
+  message: ['offensive', 'scam', 'spam', 'other'],
+  deal: ['swap_didnt_happen', 'fake_or_damaged', 'no_show', 'scam', 'other'],
 };
 
 const ERROR_KEY: Record<string, string> = {
@@ -34,7 +37,7 @@ export function ReportScreen({
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState('');
   const [sending, setSending] = useState(false);
-  const reasons = REASONS[targetType] ?? ['other'];
+  const reasons = REASONS[targetType];
 
   const send = async () => {
     if (!reason) return;

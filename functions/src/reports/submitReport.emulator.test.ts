@@ -23,6 +23,8 @@ const report = (data: Record<string, unknown>, uid = 'reporter') =>
 beforeEach(async () => {
   await db.recursiveDelete(db.collection('reports'));
   await db.recursiveDelete(db.collection('listings'));
+  await db.recursiveDelete(db.collection('users'));
+  await db.recursiveDelete(db.collection('conversations'));
   await db.doc('listings/l1').set({ userId: 'owner', status: 'active' });
 });
 afterAll(async () => {
@@ -77,9 +79,49 @@ describe('submitReport', () => {
     await expect(report({}, 'owner')).rejects.toMatchObject({ details: { reason: 'ownTarget' } });
   });
 
-  it('does not take other targets until their screens exist (#37)', async () => {
-    await expect(report({ targetType: 'user', targetId: 'owner' })).rejects.toMatchObject({
-      details: { reason: 'notSupported' },
+  it('reports a user, but not yourself or someone who does not exist', async () => {
+    await db.doc('users/owner').set({ username: 'owner' });
+    await expect(
+      report({ targetType: 'user', targetId: 'owner', reason: 'offensive' }),
+    ).resolves.toEqual({
+      reportId: 'reporter_user_owner',
+    });
+    await expect(report({ targetType: 'user', targetId: 'reporter' })).rejects.toMatchObject({
+      details: { reason: 'ownTarget' },
+    });
+    await expect(report({ targetType: 'user', targetId: 'ghost' })).rejects.toMatchObject({
+      details: { reason: 'notFound' },
+    });
+  });
+
+  it('reports a message or a deal only from inside that conversation, never your own message', async () => {
+    await db
+      .doc('conversations/c1')
+      .set({ participants: ['reporter', 'owner'], deal: { status: 'agreed' } });
+    await db
+      .doc('conversations/c1/messages/m1')
+      .set({ senderId: 'owner', type: 'text', text: 'rude' });
+    await db
+      .doc('conversations/c1/messages/m2')
+      .set({ senderId: 'reporter', type: 'text', text: 'hi' });
+    await expect(
+      report({ targetType: 'message', targetId: 'c1~m1', reason: 'offensive' }),
+    ).resolves.toEqual({
+      reportId: 'reporter_message_c1~m1',
+    });
+    await expect(report({ targetType: 'message', targetId: 'c1~m2' })).rejects.toMatchObject({
+      details: { reason: 'ownTarget' },
+    });
+    await expect(
+      report({ targetType: 'deal', targetId: 'c1', reason: 'no_show' }),
+    ).resolves.toBeDefined();
+    await expect(
+      report({ targetType: 'message', targetId: 'c1~m1' }, 'outsider'),
+    ).rejects.toMatchObject({
+      details: { reason: 'notFound' },
+    });
+    await expect(report({ targetType: 'message', targetId: 'c1' })).rejects.toMatchObject({
+      details: { reason: 'invalidInput' },
     });
   });
 

@@ -258,3 +258,10 @@ Needs a new dev build only if messaging wasn't in the last one (it is, since #63
 - [ ] After a completed swap the push says "Tap to rate them"; the chat shows "How was the swap with <name>?" with 5 stars and an optional comment; Send is off until a star is picked.
 - [ ] After sending: "Thanks for rating…"; the card doesn't come back. The other trader's profile and owner card show the new average (★ 4.5 (2 ratings)).
 - [ ] No rating card for cancelled, unconfirmed or disputed deals.
+
+## Report and block (#37)
+- [ ] Chat → ⋯ → Report this person → reasons for a person (scam, offensive, spam, didn't show up, other) → sent; a report doc `reporter_user_<id>` appears.
+- [ ] Long-press the other person's message → Report message → reasons for a message → sent. Your own messages can't be reported.
+- [ ] Chat → ⋯ → Block → confirmation → "dana is blocked"; the message bar is replaced by "You blocked dana" with Unblock.
+- [ ] After blocking, each of you stops seeing the other's listings in Search and Home, and new offers or messages between you are refused. Matches between you disappear.
+- [ ] Settings → Blocked users lists them with Unblock; unblocking brings listings back.

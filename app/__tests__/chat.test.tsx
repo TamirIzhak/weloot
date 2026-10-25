@@ -17,6 +17,14 @@ let mockMessages: unknown[] | null = [];
 let mockOffers = new Map<string, unknown>();
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
+const mockSetBlocked = jest.fn();
+let mockBlocked: string[] = [];
+jest.mock('@/features/safety/blockApi', () => ({
+  setBlocked: (...args: unknown[]) => mockSetBlocked(...args),
+}));
+jest.mock('@/features/profile/settingsApi', () => ({
+  useUserSettings: () => ({ status: 'ready', settings: { blockedUserIds: mockBlocked } }),
+}));
 jest.mock('@/features/profile/usePublicProfile', () => ({
   usePublicProfile: () => ({ status: 'ready', profile: { username: 'dana_games' } }),
 }));
@@ -100,6 +108,8 @@ const renderChat = (ui: ReactElement = <ConversationScreen conversationId="l1_me
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockBlocked = [];
+  mockSetBlocked.mockResolvedValue(undefined);
   mockConversation = CONVERSATION;
   mockMessages = MESSAGES;
   mockOffers = new Map<string, unknown>([
@@ -303,6 +313,54 @@ describe('ConversationScreen', () => {
       await renderChat();
       expect(screen.getByTestId('deal-waiting')).toBeTruthy();
       expect(screen.queryByTestId('deal-yes')).toBeNull();
+    });
+  });
+
+  describe('report and block (#37)', () => {
+    const { Alert } = jest.requireActual('react-native') as typeof import('react-native');
+    let alertSpy: jest.SpyInstance;
+    beforeEach(() => {
+      alertSpy = jest.spyOn(Alert, 'alert');
+    });
+    afterEach(() => alertSpy.mockRestore());
+    const pressAlertButton = (call: number, text: string) => {
+      const buttons = alertSpy.mock.calls[call]?.[2] as { text: string; onPress?: () => void }[];
+      buttons.find((b) => b.text === text)?.onPress?.();
+    };
+
+    it('reports or blocks the other person from the chat menu (block asks first)', async () => {
+      await renderChat();
+      await fireEvent.press(screen.getByTestId('chat-menu'));
+      pressAlertButton(0, 'Report this person');
+      expect(mockPush).toHaveBeenCalledWith({
+        pathname: '/report',
+        params: { targetType: 'user', targetId: 'dana' },
+      });
+      await fireEvent.press(screen.getByTestId('chat-menu'));
+      pressAlertButton(1, 'Block');
+      expect(mockSetBlocked).not.toHaveBeenCalled();
+      expect(alertSpy.mock.calls[2]?.[0]).toBe('Block dana_games?');
+      pressAlertButton(2, 'Block');
+      expect(mockSetBlocked).toHaveBeenCalledWith('dana', true);
+    });
+
+    it('reports someone else’s message with a long press', async () => {
+      await renderChat();
+      await fireEvent(screen.getByTestId('message-m1'), 'longPress');
+      pressAlertButton(0, 'Report message');
+      expect(mockPush).toHaveBeenCalledWith({
+        pathname: '/report',
+        params: { targetType: 'message', targetId: 'l1_me~m1' },
+      });
+    });
+
+    it('after blocking: no message bar, and Unblock', async () => {
+      mockBlocked = ['dana'];
+      await renderChat();
+      expect(screen.queryByTestId('chat-input')).toBeNull();
+      expect(screen.getByTestId('chat-blocked')).toBeTruthy();
+      await fireEvent.press(screen.getByTestId('chat-unblock'));
+      expect(mockSetBlocked).toHaveBeenCalledWith('dana', false);
     });
   });
 
