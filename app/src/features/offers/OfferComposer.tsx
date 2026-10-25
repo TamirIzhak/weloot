@@ -12,6 +12,8 @@ import { parseShekels } from '@/features/search/searchFilters';
 import { currentLanguage, formatPrice } from '@/i18n';
 import { colors } from '@/theme/tokens';
 
+import { registerForPush } from '@/features/notifications/push';
+
 import { GamePicker } from './GamePicker';
 import {
   OfferError,
@@ -155,6 +157,8 @@ export function OfferComposer({
       const id = conversationId
         ? (await sendOffer(conversationId, offer, counterOfferId !== undefined), conversationId)
         : (await startConversation({ listingId, opener: 'offer', offer })).conversationId;
+      // A push when they answer is the point of sending an offer: ask now, if not asked yet.
+      void registerForPush(true);
       router.replace({ pathname: '/conversations/[id]', params: { id } });
     } catch (error) {
       const key = error instanceof OfferError ? ERROR_KEY[error.reason] : undefined;

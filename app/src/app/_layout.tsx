@@ -18,6 +18,7 @@ import { useEffect } from 'react';
 import { ToastProvider } from '@/components';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { Splash } from '@/features/auth/Splash';
+import { PushBridge } from '@/features/notifications/PushBridge';
 import { initFirebase } from '@/lib/firebase';
 import { colors } from '@/theme/tokens';
 
@@ -58,38 +59,41 @@ function RootNavigator() {
   const auth = useAuth();
   if (auth.status === 'loading') return <Splash />;
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="location" options={{ presentation: 'modal' }} />
-      {/* Pushed screens with a header and back button (titles set by each screen). */}
-      <Stack.Screen name="settings/index" options={withHeader} />
-      <Stack.Screen name="settings/addresses" options={withHeader} />
-      <Stack.Screen name="settings/delete-account" options={withHeader} />
-      <Stack.Screen name="me/listings" options={withHeader} />
-      <Stack.Screen name="me/[section]" options={withHeader} />
-      <Stack.Screen name="add/details" options={withHeader} />
-      <Stack.Screen name="add/done" options={{ gestureEnabled: false }} />
-      <Stack.Screen name="feed/[kind]" options={withHeader} />
-      <Stack.Screen name="listings/[id]/index" options={withHeader} />
-      <Stack.Screen name="listings/[id]/photos" options={withHeader} />
-      <Stack.Screen name="listings/[id]/report" options={withHeader} />
-      <Stack.Screen name="listings/[id]/ask" options={withHeader} />
-      <Stack.Screen name="offer/[listingId]" options={withHeader} />
-      <Stack.Screen name="add/quick" options={withHeader} />
-      <Stack.Screen name="conversations/[id]" options={withHeader} />
-      <Stack.Screen name="addresses/new" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="addresses/[id]" options={{ presentation: 'modal' }} />
-      {/* OAuth redirects land here for a moment and step back (OAuthRedirect). */}
-      <Stack.Screen
-        name="auth/[provider]"
-        options={{ presentation: 'transparentModal', animation: 'none' }}
-      />
-      <Stack.Screen
-        name="authorize"
-        options={{ presentation: 'transparentModal', animation: 'none' }}
-      />
-    </Stack>
+    <>
+      <PushBridge />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="location" options={{ presentation: 'modal' }} />
+        {/* Pushed screens with a header and back button (titles set by each screen). */}
+        <Stack.Screen name="settings/index" options={withHeader} />
+        <Stack.Screen name="settings/addresses" options={withHeader} />
+        <Stack.Screen name="settings/delete-account" options={withHeader} />
+        <Stack.Screen name="me/listings" options={withHeader} />
+        <Stack.Screen name="me/[section]" options={withHeader} />
+        <Stack.Screen name="add/details" options={withHeader} />
+        <Stack.Screen name="add/done" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="feed/[kind]" options={withHeader} />
+        <Stack.Screen name="listings/[id]/index" options={withHeader} />
+        <Stack.Screen name="listings/[id]/photos" options={withHeader} />
+        <Stack.Screen name="listings/[id]/report" options={withHeader} />
+        <Stack.Screen name="listings/[id]/ask" options={withHeader} />
+        <Stack.Screen name="offer/[listingId]" options={withHeader} />
+        <Stack.Screen name="add/quick" options={withHeader} />
+        <Stack.Screen name="conversations/[id]" options={withHeader} />
+        <Stack.Screen name="addresses/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="addresses/[id]" options={{ presentation: 'modal' }} />
+        {/* OAuth redirects land here for a moment and step back (OAuthRedirect). */}
+        <Stack.Screen
+          name="auth/[provider]"
+          options={{ presentation: 'transparentModal', animation: 'none' }}
+        />
+        <Stack.Screen
+          name="authorize"
+          options={{ presentation: 'transparentModal', animation: 'none' }}
+        />
+      </Stack>
+    </>
   );
 }
 

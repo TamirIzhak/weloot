@@ -98,11 +98,31 @@ export const userSettingsSchema = z.object({
   /** When the user opted in; absent while they haven't. */
   marketingOptInAt: timestampSchema.optional(),
   fcmTokens: z.array(z.string()).max(10),
+  /** Which pushes the user wants (PRD §9-D); a missing kind means on. */
+  notificationPrefs: z
+    .record(z.enum(['offers', 'messages', 'deals', 'alerts']), z.boolean())
+    .optional(),
   blockedUserIds: z.array(uid).max(500),
   searchRadiusKm: z.number().int().min(1).max(200),
   ...timestamps,
 });
 export type UserSettings = z.infer<typeof userSettingsSchema>;
+
+/** Push notification kinds the user can switch off in Settings (PRD §9-D, §10). */
+export const NOTIFICATION_KINDS = ['offers', 'messages', 'deals', 'alerts'] as const;
+export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
+
+/** Whether a kind of push is on (on unless switched off). */
+export function wantsNotification(
+  prefs: Partial<Record<NotificationKind, boolean>> | undefined,
+  kind: NotificationKind,
+): boolean {
+  return prefs?.[kind] !== false;
+}
+
+/** Most devices kept per user for pushes. */
+export const MAX_PUSH_TOKENS = 10;
+export const pushTokenInputSchema = z.object({ token: z.string().min(1).max(4096) });
 
 /** What the profile-setup step submits (validated in the app; Security Rules enforce the same rules). */
 export const profileSetupInputSchema = z.object({

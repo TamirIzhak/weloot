@@ -236,6 +236,25 @@ describe('after setup', () => {
     await assertFails(setupBatch(as('alice'), 'alice', 'Alice_2'));
   });
 
+  it('lets the owner switch notification kinds on and off, nothing else in them (#27)', async () => {
+    const db = as('alice');
+    const settings = doc(db, 'users/alice/private/settings');
+    await assertSucceeds(
+      updateDoc(settings, {
+        notificationPrefs: { offers: false, messages: true },
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(
+      updateDoc(settings, { notificationPrefs: { marketing: true }, updatedAt: serverTimestamp() }),
+    );
+    await assertFails(
+      updateDoc(settings, { notificationPrefs: { offers: 'yes' }, updatedAt: serverTimestamp() }),
+    );
+    // Device tokens are registered by a function, never written by the client.
+    await assertFails(updateDoc(settings, { fcmTokens: ['abc'], updatedAt: serverTimestamp() }));
+  });
+
   it('denies profile edits, deletes, and settings changes without a fresh updatedAt', async () => {
     const db = as('alice');
     await assertFails(updateDoc(doc(db, 'users/alice'), { ratingAvg: 5 }));

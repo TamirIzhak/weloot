@@ -243,3 +243,13 @@ Two accounts after an accepted offer.
 - [ ] The Inbox tab icon shows the total unread (99+ above 99) and updates live; TalkBack reads "Inbox, 3 unread".
 - [ ] No conversations → "No conversations yet" with Find games.
 - [ ] Hebrew: rows and badges mirror.
+
+## Push notifications (#27): v0.5.0 (M4 complete)
+Needs a new dev build only if messaging wasn't in the last one (it is, since #63). Two phones, A and B.
+- [ ] After B's first offer or question (or turning on an alert) the system asks to allow notifications; nothing is asked at launch.
+- [ ] A gets "New offer from B" / "B asked about <game>" / chat messages ("B: text"); several messages from one chat replace each other.
+- [ ] Tapping a push opens that chat (or, for an alert, the game page) from a closed app and from the background.
+- [ ] With the app open, a push shows as a toast instead.
+- [ ] Accept / decline / withdraw / expiry, "Did you swap…?", completed, cancelled and the deal reminders each reach the right person, in their app language.
+- [ ] Settings → Notifications: switching off Messages stops chat pushes but not offers; all kinds start on.
+- [ ] Sign out on a phone → it stops getting that account's pushes.

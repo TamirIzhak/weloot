@@ -6,6 +6,7 @@ import { MAX_ALERTS, wantKey, type PlatformKey } from '@weloot/shared';
 import { useToast } from '@/components';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useRequireAuth } from '@/features/auth/authGate';
+import { registerForPush } from '@/features/notifications/push';
 
 import { createAlert, deleteAlert, useAlerts, type NewAlert } from './alertsApi';
 
@@ -37,7 +38,10 @@ export function useNotifyMe() {
         return;
       }
       createAlert(uid, alert).then(
-        () => toast.show(t('alerts.created', { title: alert.gameTitle }), 'success'),
+        () => {
+          toast.show(t('alerts.created', { title: alert.gameTitle }), 'success');
+          void registerForPush(true);
+        },
         () => toast.show(t('alerts.errors.saveFailed'), 'error'),
       );
     });

@@ -7,6 +7,8 @@ import { MESSAGE_TEXT_MAX } from '@weloot/shared';
 
 import { Button, Input, Text, useToast } from '@/components';
 
+import { registerForPush } from '@/features/notifications/push';
+
 import { OfferError, startConversation } from './offersApi';
 
 /** "Ask a question" on a game page (PRD W5): the first message opens the conversation. */
@@ -25,6 +27,7 @@ export function QuestionComposer({ listingId }: { listingId: string }) {
         opener: 'question',
         text: text.trim(),
       });
+      void registerForPush(true);
       router.replace({ pathname: '/conversations/[id]', params: { id: conversationId } });
     } catch (error) {
       const reason = error instanceof OfferError ? error.reason : 'unknown';

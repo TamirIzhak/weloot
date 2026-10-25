@@ -11,6 +11,7 @@ import {
   snapToArea,
   wantlistItemSchema,
   wantsListing,
+  wantsNotification,
   type ListingDoc,
 } from '@weloot/shared';
 
@@ -213,7 +214,13 @@ export async function alertOnListingWrite(
     if (!match) continue;
     const alertKey = match.alertKey;
 
-    const tokens = ((settings.get('fcmTokens') as string[] | undefined) ?? []).filter(Boolean);
+    // Pushes only when the user keeps alert notifications on (Settings, #27); New for you either way.
+    const tokens = wantsNotification(
+      settings.get('notificationPrefs') as Record<string, boolean> | undefined,
+      'alerts',
+    )
+      ? ((settings.get('fcmTokens') as string[] | undefined) ?? []).filter(Boolean)
+      : [];
     const itemRef = db.collection('newForYou').doc(uid).collection('items').doc(listingId);
     const stateRef = db.collection('alertState').doc(uid);
     const pushed = await db.runTransaction(async (tx) => {

@@ -129,27 +129,27 @@ Status: ✅ merged · 🔄 in progress
 
 ## M4 — Conversations, offers & deals (`v0.5.0`)
 
-**#23 feat(offers): conversations, offers and deal model with rules and functions** · L · deps #7, #16
+**✅ #23 feat(offers): conversations, offers and deal model with rules and functions** · L · deps #7, #16
 - `conversations`, `messages`, `offers` per PRD §8; callable functions: start conversation (offer or question), send/counter/withdraw/accept/decline offer; expiry scheduler (72h); listing reservation and auto-decline of conflicting offers; deal creation on accept.
 - AC: rules deny all client writes to status fields; only participants can read; state-machine tests for every path.
 
-**#24 feat(offers): offer composer and game-page openers** · L · deps #23, #19
+**✅ #24 feat(offers): offer composer and game-page openers** · L · deps #23, #19
 - Game page: "Make an offer" (primary) + "Ask a question" while no conversation exists, then "Open chat". Offer composer: both sides' games, Quick Add (#16), optional cash top-up either way, note; counter prefilled.
 - AC: `conversation_started` (opener), `offer_sent`, `offer_countered` events; composer works in RTL.
 
-**#25 feat(chat): conversation screen** · M · deps #23
+**✅ #25 feat(chat): conversation screen** · M · deps #23
 - Realtime messages, offer cards with Accept/Counter/Decline/Withdraw, system messages, deal header, report message, block user.
 
-**#47 feat(deals): swap confirmation, cancel and safety tips** · M · deps #25, #17
+**✅ #47 feat(deals): swap confirmation, cancel and safety tips** · M · deps #25, #17
 - An owner's "Swapped" (from #17 or the deal header) records their confirmation, creating the deal if there was no accepted offer. The counterpart gets a one-tap "Did you swap X with Y?" (Yes / No) as a push and chat banner.
 - Yes → `completed` (trade counts +1, rating prompt); 7 days without an answer → `unconfirmed` (reminders on day 1 and 3); No → `disputed` + report.
 - Deal header: Swapped / Cancel deal (reason). A 2-day "Did the swap happen?" reminder after acceptance. Safety tips card on agreement.
 - AC: listings close on the owner's action alone; trade counts and ratings only for `completed` (function + rules tests); `listing_closed`, `listing_closed_outside`, `deal_confirmed`, `deal_completed`, `deal_cancelled`, `deal_disputed`.
 
-**#26 feat(inbox): inbox tab** · M · deps #25
+**✅ #26 feat(inbox): inbox tab** · M · deps #25
 - Grouped conversations (Needs action / Active deals / Chats / Completed), unread badges.
 
-**#27 feat(notifications): push notifications** · M · deps #23
+**✅ #27 feat(notifications): push notifications** · M · deps #23
 - FCM token registration, server-side localized notifications for PRD §10 events, deep links into the right screen, notification preferences.
 
 ## M5 — Trust, sharing & launch (`v0.6.0`)

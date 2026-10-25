@@ -8,7 +8,12 @@ import {
 } from '@react-native-firebase/firestore';
 import { useEffect, useState } from 'react';
 
-import { userSettingsSchema, type LanguageCode, type UserSettings } from '@weloot/shared';
+import {
+  userSettingsSchema,
+  type LanguageCode,
+  type NotificationKind,
+  type UserSettings,
+} from '@weloot/shared';
 
 // `users/{uid}/private/settings` (owner-only): what Settings shows and changes (PRD §9-D). Security Rules allow
 // the owner to change only the language, the search radius and the promotions opt-in.
@@ -43,7 +48,10 @@ export function useUserSettings(uid: string | undefined): SettingsState {
 }
 
 export type SettingsChange =
-  { preferredLanguage: LanguageCode } | { searchRadiusKm: number } | { marketingOptIn: boolean };
+  | { preferredLanguage: LanguageCode }
+  | { searchRadiusKm: number }
+  | { marketingOptIn: boolean }
+  | { notificationPrefs: Partial<Record<NotificationKind, boolean>> };
 
 /** Applies one change. Opting in to promotions records the server time; opting out removes it. */
 export async function updateSettings(uid: string, change: SettingsChange): Promise<void> {
