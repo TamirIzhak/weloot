@@ -18,6 +18,7 @@ import {
   conversationSchema,
   FIREBASE_REGION,
   listingSchema,
+  ratingIdFor,
   offerSchema,
   type ConversationDoc,
   type ConversationError,
@@ -25,6 +26,7 @@ import {
   type DealStatus,
   type OfferDoc,
   type OfferInput,
+  type RateUserInput,
   type RespondToOfferInput,
   type SendMessageInput,
   type StartConversationInput,
@@ -254,4 +256,24 @@ export function useMyConversations(uid: string | undefined): Conversation[] | nu
 
   if (!uid) return [];
   return state?.uid === uid ? state.list : null;
+}
+
+/** Rate the other trader after a completed deal (PRD W9, #36). */
+export const rateUser = call<RateUserInput, { ratingId: string }>('rateUser');
+
+/** Whether I already rated this deal (my rating doc exists; rules let the rater read it). */
+export function useMyRating(conversationId: string, me: string): 'loading' | boolean {
+  const id = ratingIdFor(conversationId, me);
+  const [state, setState] = useState<{ id: string; rated: boolean } | null>(null);
+
+  useEffect(() => {
+    return onSnapshot(
+      doc(getFirestore(), 'ratings', id),
+      (snapshot) => setState({ id, rated: snapshot.exists() }),
+      // A rating that doesn't exist can't be read under the rules: not rated yet.
+      () => setState({ id, rated: false }),
+    );
+  }, [id]);
+
+  return state?.id === id ? state.rated : 'loading';
 }

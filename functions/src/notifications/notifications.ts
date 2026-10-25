@@ -47,7 +47,10 @@ const TEXT: Record<string, Record<Language, string>> = {
     he: 'ההצעה שלך על {game} נדחתה: אחד המשחקים בה כבר לא זמין.',
   },
   deal_confirmed: { en: 'Did you swap {game} with {name}?', he: 'החלפת את {game} עם {name}?' },
-  deal_completed: { en: 'Swap completed with {name}. Nice!', he: 'ההחלפה עם {name} הושלמה!' },
+  deal_completed: {
+    en: 'Swap completed with {name}. Tap to rate them.',
+    he: 'ההחלפה עם {name} הושלמה. הקישו כדי לדרג.',
+  },
   deal_cancelled: { en: 'The deal for {game} was cancelled.', he: 'העסקה על {game} בוטלה.' },
   deal_disputed: {
     en: 'The swap for {game} was reported as not happening. Support will look into it.',

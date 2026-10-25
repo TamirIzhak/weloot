@@ -10,6 +10,8 @@ const mockSendMessage = jest.fn();
 const mockMarkRead = jest.fn();
 const mockRespond = jest.fn();
 const mockDealAction = jest.fn();
+const mockRate = jest.fn();
+let mockRated: boolean | 'loading' = false;
 let mockConversation: unknown = 'loading';
 let mockMessages: unknown[] | null = [];
 let mockOffers = new Map<string, unknown>();
@@ -37,6 +39,8 @@ jest.mock('@/features/offers/offersApi', () => {
     markConversationRead: (...args: unknown[]) => mockMarkRead(...args),
     respondToOffer: (...args: unknown[]) => mockRespond(...args),
     dealAction: (...args: unknown[]) => mockDealAction(...args),
+    rateUser: (...args: unknown[]) => mockRate(...args),
+    useMyRating: () => mockRated,
   };
 });
 
@@ -268,6 +272,30 @@ describe('ConversationScreen', () => {
         conversationId: 'l1_me',
         action: 'confirm',
       });
+    });
+
+    it('completed: asks to rate the other trader once (#36)', async () => {
+      mockRated = false;
+      mockRate.mockResolvedValue({ ratingId: 'l1_me_me' });
+      withDeal({ status: 'completed', confirmedBy: ['dana', 'me'] });
+      await renderChat();
+      expect(screen.getByText('How was the swap with dana_games?')).toBeTruthy();
+      expect(screen.getByTestId('rate-send').props.accessibilityState).toMatchObject({
+        disabled: true,
+      });
+      await fireEvent.press(screen.getByTestId('rate-star-4'));
+      await fireEvent.changeText(screen.getByTestId('rate-comment'), ' On time ');
+      await fireEvent.press(screen.getByTestId('rate-send'));
+      expect(mockRate).toHaveBeenCalledWith({
+        conversationId: 'l1_me',
+        stars: 4,
+        comment: 'On time',
+      });
+
+      mockRated = true;
+      await renderChat();
+      expect(screen.queryByTestId('rate-card')).toBeNull();
+      expect(screen.getByTestId('rate-done')).toBeTruthy();
     });
 
     it('after my confirmation: waits for the other side, no buttons', async () => {

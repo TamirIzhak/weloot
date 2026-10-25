@@ -776,6 +776,13 @@
     "errors": {
       "offerExpired": "This offer expired. Send a new one instead.",
       "offerNotPending": "This offer was already answered or replaced."
+    },
+    "rate": {
+      "title": "How was the swap with {{name}}?",
+      "stars": "{{count}} stars",
+      "comment": "A few words (optional)",
+      "send": "Send rating",
+      "thanks": "Thanks for rating. It helps everyone trade safely."
     }
   },
   "inbox": {

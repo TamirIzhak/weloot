@@ -1,5 +1,8 @@
 import {
+  addToAverage,
   conversationIdFor,
+  ratingIdFor,
+  rateUserInputSchema,
   respondToOfferInputSchema,
   sendOfferInputSchema,
   startConversationInputSchema,
@@ -64,5 +67,27 @@ describe('conversation inputs', () => {
       respondToOfferInputSchema.safeParse({ conversationId: 'c', offerId: 'o', action: 'counter' })
         .success,
     ).toBe(false);
+  });
+});
+
+describe('ratings', () => {
+  it('averages one more rating, two decimals', () => {
+    expect(addToAverage(0, 0, 4)).toBe(4);
+    expect(addToAverage(4, 1, 5)).toBe(4.5);
+    expect(addToAverage(4.5, 2, 3)).toBe(4);
+    expect(addToAverage(5, 2, 4)).toBe(4.67);
+  });
+
+  it('takes 1–5 whole stars and an optional comment', () => {
+    expect(
+      rateUserInputSchema.safeParse({ conversationId: 'c', stars: 5, comment: ' Great ' }).data,
+    ).toEqual({
+      conversationId: 'c',
+      stars: 5,
+      comment: 'Great',
+    });
+    expect(rateUserInputSchema.safeParse({ conversationId: 'c', stars: 0 }).success).toBe(false);
+    expect(rateUserInputSchema.safeParse({ conversationId: 'c', stars: 4.5 }).success).toBe(false);
+    expect(ratingIdFor('c1', 'u1')).toBe('c1_u1');
   });
 });

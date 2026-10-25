@@ -117,6 +117,14 @@ service cloud.firestore {
       }
     }
 
+    // Ratings (PRD W9, #36): written once per deal and rater by the rateUser function; the rater and the rated
+    // person can read it. Profiles only show the aggregates (users.ratingAvg / ratingCount).
+    match /ratings/{ratingId} {
+      allow read: if request.auth != null
+        && (resource.data.raterId == request.auth.uid || resource.data.rateeId == request.auth.uid);
+      allow write: if false;
+    }
+
     // "Notify me" alerts (PRD W8, #49): the owner only. A real catalog game on one of its consoles (or any), with its
     // catalog title, keyed like want list items so one game alerts once; an optional area-level centre in Israel.
     match /alerts/{uid}/items/{alertId} {

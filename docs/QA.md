@@ -253,3 +253,8 @@ Needs a new dev build only if messaging wasn't in the last one (it is, since #63
 - [ ] Accept / decline / withdraw / expiry, "Did you swap…?", completed, cancelled and the deal reminders each reach the right person, in their app language.
 - [ ] Settings → Notifications: switching off Messages stops chat pushes but not offers; all kinds start on.
 - [ ] Sign out on a phone → it stops getting that account's pushes.
+
+## Ratings (#36)
+- [ ] After a completed swap the push says "Tap to rate them"; the chat shows "How was the swap with <name>?" with 5 stars and an optional comment; Send is off until a star is picked.
+- [ ] After sending: "Thanks for rating…"; the card doesn't come back. The other trader's profile and owner card show the new average (★ 4.5 (2 ratings)).
+- [ ] No rating card for cancelled, unconfirmed or disputed deals.

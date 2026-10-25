@@ -25,6 +25,7 @@ import {
   invalidateOffersFor,
 } from './conversations/conversations';
 import { handleDealAction, runDealReminders } from './conversations/deals';
+import { handleRateUser } from './conversations/ratings';
 import { syncCatalog, type SyncMode } from './catalog/catalogSync';
 import { createIgdbClient } from './catalog/igdbClient';
 import { healthPayload } from './health';
@@ -228,6 +229,10 @@ export const markConversationRead = onCall((request) =>
 // Deals (PRD W6, #47): confirm / dispute / cancel, and the reminders and 7-day expiry.
 export const dealAction = onCall((request) =>
   handleDealAction(request.auth, request.data, { db: adminDb() }),
+);
+// Ratings (PRD W9, #36): after a completed deal, once per person.
+export const rateUser = onCall((request) =>
+  handleRateUser(request.auth, request.data, { db: adminDb() }),
 );
 export const dealRemindersScheduled = onSchedule(
   { schedule: 'every 60 minutes', timeZone: 'Asia/Jerusalem' },
