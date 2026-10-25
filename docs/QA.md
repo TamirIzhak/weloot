@@ -155,3 +155,12 @@ Needs Algolia set up (docs/OWNER-TODO.md 5) and a few published listings (ideall
 - [ ] Report listing as a guest → sign-in sheet ("Sign in to report it"), then the report screen. No phone verification is asked.
 - [ ] Report: Send stays disabled until a reason is picked; sending shows "Thanks. We'll look into it." and closes. The report appears in Firestore `reports` (console). Reporting the same listing again updates that report.
 - [ ] Hebrew: the page and the report screen read right to left; the username and numbers stay readable.
+
+## Want list (#20)
+- [ ] Search results: ♡ on each tile; tap → "Elden Ring is on your want list" and the heart fills; tap again → removed.
+- [ ] As a guest, ♡ opens the sign-in sheet ("Sign in to save your want list", no phone step); after signing in the game is added.
+- [ ] Game page: "Add to my want list" → "On my want list ✓" (tap again removes). Not shown on your own listing.
+- [ ] Profile → Want list: games newest first with their console (or "Any console"), "N of 100 games", ♥ removes one; empty list → Find games.
+- [ ] The same game on another console is a separate item; adding the same one twice keeps one.
+- [ ] Delete account → the want list is gone too (Firestore console: `wantlist/{uid}`).
+- [ ] Hebrew: labels and hearts sit correctly in RTL.

@@ -13,6 +13,8 @@ import { DensityToggle, ListingGrid } from '@/features/listings/grid/ListingGrid
 import { useBrowsingLocation } from '@/features/location/browsingLocation';
 import { LocationChip } from '@/features/location/LocationChip';
 import { useUserSettings } from '@/features/profile/settingsApi';
+import { useWantToggle } from '@/features/wantlist/useWantToggle';
+import { WantHeart } from '@/features/wantlist/WantHeart';
 import { currentLanguage, formatNumber } from '@/i18n';
 import { useHideOnScroll, useTabBarInset } from '@/navigation/TabBarVisibility';
 import { colors } from '@/theme/tokens';
@@ -150,6 +152,7 @@ function Results({
   const onScroll = useHideOnScroll();
   const bottomInset = useTabBarInset();
   const state = useListingSearch({ query, filters, area });
+  const want = useWantToggle();
 
   switch (state.status) {
     case 'notConfigured':
@@ -198,6 +201,20 @@ function Results({
       <ListingGrid
         items={tiles}
         onPressItem={(item) => router.push({ pathname: '/listings/[id]', params: { id: item.id } })}
+        renderAccessory={(item) => (
+          <WantHeart
+            wanted={want.isWanted(item.igdbGameId, item.platform)}
+            title={item.gameTitle}
+            onPress={() =>
+              want.toggle({
+                igdbGameId: item.igdbGameId,
+                platform: item.platform,
+                gameTitle: item.gameTitle,
+              })
+            }
+            testID={`want-${item.id}`}
+          />
+        )}
         onScroll={onScroll}
         onEndReached={state.hasMore ? state.loadMore : undefined}
         bottomInset={bottomInset}

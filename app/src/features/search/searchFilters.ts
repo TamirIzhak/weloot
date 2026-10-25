@@ -75,6 +75,7 @@ export function toTile(
   const city = record.cityId ? findCity(record.cityId) : undefined;
   return {
     id: record.objectID,
+    igdbGameId: record.igdbGameId,
     gameTitle: record.gameTitle,
     platform: record.platform,
     ...(record.coverImageId ? { coverImageId: record.coverImageId } : {}),

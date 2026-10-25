@@ -18,6 +18,14 @@ let mockProfile: unknown = { status: 'loading' };
 let mockPhotos: string[] = [];
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, replace: mockReplace }) }));
+const mockToggleWant = jest.fn();
+let mockWanted = new Set<string>();
+jest.mock('@/features/wantlist/useWantToggle', () => ({
+  useWantToggle: () => ({
+    isWanted: (id: number, platform?: string) => mockWanted.has(`${id}_${platform ?? 'any'}`),
+    toggle: (...args: unknown[]) => mockToggleWant(...args),
+  }),
+}));
 jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuthState }));
 jest.mock('@/features/auth/authGate', () => ({
   useRequireAuth: () => (reason: string, action: () => void) => mockRequireAuth(reason, action),
@@ -94,6 +102,7 @@ const renderScreen = (ui: ReactElement) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockWanted = new Set();
   mockAuthState = { status: 'signedOut' };
   mockProfile = PROFILE;
   mockPhotos = [];
@@ -161,6 +170,20 @@ describe('ListingDetailScreen', () => {
     expect(screen.getByText('Real photos')).toBeTruthy();
   });
 
+  it('adds the game, on this console, to the want list', async () => {
+    await renderScreen(<ListingDetailScreen listingId="l1" />);
+    expect(screen.getByText('Add to my want list')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('listing-want'));
+    expect(mockToggleWant).toHaveBeenCalledWith({
+      igdbGameId: 119133,
+      platform: 'ps5',
+      gameTitle: 'Elden Ring',
+    });
+    mockWanted = new Set(['119133_ps5']);
+    await renderScreen(<ListingDetailScreen listingId="l1" />);
+    expect(screen.getByText('On my want list ✓')).toBeTruthy();
+  });
+
   it('asks a guest to sign in before reporting, then opens the report', async () => {
     await renderScreen(<ListingDetailScreen listingId="l1" />);
     await fireEvent.press(screen.getByTestId('listing-report'));
@@ -179,6 +202,7 @@ describe('ListingDetailScreen', () => {
     await renderScreen(<ListingDetailScreen listingId="l1" />);
     expect(screen.getByTestId('listing-own')).toBeTruthy();
     expect(screen.queryByTestId('listing-report')).toBeNull();
+    expect(screen.queryByTestId('listing-want')).toBeNull();
     expect(screen.getByText('Paused')).toBeTruthy();
   });
 

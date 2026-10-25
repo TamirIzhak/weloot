@@ -34,11 +34,15 @@ async function seed(uid: string, username: string) {
     .set({ email: 'dana@example.com', firstName: 'Dana' });
   await db.doc(`users/${uid}/locations/home`).set({ label: 'Home', address: 'Dizengoff 50' });
   await db.doc(`users/${uid}/locations/work`).set({ label: 'Work', address: 'Rothschild 1' });
+  await db
+    .doc(`wantlist/${uid}/items/119133_ps5`)
+    .set({ igdbGameId: 119133, gameTitle: 'Elden Ring' });
 }
 
 async function clear() {
   await db.recursiveDelete(db.collection('users'));
   await db.recursiveDelete(db.collection('usernames'));
+  await db.recursiveDelete(db.collection('wantlist'));
 }
 
 beforeEach(async () => {
@@ -58,6 +62,7 @@ describe('deleteAccount on Firestore', () => {
     expect((await db.doc('usernames/gamer_1').get()).exists).toBe(false);
     expect((await db.doc('users/u1/private/settings').get()).exists).toBe(false);
     expect((await db.collection('users/u1/locations').get()).empty).toBe(true);
+    expect((await db.collection('wantlist/u1/items').get()).empty).toBe(true);
 
     const profile = (await db.doc('users/u1').get()).data();
     expect(profile).toMatchObject({

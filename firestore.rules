@@ -71,6 +71,30 @@ service cloud.firestore {
         && d.areaName is string && d.areaName.size() >= 1 && d.areaName.size() <= 60;
     }
 
+    // Want list (PRD W3, #20): the owner only (matching functions read it with the Admin SDK). Each item is a real
+    // catalog game, on one of its consoles or any, keyed `{igdbGameId}_{platform|any}` (wantKey in shared) so a
+    // game can't be added twice. Adding one again (e.g. right after signing in) replaces it whole; no partial edits.
+    match /wantlist/{uid}/items/{itemId} {
+      function catalogGame(d) {
+        return get(/databases/$(database)/documents/games/$(string(d.igdbGameId))).data;
+      }
+
+      function isWant(d) {
+        return d.keys().hasAll(['igdbGameId', 'gameTitle', 'createdAt'])
+          && d.keys().hasOnly(['igdbGameId', 'platform', 'gameTitle', 'createdAt'])
+          && d.igdbGameId is int && d.igdbGameId > 0
+          && ((!('platform' in d) && itemId == string(d.igdbGameId) + '_any')
+            || ('platform' in d && itemId == string(d.igdbGameId) + '_' + d.platform
+              && d.platform in catalogGame(d).platforms))
+          && d.gameTitle == catalogGame(d).title
+          && d.createdAt == request.time;
+      }
+
+      allow read: if signedInAs(uid);
+      allow create, update: if signedInAs(uid) && isWant(request.resource.data);
+      allow delete: if signedInAs(uid);
+    }
+
     // Public profile: readable by everyone, guests included (listings show their owner).
     match /users/{uid} {
       allow read: if true;

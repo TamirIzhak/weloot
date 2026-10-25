@@ -18,6 +18,7 @@ const SAMPLE_TITLES = [
 ];
 const SAMPLES: ListingTileData[] = Array.from({ length: 150 }, (_, i) => ({
   id: `sample-${i}`,
+  igdbGameId: 1000 + i,
   gameTitle: `${SAMPLE_TITLES[i % SAMPLE_TITLES.length] ?? ''} #${i + 1}`,
   platform: PLATFORM_KEYS[i % PLATFORM_KEYS.length] ?? 'ps5',
   hasPhotos: i % 4 === 0,
