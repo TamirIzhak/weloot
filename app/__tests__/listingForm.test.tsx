@@ -8,7 +8,10 @@ const mockPush = jest.fn();
 const mockPublish = jest.fn();
 let mockSaved: Record<string, unknown> = { status: 'ready', items: [] };
 
-jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace, push: mockPush }) }));
+const mockDismiss = jest.fn();
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ replace: mockReplace, push: mockPush, dismiss: mockDismiss }),
+}));
 jest.mock('@/features/listings/listingsApi', () => ({
   newListingId: () => 'req0000000000000001',
   publishListing: (...args: unknown[]) => mockPublish(...args),
@@ -83,6 +86,21 @@ describe('ListingForm', () => {
       params: { listingId: 'req0000000000000001' },
     });
     expect(useAddDraft.getState().game).toBeNull();
+  });
+
+  it('in Quick Add, returns the new listing to the offer composer instead of the success screen', async () => {
+    useAddDraft.setState({ quick: true });
+    await render(<ListingForm uid="u1" />);
+    await fireEvent.press(screen.getByTestId('condition-good'));
+    await fireEvent.press(publishButton());
+    expect(mockDismiss).toHaveBeenCalledWith(2);
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(useAddDraft.getState()).toMatchObject({
+      quick: false,
+      quickResult: 'req0000000000000001',
+    });
+    expect(useAddDraft.getState().takeQuickResult()).toBe('req0000000000000001');
+    expect(useAddDraft.getState().quickResult).toBeNull();
   });
 
   it('needs a whole-shekel price between ₪10 and ₪1,000 for sale, sent in agorot', async () => {

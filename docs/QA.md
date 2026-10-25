@@ -205,3 +205,13 @@ Pushes need the device registration from #27; until then alerts land in New for 
 
 ## Conversations, offers and deal model (#23)
 Server side only; checked through the screens in #24 (offer composer), #25 (chat) and #47 (deals). In the Firestore console after those: one `conversations/{listingId}_{uid}` per listing and interested user, offers under it with `pending` → `accepted`/`declined`/`withdrawn`/`superseded`/`expired`, and listings `reserved` when an offer is accepted.
+
+## Offer composer and game-page openers (#24)
+Two accounts: A owns a listing, B browses it.
+- [ ] B (not signed in) on A's game page: "Make an offer" (primary) and "Ask a question". Each asks to sign in, then for the phone once, then continues.
+- [ ] Ask a question → type → Send → the chat opens (placeholder until #25); back on the game page the buttons became "Open chat".
+- [ ] Make an offer: A's game is preselected under "You get"; pick yours under "You give"; "List a game" runs the add flow and comes back with the new game selected.
+- [ ] Cash: No cash / I add cash / They add cash, whole ₪1–₪2,000 (₪2,500 shows an error and disables Send). The hint says it's paid in person or by Bit.
+- [ ] Cash alone for a trade-only game shows "Cash alone works only for games that are for sale"; for a For Sale game it sends.
+- [ ] A game that just went away (paused by its owner) → "One of these games isn't available anymore."
+- [ ] Hebrew: both pickers scroll from the right; labels and the amount field read correctly.

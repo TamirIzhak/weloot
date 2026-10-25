@@ -26,6 +26,8 @@ jest.mock('@/features/wantlist/useWantToggle', () => ({
     toggle: (...args: unknown[]) => mockToggleWant(...args),
   }),
 }));
+let mockConversation: string = 'none';
+jest.mock('@/features/offers/offersApi', () => ({ useConversationFor: () => mockConversation }));
 jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuthState }));
 jest.mock('@/features/auth/authGate', () => ({
   useRequireAuth: () => (reason: string, action: () => void) => mockRequireAuth(reason, action),
@@ -103,6 +105,7 @@ const renderScreen = (ui: ReactElement) =>
 beforeEach(() => {
   jest.clearAllMocks();
   mockWanted = new Set();
+  mockConversation = 'none';
   mockAuthState = { status: 'signedOut' };
   mockProfile = PROFILE;
   mockPhotos = [];
@@ -184,6 +187,28 @@ describe('ListingDetailScreen', () => {
     expect(screen.getByText('On my want list ✓')).toBeTruthy();
   });
 
+  it('offers Make an offer and Ask a question behind sign-in, then Open chat once a conversation exists', async () => {
+    await renderScreen(<ListingDetailScreen listingId="l1" />);
+    await fireEvent.press(screen.getByTestId('listing-make-offer'));
+    expect(mockRequireAuth).toHaveBeenCalledWith('offer', expect.any(Function));
+    (mockRequireAuth.mock.calls[0] as [string, () => void])[1]();
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/offer/[listingId]',
+      params: { listingId: 'l1' },
+    });
+    await fireEvent.press(screen.getByTestId('listing-ask'));
+    expect(mockRequireAuth).toHaveBeenLastCalledWith('question', expect.any(Function));
+
+    mockConversation = 'l1_me';
+    await renderScreen(<ListingDetailScreen listingId="l1" />);
+    expect(screen.queryByTestId('listing-make-offer')).toBeNull();
+    await fireEvent.press(screen.getByTestId('listing-open-chat'));
+    expect(mockPush).toHaveBeenLastCalledWith({
+      pathname: '/conversations/[id]',
+      params: { id: 'l1_me' },
+    });
+  });
+
   it('asks a guest to sign in before reporting, then opens the report', async () => {
     await renderScreen(<ListingDetailScreen listingId="l1" />);
     await fireEvent.press(screen.getByTestId('listing-report'));
@@ -203,6 +228,7 @@ describe('ListingDetailScreen', () => {
     expect(screen.getByTestId('listing-own')).toBeTruthy();
     expect(screen.queryByTestId('listing-report')).toBeNull();
     expect(screen.queryByTestId('listing-want')).toBeNull();
+    expect(screen.queryByTestId('listing-make-offer')).toBeNull();
     expect(screen.getByText('Paused')).toBeTruthy();
   });
 

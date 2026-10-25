@@ -74,6 +74,10 @@ function RootNavigator() {
       <Stack.Screen name="listings/[id]/index" options={withHeader} />
       <Stack.Screen name="listings/[id]/photos" options={withHeader} />
       <Stack.Screen name="listings/[id]/report" options={withHeader} />
+      <Stack.Screen name="listings/[id]/ask" options={withHeader} />
+      <Stack.Screen name="offer/[listingId]" options={withHeader} />
+      <Stack.Screen name="add/quick" options={withHeader} />
+      <Stack.Screen name="conversations/[id]" options={withHeader} />
       <Stack.Screen name="addresses/new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="addresses/[id]" options={{ presentation: 'modal' }} />
       {/* OAuth redirects land here for a moment and step back (OAuthRedirect). */}

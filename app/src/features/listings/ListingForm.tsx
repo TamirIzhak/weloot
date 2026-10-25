@@ -87,6 +87,12 @@ export function ListingForm({ uid }: { uid: string }) {
           ...(isForSale ? { askingPriceAgorot: priceAgorot } : {}),
         },
       });
+      if (useAddDraft.getState().quick) {
+        // Quick Add: back to the offer composer (details + identify), which picks the new listing up.
+        useAddDraft.getState().finishQuick(listingId);
+        router.dismiss(2);
+        return;
+      }
       reset();
       router.replace({ pathname: '/add/done', params: { listingId } });
     } catch (e) {
