@@ -5,10 +5,20 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 // and its own Firebase project (see README "Firebase projects").
 type Variant = 'development' | 'preview' | 'production';
 
-const VARIANTS: Record<Variant, { name: string; appId: string }> = {
-  development: { name: 'WeLoot Dev', appId: 'com.weloot.app.dev' },
-  preview: { name: 'WeLoot Staging', appId: 'com.weloot.app.staging' },
-  production: { name: 'WeLoot', appId: 'com.weloot.app' },
+// shareDomain: where shared links point (PRD W7). TODO(OPEN-12): the PRD default is each project's Firebase Hosting
+// domain until a WeLoot domain is chosen; EXPO_PUBLIC_SHARE_DOMAIN overrides it. Changing it needs a new build.
+const VARIANTS: Record<Variant, { name: string; appId: string; shareDomain: string }> = {
+  development: {
+    name: 'WeLoot Dev',
+    appId: 'com.weloot.app.dev',
+    shareDomain: 'development-1c64a.web.app',
+  },
+  preview: {
+    name: 'WeLoot Staging',
+    appId: 'com.weloot.app.staging',
+    shareDomain: 'staging-d0c10.web.app',
+  },
+  production: { name: 'WeLoot', appId: 'com.weloot.app', shareDomain: 'weloot-c5fb2.web.app' },
 };
 
 function resolveVariant(value: string | undefined): Variant {
@@ -33,6 +43,7 @@ const PERMISSIONS = {
     'WeLoot uses your location to show games near you and to fill in your address when you post.',
 };
 const { name, appId } = VARIANTS[variant];
+const shareDomain = process.env.EXPO_PUBLIC_SHARE_DOMAIN || VARIANTS[variant].shareDomain;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -48,6 +59,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     icon: './assets/expo.icon',
     bundleIdentifier: appId,
+    // Shared links open the game page in the app (Universal Links; the AASA file is in hosting/public).
+    associatedDomains: [`applinks:${shareDomain}`],
     // GoogleService-Info.plist per variant is added when iOS builds start (needs an Apple developer account).
   },
   android: {
@@ -61,6 +74,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // Shared links open the game page in the app (App Links; assetlinks.json is in hosting/public).
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        data: [{ scheme: 'https', host: shareDomain, pathPrefix: '/l/' }],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
+    ],
     // Libraries may add these; WeLoot never records audio or tracks location in the background.
     blockedPermissions: [
       'android.permission.RECORD_AUDIO',
@@ -130,6 +152,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     reactCompiler: true,
   },
   extra: {
+    shareDomain,
     appVariant: variant,
     eas: { projectId: '93b88dcd-9316-4815-bb20-44137f94f91d' },
   },

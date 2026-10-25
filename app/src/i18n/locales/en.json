@@ -826,5 +826,12 @@
       "completed": "Done",
       "needsAction": "Needs your answer"
     }
+  },
+  "share": {
+    "listing": "Share",
+    "wantlist": "Share my want list",
+    "listingText": "{{game}} ({{platform}}) is up for grabs on WeLoot: {{link}}",
+    "mineText": "I’m offering {{game}} ({{platform}}) on WeLoot. Want it? {{link}}",
+    "wantlistText": "Looking for: {{games}}. Got one? Let’s swap on WeLoot: {{link}}"
   }
 }

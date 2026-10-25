@@ -28,3 +28,12 @@ jest.mock('@/features/notifications/push', () => ({
   watchPushes: jest.fn(() => () => undefined),
   targetOf: jest.fn(() => null),
 }));
+
+// Sharing opens the native share sheet and logs analytics; feature tests check the buttons through these mocks
+// (share.test.ts unmocks it).
+jest.mock('@/features/share/share', () => ({
+  shareDomain: () => 'weloot.test',
+  listingLink: (id: string) => `https://weloot.test/l/${id}`,
+  shareListing: jest.fn(async () => undefined),
+  shareWantlist: jest.fn(async () => undefined),
+}));

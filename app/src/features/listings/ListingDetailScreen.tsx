@@ -14,6 +14,7 @@ import { coverUrl } from '@/features/catalog/igdbImages';
 import { useBrowsingLocation } from '@/features/location/browsingLocation';
 import { usePublicProfile } from '@/features/profile/usePublicProfile';
 import { useConversationFor } from '@/features/offers/offersApi';
+import { shareListing } from '@/features/share/share';
 import { useWantToggle } from '@/features/wantlist/useWantToggle';
 import {
   currentLanguage,
@@ -164,6 +165,21 @@ function ListingDetail({ listing }: { listing: Listing }) {
             testID="listing-want"
           />
         )}
+
+        {listing.status === 'active' ? (
+          <Button
+            variant="ghost"
+            label={t('share.listing')}
+            onPress={() =>
+              void shareListing(
+                listing,
+                (v) => t(own ? 'share.mineText' : 'share.listingText', v),
+                'game_page',
+              )
+            }
+            testID="listing-share"
+          />
+        ) : null}
 
         <OwnerCard uid={listing.userId} />
 

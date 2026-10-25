@@ -826,5 +826,12 @@
       "completed": "הסתיים",
       "needsAction": "מחכה לתשובה שלך"
     }
+  },
+  "share": {
+    "listing": "שיתוף",
+    "wantlist": "שיתוף רשימת המשאלות",
+    "listingText": "{{game}} ({{platform}}) מחכה ב־WeLoot: {{link}}",
+    "mineText": "אני מציע/ה את {{game}} ({{platform}}) ב־WeLoot. רוצים? {{link}}",
+    "wantlistText": "מחפש/ת: {{games}}. יש לכם? בואו נחליף ב־WeLoot: {{link}}"
   }
 }

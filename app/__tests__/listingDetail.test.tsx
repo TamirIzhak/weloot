@@ -209,6 +209,25 @@ describe('ListingDetailScreen', () => {
     });
   });
 
+  it('shares the listing from the game page (#50)', async () => {
+    const { shareListing } = jest.requireMock('@/features/share/share') as {
+      shareListing: jest.Mock;
+    };
+    await renderScreen(<ListingDetailScreen listingId="l1" />);
+    await fireEvent.press(screen.getByTestId('listing-share'));
+    expect(shareListing).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'l1', gameTitle: 'Elden Ring' }),
+      expect.any(Function),
+      'game_page',
+    );
+    const text = (
+      shareListing.mock.calls[0] as [unknown, (v: Record<string, string>) => string]
+    )[1];
+    expect(text({ game: 'Elden Ring', platform: 'PS5', link: 'L' })).toBe(
+      'Elden Ring (PS5) is up for grabs on WeLoot: L',
+    );
+  });
+
   it('asks a guest to sign in before reporting, then opens the report', async () => {
     await renderScreen(<ListingDetailScreen listingId="l1" />);
     await fireEvent.press(screen.getByTestId('listing-report'));
