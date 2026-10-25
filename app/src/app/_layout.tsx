@@ -18,6 +18,8 @@ import { useEffect } from 'react';
 import { ToastProvider } from '@/components';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { Splash } from '@/features/auth/Splash';
+import { initMonitoring } from '@/features/monitoring/crash';
+import { MonitoringBridge } from '@/features/monitoring/MonitoringBridge';
 import { PushBridge } from '@/features/notifications/PushBridge';
 import { initFirebase } from '@/lib/firebase';
 import { colors } from '@/theme/tokens';
@@ -55,12 +57,16 @@ const withHeader = {
  * Guest-first navigation (PRD W1): everyone lands on the tabs. Protected actions open the `sign-in` modal
  * through `useRequireAuth`; nothing is locked at the app level.
  */
+// Crash reporting is on from the first frame (off in development builds).
+initMonitoring();
+
 function RootNavigator() {
   const auth = useAuth();
   if (auth.status === 'loading') return <Splash />;
   return (
     <>
       <PushBridge />
+      <MonitoringBridge />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />

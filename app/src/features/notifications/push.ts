@@ -95,13 +95,13 @@ export function targetOf(data: Record<string, unknown> | undefined): PushTarget 
  * are handed to `onForeground` (shown as a toast), since the system doesn't display them then.
  */
 export function watchPushes(
-  open: (target: PushTarget) => void,
+  open: (target: PushTarget, data: Record<string, unknown> | undefined) => void,
   onForeground: (message: RemoteMessage) => void,
 ): () => void {
   const messaging = getMessaging();
   const go = (message: RemoteMessage | null) => {
     const target = targetOf(message?.data);
-    if (target) open(target);
+    if (target) open(target, message?.data);
   };
   getInitialNotification(messaging).then(go, () => undefined);
   const offOpened = onNotificationOpenedApp(messaging, go);

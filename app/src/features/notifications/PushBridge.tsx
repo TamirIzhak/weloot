@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 
 import { useToast } from '@/components';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { trackAlertOpened } from '@/features/monitoring/crash';
 
 import { registerForPush, watchPushes, watchTokenRefresh } from './push';
 
@@ -27,7 +28,12 @@ export function PushBridge() {
   useEffect(
     () =>
       watchPushes(
-        (target) => router.push(target),
+        (target, data) => {
+          if (data?.source === 'alert' && typeof data.listingId === 'string') {
+            trackAlertOpened(data.listingId);
+          }
+          router.push(target);
+        },
         (message) => {
           const title = message.notification?.title;
           const body = message.notification?.body;
