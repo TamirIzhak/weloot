@@ -105,3 +105,12 @@ Needs the functions running and at least one game in the catalog.
 - [ ] Emulator UI → `listings/<id>`: status `active`, game title, cover, condition, the area (rounded lat/lng, area name) and **no** address text or exact coordinates.
 - [ ] Double-tapping Publish creates one listing.
 - [ ] Delete account (#11) afterwards: the listing's status becomes `removed`.
+
+## Listing photos (#15)
+Needs the new dev build (camera, image picker) and the Storage emulator/bucket.
+- [ ] After publishing, "Add photos" opens Photos. A listing can stay without photos ("Done").
+- [ ] Take a photo and choose several from the gallery: each shows a progress bar, then the photo; at most 6 (buttons disable at 6).
+- [ ] "Real photos" badge appears once a photo is stored; removing all photos removes it (Emulator UI: `hasPhotos`, `photoPaths`).
+- [ ] Airplane mode during an upload → the tile shows a retry icon; retry after reconnecting works.
+- [ ] Download a stored photo from the Storage emulator and check its metadata: no GPS/EXIF, long edge ≤ 1600 px.
+- [ ] Refuse gallery permission → a message explains it.

@@ -1,10 +1,31 @@
 rules_version = '2';
 
-// Default deny. Listing photo rules (owner-only writes, images only, size limit) arrive in #15.
+// Default deny, except listing photos (PRD W2): `listings/{listingId}/{0-5}.jpg`.
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
       allow read, write: if false;
+    }
+
+    match /listings/{listingId}/{fileName} {
+      function listing() {
+        return firestore.get(/databases/(default)/documents/listings/$(listingId)).data;
+      }
+
+      function isOwner() {
+        return request.auth != null && listing().userId == request.auth.uid;
+      }
+
+      // Photos of active listings are public (guests too); owners always see their own (paused, closed…).
+      allow read: if listing().status == 'active' || isOwner();
+
+      // Owner only, while the listing is open: up to 6 JPEG photos (0.jpg–5.jpg), at most 5 MB each.
+      allow create, update: if isOwner()
+        && listing().status in ['active', 'paused']
+        && fileName.matches('^[0-5]\\.jpg$')
+        && request.resource.contentType == 'image/jpeg'
+        && request.resource.size <= 5 * 1024 * 1024;
+      allow delete: if isOwner();
     }
   }
 }

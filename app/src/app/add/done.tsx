@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,10 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, Text } from '@/components';
 import { colors } from '@/theme/tokens';
 
-/** After publishing (PRD W2): success, the one-time photo nudge (photos arrive with #15), and what next. */
+/** After publishing (PRD W2): success, the one-time photo nudge, and what next. */
 export default function AddDone() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { listingId } = useLocalSearchParams<{ listingId: string }>();
   return (
     <SafeAreaView className="flex-1 justify-center gap-6 bg-bg px-6" testID="add-done">
       <Stack.Screen options={{ headerShown: false }} />
@@ -26,9 +27,18 @@ export default function AddDone() {
       <Card className="gap-1 p-4">
         <Text className="font-medium">{t('listings.done.photoNudgeTitle')}</Text>
         <Text tone="secondary">{t('listings.done.photoNudgeBody')}</Text>
+        <Button
+          label={t('listings.done.addPhotos')}
+          onPress={() =>
+            router.replace({ pathname: '/listings/[id]/photos', params: { id: listingId } })
+          }
+          testID="add-photos"
+          className="mt-2"
+        />
       </Card>
       <View className="gap-3">
         <Button
+          variant="secondary"
           size="lg"
           fullWidth
           label={t('listings.done.another')}

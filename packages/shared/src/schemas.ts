@@ -261,6 +261,7 @@ export const listingSchema = z.object({
   closedAt: timestampSchema.optional(),
   ...timestamps,
 });
+export type ListingDoc = z.infer<typeof listingSchema>;
 
 export const wantlistItemSchema = z.object({
   igdbGameId: z.number().int().positive(),
