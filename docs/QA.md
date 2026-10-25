@@ -164,3 +164,11 @@ Needs Algolia set up (docs/OWNER-TODO.md 5) and a few published listings (ideall
 - [ ] The same game on another console is a separate item; adding the same one twice keeps one.
 - [ ] Delete account → the want list is gone too (Firestore console: `wantlist/{uid}`).
 - [ ] Hebrew: labels and hearts sit correctly in RTL.
+
+## Matching (#21)
+Background only (Home shows matches with #22). Check in the Firestore console (`matches/{uid}/items/{otherUid}`), with two accounts A and B.
+- [ ] A wants Elden Ring (PS5); B lists Elden Ring PS5 → within seconds A has a match doc about B (`perfect: false`); B has none.
+- [ ] B also wants a game A lists (same console) → both docs say `perfect: true` with both listing IDs.
+- [ ] B pauses or closes the listing → A's doc goes (and B's turns one-way or goes).
+- [ ] A removes the game from the want list → the docs go.
+- [ ] A want list item for "any console" matches a listing on any console; a PS4 want doesn't match a PS5 listing.
